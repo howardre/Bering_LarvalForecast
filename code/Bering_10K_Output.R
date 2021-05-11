@@ -124,7 +124,7 @@ pk_adults_catch <- pk_adults_catch %>%
 head(pk_adults_catch)
 pk_dat <- pk_adults_catch[pk_adults_catch$year > 2014, ]
 pk_dat$roms_date <- NA
-pk_dat$roms_temp <- NA
+pk_dat$roms_temperature <- NA
 
 # Create maps with the pollock data ----
 # Two versions: 1. Closest grid/time point; 2. loess interpolations
@@ -139,23 +139,22 @@ for (i in 1:nrow(pk_dat)) {
     c(lat),
     c(lon1)
   ))[1]
-  pk_dat$roms_temp[i] <- c(temp[, , idx_time])[idx_grid]
+  pk_dat$roms_temperature[i] <- c(temp[, , idx_time])[idx_grid]
 }
 
 # 2. Loess interpolation by year, in the month of July
 # Get index for "month"
-year <- unique(pk_dat$year)
-month_year <- substr(time1, 1, 7)
-month <- "07"
-pk_dat$loess_temp <- NA
+pk_year <- unique(pk_dat$year)
+
+pk_dat$loess_temperature <- NA
 pk_dat$loess_date <- NA
-for (i in 1:length(year)) {
-  idx.time <-
-    (1:length(month_year))[month_year == paste(year[i], month, sep = "-")][1]
+for (i in 1:length(pk_year)) {
+  idx_time <-
+    (1:length(month_year))[month_year == paste(pk_year[i], month, sep = "-")][1]
   # Get temp
   temp_plot <- temp[, , idx_time]
   # Get start and end date of data fields
-  plot_day1 <- as.character(time.1[idx_time])
+  plot_day1 <- as.character(time1[idx_time])
   # Make data frame for loess
   data_loess <-
     na.exclude(data.frame(
@@ -171,20 +170,20 @@ for (i in 1:length(year)) {
   summary(lm(predict(temp_loess) ~ data_loess$z))
   # Make prediction data frame
   pred_loess <-
-    data.frame(x = pk_dat$start_longitude[pk_dat$year == year[i]],
-               y = pk_dat$start_latitude[pk_dat$year == year[i]])
+    data.frame(x = pk_dat$start_longitude[pk_dat$year == pk_year[i]],
+               y = pk_dat$start_latitude[pk_dat$year == pk_year[i]])
   # Add predictions to fish data
-  pk_dat$loess_temp[pk_dat$YEAR == year[i]] <- predict(temp_loess,
+  pk_dat$loess_temperature[pk_dat$year == year[i]] <- predict(temp_loess,
                                                      newdata = pred_loess)
-  pk_dat$loess_date[pk_dat$YEAR == year[i]] <- plot_day1
+  pk_dat$loess_date[pk_dat$year == year[i]] <- plot_day1
 }
 head(pk_dat)
 
 # Check predictions
-quartz(height = 8, width = 8)
+windows(height = 8, width = 8)
 par(mfrow = c(2, 2))
 plot(
-  pk_dat$roms_bt,
+  pk_dat$roms_temperature,
   pk_dat$gear_temperature,
   xlab = "Closest ROMS Temp",
   ylab = "Gear temp",
@@ -192,7 +191,7 @@ plot(
 )
 abline(0, 1, col = "red", lwd = 2)
 plot(
-  pk_dat$loess_bt,
+  pk_dat$loess_temperature,
   pk_dat$gear_temperature,
   xlab = "LOESS Temp",
   ylab = "Gear temp",
@@ -200,8 +199,8 @@ plot(
 )
 abline(0, 1, col = "red", lwd = 2)
 plot(
-  pk_dat$loess_bt,
-  pk_dat$roms_bt,
+  pk_dat$loess_temperature,
+  pk_dat$roms_temperature,
   xlab = "LOESS Temp",
   ylab = "Closest ROMS",
   main = "ROMS_loess vs ROMS_close"
@@ -209,7 +208,7 @@ plot(
 abline(0, 1, col = "red", lwd = 2)
 dev.copy(
   jpeg,
-  'Model_Obs_Bottom_Temp.jpg',
+  'results/Model_Obs_Bottom_Temp.jpg',
   height = 8,
   width = 8,
   res = 200,
@@ -226,33 +225,33 @@ gam_obs <- gam(
   data = pk_dat[pk_dat$cpue_noha > 0, ]
 )
 summary(gam_obs)
-#R-sq.(adj) =  0.383   Deviance explained = 39.3%
-#GCV = 1.8872  Scale est. = 1.854     n = 1864
+# R-sq.(adj) =  0.383   Deviance explained = 39.3%
+# GCV = 1.8872  Scale est. = 1.854     n = 1864
 
-#2. ROMS close
+# 2. ROMS close
 gam_roms <- gam(
-  log(CPUE_NOHA) ~ factor(YEAR) +
-    s(START_LONGITUDE, START_LATITUDE) +
-    s(roms.bt, k = 4),
-  data = pk_dat[pk_dat$CPUE_NOHA > 0, ]
+  log(cpue_noha) ~ factor(year) +
+    s(start_longitude, start_latitude) +
+    s(roms_temperature, k = 4),
+  data = pk_dat[pk_dat$cpue_noha > 0, ]
 )
 summary(gam_roms)
 #R-sq.(adj) =  0.344   Deviance explained = 35.6%
 #GCV = 2.0006  Scale est. = 1.9656    n = 1863
 
-#3. ROMS loess
+# 3. ROMS loess
 gam_loess <- gam(
-  log(CPUE_NOHA) ~ factor(YEAR) +
-    s(START_LONGITUDE, START_LATITUDE) +
-    s(loess.bt, k = 4),
-  data = pk_dat[pk_dat$CPUE_NOHA > 0, ]
+  log(cpue_noha) ~ factor(year) +
+    s(start_longitude, start_latitude) +
+    s(loess_temperature, k = 4),
+  data = pk_dat[pk_dat$cpue_noha > 0, ]
 )
 summary(gam_loess)
-#R-sq.(adj) =  0.345   Deviance explained = 35.6%
-#GCV = 2.0018  Scale est. = 1.968     n = 1864
+# R-sq.(adj) =  0.345   Deviance explained = 35.6%
+# GCV = 2.0018  Scale est. = 1.968     n = 1864
 
-#Plot all three temp effects
-quartz(height = 8, width = 8)
+# Plot all three temp effects
+windows(height = 8, width = 8)
 par(mfrow = c(2, 2))
 plot(
   gam_obs,
@@ -268,7 +267,7 @@ plot(
   scale = 0,
   shade = T,
   res = T,
-  main = "ROMS_close temperature"
+  main = "ROMS close temperature"
 )
 plot(
   gam_loess,
@@ -276,11 +275,11 @@ plot(
   scale = 0,
   shade = T,
   res = T,
-  main = "ROMS_loess temperature"
+  main = "ROMS loess temperature"
 )
 dev.copy(
   jpeg,
-  'GAM_Bottom_Temp.jpg',
+  'results/GAM_Bottom_Temp.jpg',
   height = 8,
   width = 8,
   res = 200,
