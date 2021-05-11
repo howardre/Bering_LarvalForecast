@@ -126,9 +126,10 @@ pk_dat <- pk_adults_catch[pk_adults_catch$year > 2014, ]
 pk_dat$roms_date <- NA
 pk_dat$roms_temp <- NA
 
+# Create maps with the pollock data ----
 # Two versions: 1. Closest grid/time point; 2. loess interpolations
 
-#1. Closest grid/time point
+# 1. Closest grid/time point
 for (i in 1:nrow(pk_dat)) {
   idx_time <- order(abs(time1 - pk_dat$date[i]))[1]
   pk_dat$roms_date[i] <- time1[idx_time]
@@ -141,8 +142,8 @@ for (i in 1:nrow(pk_dat)) {
   pk_dat$roms_temp[i] <- c(temp[, , idx_time])[idx_grid]
 }
 
-#2. Loess interpolation by year, in the month of July
-#Get index for "month"
+# 2. Loess interpolation by year, in the month of July
+# Get index for "month"
 year <- unique(pk_dat$year)
 month_year <- substr(time1, 1, 7)
 month <- "07"
@@ -163,44 +164,44 @@ for (i in 1:length(year)) {
       y = c(lat)
     ))
   # Fit loess and check predictions
-  temp.loess <- loess(z ~ x * y,
-                      data = data.loess,
+  temp_loess <- loess(z ~ x * y,
+                      data = data_loess,
                       span = 0.002,
                       degree = 2)
-  summary(lm(predict(temp.loess) ~ data.loess$z))
+  summary(lm(predict(temp_loess) ~ data_loess$z))
   # Make prediction data frame
-  pred.loess <-
-    data.frame(x = pk_dat$START_LONGITUDE[pk_dat$YEAR == year[i]],
-               y = pk_dat$START_LATITUDE[pk_dat$YEAR == year[i]])
+  pred_loess <-
+    data.frame(x = pk_dat$start_longitude[pk_dat$year == year[i]],
+               y = pk_dat$start_latitude[pk_dat$year == year[i]])
   # Add predictions to fish data
-  pk_dat$loess.bt[pk_dat$YEAR == year[i]] <- predict(temp.loess,
-                                                     newdata = pred.loess)
-  pk_dat$loess.date[pk_dat$YEAR == year[i]] <- plot.day1
+  pk_dat$loess_temp[pk_dat$YEAR == year[i]] <- predict(temp_loess,
+                                                     newdata = pred_loess)
+  pk_dat$loess_date[pk_dat$YEAR == year[i]] <- plot_day1
 }
 head(pk_dat)
 
-#Check predictions
+# Check predictions
 quartz(height = 8, width = 8)
 par(mfrow = c(2, 2))
 plot(
-  pk_dat$roms.bt,
-  pk_dat$GEAR_TEMPERATURE,
+  pk_dat$roms_bt,
+  pk_dat$gear_temperature,
   xlab = "Closest ROMS Temp",
   ylab = "Gear temp",
   main = "Observation vs ROMS_close"
 )
 abline(0, 1, col = "red", lwd = 2)
 plot(
-  pk_dat$loess.bt,
-  pk_dat$GEAR_TEMPERATURE,
+  pk_dat$loess_bt,
+  pk_dat$gear_temperature,
   xlab = "LOESS Temp",
   ylab = "Gear temp",
   main = "Observation vs ROMS_loess"
 )
 abline(0, 1, col = "red", lwd = 2)
 plot(
-  pk_dat$loess.bt,
-  pk_dat$roms.bt,
+  pk_dat$loess_bt,
+  pk_dat$roms_bt,
   xlab = "LOESS Temp",
   ylab = "Closest ROMS",
   main = "ROMS_loess vs ROMS_close"
@@ -219,10 +220,10 @@ dev.off()
 #Fit GAMs using observed and predicted bottom temp
 #1. Observed BT
 gam_obs <- gam(
-  log(CPUE_NOHA) ~ factor(YEAR) +
-    s(START_LONGITUDE, START_LATITUDE) +
-    s(GEAR_TEMPERATURE, k = 4),
-  data = pk_dat[pk_dat$CPUE_NOHA > 0, ]
+  log(cpue_noha) ~ factor(year) +
+    s(start_longitude, start_latitude) +
+    s(gear_temperature, k = 4),
+  data = pk_dat[pk_dat$cpue_noha > 0, ]
 )
 summary(gam_obs)
 #R-sq.(adj) =  0.383   Deviance explained = 39.3%
