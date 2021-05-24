@@ -19,7 +19,7 @@ library(lubridate)
 source(here('code/functions', 'distance_function.R'))
 source(here('code/functions', 'vis_gam_COLORS.R'))
 
-# Depth data obtained from NGDC grid extract tool for ETOPO1
+##### Depth data obtained from NGDC grid extract tool for ETOPO1 ----
 str_name <- (here('data', 'bering_bathy.tiff'))
 bering_bathy <- as.bathy(raster(str_name) * -1)
 bathy_lat <- as.numeric(colnames(bering_bathy))
@@ -28,12 +28,37 @@ bathy_ylim = range(bathy_lat)
 bathy_xlim = range(bathy_lon)
 bering_bathy[bering_bathy <= -1] <- NA
 
-# Bering 10K model output: avg bottom temp 2015-2019
-bering_model_temp <- nc_open(here('data', 
-                                  'B10K-K20_CORE_CFS_1979-2017_average_temp_top5m.nc'))
-bering_model_sal <- nc_open(here('data', 
-                                  'B10K-K20_CORE_CFS_1979-2017_average_salinity_top5m.nc'))
-print(bering_model_sal)
+# Bering 10K model output: avg surface temperatures
+bering_model_temp1 <- nc_open(here('data/temperature_netcdf', 
+                                  'B10K-K20_CORECFS_1985-1989_average_temp_surface5m.nc'))
+bering_model_temp2 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_1990-1994_average_temp_surface5m.nc'))
+bering_model_temp3 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_1995-1999_average_temp_surface5m.nc'))
+bering_model_temp4 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_2000-2004_average_temp_surface5m.nc'))
+bering_model_temp5 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_2005-2009_average_temp_surface5m.nc'))
+bering_model_temp6 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_2010-2014_average_temp_surface5m.nc'))
+bering_model_temp7 <- nc_open(here('data/temperature_netcdf', 
+                                   'B10K-K20_CORECFS_2015-2019_average_temp_surface5m.nc'))
+bering_model_salt1 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_1985-1989_average_salt_surface5m.nc'))
+bering_model_salt2 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_1990-1994_average_salt_surface5m.nc'))
+bering_model_salt3 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_1995-1999_average_salt_surface5m.nc'))
+bering_model_salt4 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_2000-2004_average_salt_surface5m.nc'))
+bering_model_salt5 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_2005-2009_average_salt_surface5m.nc'))
+bering_model_salt6 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_2010-2014_average_salt_surface5m.nc'))
+bering_model_salt7 <- nc_open(here('data/salinity_netcdf', 
+                                   'B10K-K20_CORECFS_2015-2019_average_salt_surface5m.nc'))
+# check to see contents
+print(bering_model_temp)
 
 # Function to extract data from .nc files
 nc_extract <- function(file, variable, varid_name){
@@ -45,15 +70,41 @@ nc_extract <- function(file, variable, varid_name){
   fillvalue_t <- ncatt_get(file, varid_name, "_FillValue")
   variable <- ncvar_get(file, varid = varid_name)
   variable[variable == fillvalue_t$value] <- NA
-  return_list <- list(lon1, lat, time1, variable)
-}
+  return_list <- list("lon1" = lon1, "lat" = lat, "time1" = time1, "variable" = variable)
+} # need to get time to return properly
 
-temp_output <- nc_extract(bering_model_temp, temp, 'temp')
-salt_output <- nc_extract(bering_model_sal, salt, 'salt')
+# list of the four variables 
+temp_output1 <- nc_extract(bering_model_temp1, temp, 'temp')
+temp_output2 <- nc_extract(bering_model_temp2, temp, 'temp')
+temp_output3 <- nc_extract(bering_model_temp3, temp, 'temp')
+temp_output4 <- nc_extract(bering_model_temp4, temp, 'temp')
+temp_output5 <- nc_extract(bering_model_temp5, temp, 'temp')
+temp_output6 <- nc_extract(bering_model_temp6, temp, 'temp')
+temp_output7 <- nc_extract(bering_model_temp7, temp, 'temp')
 
-nc_close(bering_model_temp)
-nc_close(bering_model_sal)
+salt_output1 <- nc_extract(bering_model_sal1, salt, 'salt')
+salt_output2 <- nc_extract(bering_model_sal2, salt, 'salt')
+salt_output3 <- nc_extract(bering_model_sal3, salt, 'salt')
+salt_output4 <- nc_extract(bering_model_sal4, salt, 'salt')
+salt_output5 <- nc_extract(bering_model_sal5, salt, 'salt')
+salt_output6 <- nc_extract(bering_model_sal6, salt, 'salt')
+salt_output7 <- nc_extract(bering_model_sal7, salt, 'salt')
 
+nc_close(bering_model_temp1)
+nc_close(bering_model_temp2)
+nc_close(bering_model_temp3)
+nc_close(bering_model_temp4)
+nc_close(bering_model_temp5)
+nc_close(bering_model_temp6)
+nc_close(bering_model_temp7)
+
+nc_close(bering_model_salt1)
+nc_close(bering_model_salt2)
+nc_close(bering_model_salt3)
+nc_close(bering_model_salt4)
+nc_close(bering_model_salt5)
+nc_close(bering_model_salt6)
+nc_close(bering_model_salt7)
 
 # Use if want to see dimensions of .nc variables
 # dim(temp)
@@ -66,7 +117,8 @@ nc_close(bering_model_sal)
 # range(time1, na.rm = T)
 # nc_close(bering_model)
 
-# Egg and larval data. From Steve email (8/02/19): The files are for 60 cm bongo catches and include both net 1 and 2 in case net 1 was a fail. For the case where catches for both net 1 and 2 are included at the same station, I would suggest using net 1 because that is the net typically used for quantitative catch.
+#### Egg and larval data ----
+# From Steve email (8/02/19): The files are for 60 cm bongo catches and include both net 1 and 2 in case net 1 was a fail. For the case where catches for both net 1 and 2 are included at the same station, I would suggest using net 1 because that is the net typically used for quantitative catch.
 ys_egg_raw <-
   read_csv(here('data/species_data', 'YFSole_Egg_Catch.csv'))
 ys_larvae_raw <-
@@ -184,7 +236,7 @@ ys_larvae <- ys_larvae[ys_larvae$primary_net == 'Y', ]
 table(ys_egg$primary_net)
 table(ys_larvae$primary_net)
 
-##### TRIM EGG AND LARVAL DATA
+##### Trim egg and larval data -----
 # Year: 1988 forwad
 # Month: all
 # Latitude: all
@@ -252,6 +304,7 @@ subset_larvae <- ys_larvae[ys_larvae$dist < 30000,
 names(subset_egg) <- c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')
 names(subset_larvae) <- c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')
 table(subset_egg$year)
+table(subset_larvae$year)
 
 # Add Bering10K model temperatures and salinities
 varid_match <- function(data, model_output1, model_output2){
@@ -274,3 +327,19 @@ for (i in 1:nrow(data)) {
   }
 
 complete_egg <- varid_match(subset_egg, temp_output, salt_output)
+
+# outside of function
+subset_egg$roms_date <- NA
+subset_egg$roms_temperature <- NA
+subset_egg$roms_salinity <- NA
+for (i in 1:nrow(subset_egg)) {
+  idx_time <- order(abs(temp_output[[3]] - subset_egg$date[2]))[1]
+  subset_egg$roms_date[2] <- temp_output[[3]][idx_time]
+  idx_grid <- order(distance_function(
+    subset_egg$lat[2],
+    subset_egg$lon[2],
+    c(temp_output[[2]]),
+    c(temp_output[[1]])
+  ))[1]
+  subset_egg$roms_temperature[2] <- c(temp_output[[4]][, , idx_time])[idx_grid]
+  subset_egg$roms_salinity[2] <- c(salt_output[[4]][, , idx_time])[idx_grid]}
