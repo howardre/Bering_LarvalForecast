@@ -82,13 +82,13 @@ temp_output5 <- nc_extract(bering_model_temp5, temp, 'temp')
 temp_output6 <- nc_extract(bering_model_temp6, temp, 'temp')
 temp_output7 <- nc_extract(bering_model_temp7, temp, 'temp')
 
-salt_output1 <- nc_extract(bering_model_sal1, salt, 'salt')
-salt_output2 <- nc_extract(bering_model_sal2, salt, 'salt')
-salt_output3 <- nc_extract(bering_model_sal3, salt, 'salt')
-salt_output4 <- nc_extract(bering_model_sal4, salt, 'salt')
-salt_output5 <- nc_extract(bering_model_sal5, salt, 'salt')
-salt_output6 <- nc_extract(bering_model_sal6, salt, 'salt')
-salt_output7 <- nc_extract(bering_model_sal7, salt, 'salt')
+salt_output1 <- nc_extract(bering_model_salt1, salt, 'salt')
+salt_output2 <- nc_extract(bering_model_salt2, salt, 'salt')
+salt_output3 <- nc_extract(bering_model_salt3, salt, 'salt')
+salt_output4 <- nc_extract(bering_model_salt4, salt, 'salt')
+salt_output5 <- nc_extract(bering_model_salt5, salt, 'salt')
+salt_output6 <- nc_extract(bering_model_salt6, salt, 'salt')
+salt_output7 <- nc_extract(bering_model_salt7, salt, 'salt')
 
 nc_close(bering_model_temp1)
 nc_close(bering_model_temp2)
@@ -306,7 +306,23 @@ names(subset_larvae) <- c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'da
 table(subset_egg$year)
 table(subset_larvae$year)
 
-# Add Bering10K model temperatures and salinities
+#### Split egg and larvae data into separate datasets by date ----
+subset_egg1 <- filter(subset_egg, year < 1990)
+subset_larvae1 <- filter(subset_egg, year < 1990)
+subset_egg2 <- filter(subset_egg, year > 1989 & year < 1995)
+subset_larvae2 <- filter(subset_larvae, year > 1989 & year < 1995)
+subset_egg3 <- filter(subset_egg, year > 1994 & year < 2000)
+subset_larvae3 <- filter(subset_larvae, year > 1994 & year < 2000)
+subset_egg4 <- filter(subset_egg, year > 1999 & year < 2005)
+subset_larvae4 <- filter(subset_larvae, year > 1999 & year < 2005)
+subset_egg5 <- filter(subset_egg, year > 2004 & year < 2010)
+subset_larvae5 <- filter(subset_larvae, year > 2004 & year < 2010)
+subset_egg6 <- filter(subset_egg, year > 2009 & year < 2015)
+subset_larvae6 <- filter(subset_larvae, year > 2009 & year < 2015)
+subset_egg7 <- filter(subset_egg, year > 2014 & year < 2020)
+subset_larvae7 <- filter(subset_larvae, year > 2014 & year < 2020)
+
+#### Add Bering10K model temperatures and salinities ----
 varid_match <- function(data, model_output1, model_output2){
   data$roms_date <- NA
   data$roms_temperature <- NA
@@ -326,20 +342,26 @@ for (i in 1:nrow(data)) {
   return(data)
   }
 
-complete_egg <- varid_match(subset_egg, temp_output, salt_output)
+complete_egg1 <- varid_match(subset_egg1, temp_output1, salt_output1)
+complete_egg2 <- varid_match(subset_egg2, temp_output2, salt_output2)
+complete_egg3 <- varid_match(subset_egg3, temp_output3, salt_output3)
+complete_egg4 <- varid_match(subset_egg4, temp_output4, salt_output4)
+complete_egg5 <- varid_match(subset_egg5, temp_output5, salt_output5)
+complete_egg6 <- varid_match(subset_egg6, temp_output6, salt_output6)
+complete_egg7 <- varid_match(subset_egg7, temp_output7, salt_output7)
 
-# outside of function
-subset_egg$roms_date <- NA
-subset_egg$roms_temperature <- NA
-subset_egg$roms_salinity <- NA
-for (i in 1:nrow(subset_egg)) {
-  idx_time <- order(abs(temp_output[[3]] - subset_egg$date[2]))[1]
-  subset_egg$roms_date[2] <- temp_output[[3]][idx_time]
-  idx_grid <- order(distance_function(
-    subset_egg$lat[2],
-    subset_egg$lon[2],
-    c(temp_output[[2]]),
-    c(temp_output[[1]])
-  ))[1]
-  subset_egg$roms_temperature[2] <- c(temp_output[[4]][, , idx_time])[idx_grid]
-  subset_egg$roms_salinity[2] <- c(salt_output[[4]][, , idx_time])[idx_grid]}
+complete_larvae1 <- varid_match(subset_larvae1, temp_output1, salt_output1)
+complete_larvae2 <- varid_match(subset_larvae2, temp_output2, salt_output2)
+complete_larvae3 <- varid_match(subset_larvae3, temp_output3, salt_output3)
+complete_larvae4 <- varid_match(subset_larvae4, temp_output4, salt_output4)
+complete_larvae5 <- varid_match(subset_larvae5, temp_output5, salt_output5)
+complete_larvae6 <- varid_match(subset_larvae6, temp_output6, salt_output6)
+complete_larvae7 <- varid_match(subset_larvae7, temp_output7, salt_output7)
+
+# combine to create whole datasets for each
+complete_egg <- rbind(complete_egg1, complete_egg2, complete_egg3,
+                      complete_egg4, complete_egg5, complete_egg6,
+                      complete_egg7)
+complete_larvae <- rbind(complete_larvae1, complete_larvae2, complete_larvae3,
+                      complete_larvae4, complete_larvae5, complete_larvae6,
+                      complete_larvae7)
