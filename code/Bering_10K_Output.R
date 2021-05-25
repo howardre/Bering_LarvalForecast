@@ -3,7 +3,8 @@
 # 3/18/21
 
 # See email from Kelly Kearney from 12/3/20
-# See also B10K-K20_CORECFS_readme.pdf for explanation of netcdf files and roms 10k, and Bering 10K ROMS coordinates.pdf for working with coordinates
+# See also B10K-K20_CORECFS_readme.pdf for explanation of netcdf files and roms 10k
+# and Bering 10K ROMS coordinates.pdf for working with coordinates
 
 # Load libraries ----
 library(maps)

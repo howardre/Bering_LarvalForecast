@@ -1,6 +1,7 @@
 # Title: Import and cleaning of species data
+# Date: complete 5/25/2021
 
-# Load appropriate libraries and functions
+### Libraries and functions ----
 library(marmap)
 library(raster)
 library(ncdf4)
@@ -294,7 +295,7 @@ yfs_larvae_clean <- clean_data(yfs_larvae_formatted)
 table(yfs_egg_clean$primary_net)
 table(yfs_larvae_clean$primary_net)
 
-##### Trim egg and larval data
+# Trim egg and larval data
 # Year: 1988 forward
 # Month: all
 # Latitude: all
@@ -356,7 +357,7 @@ saveRDS(yfs_complete_egg, file = here('data', 'yfs_egg.rds'))
 saveRDS(yfs_complete_larvae, file = here('data', 'yfs_larvae.rds'))
 
 
-#### Alaska Plaice ----
+### Alaska Plaice ----
 # change to lowercase
 akp_egg_formatted <- format_data(akp_egg_raw)
 akp_larvae_formatted <- format_data(akp_larvae_raw)
@@ -435,7 +436,7 @@ saveRDS(akp_complete_egg, file = here('data', 'akp_egg.rds'))
 saveRDS(akp_complete_larvae, file = here('data', 'akp_larvae.rds'))
 
 
-#### Flathead Sole ----
+### Flathead Sole ----
 # change to lowercase
 fhs_egg_formatted <- format_data(fhs_egg_raw)
 fhs_larvae_formatted <- format_data(fhs_larvae_raw)
@@ -514,7 +515,7 @@ saveRDS(fhs_complete_egg, file = here('data', 'fhs_egg.rds'))
 saveRDS(fhs_complete_larvae, file = here('data', 'fhs_larvae.rds'))
 
 
-#### Walleye Pollock ----
+### Walleye Pollock ----
 # change to lowercase
 pk_egg_formatted <- format_data(pk_egg_raw)
 pk_larvae_formatted <- format_data(pk_larvae_raw)
