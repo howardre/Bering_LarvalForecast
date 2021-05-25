@@ -1,21 +1,15 @@
 # Title: Import and cleaning of species data
 
 # Load appropriate libraries and functions
-library(mgcv)
-library(maps)
-library(mapdata)
 library(marmap)
 library(raster)
 library(ncdf4)
 library(spacetime)
 library(fields)
-library(date)
-library(colorRamps) 
-library(itsadug)   
-library(RColorBrewer)
 library(here)
 library(tidyverse)
 library(lubridate)
+library(date)
 source(here('code/functions', 'distance_function.R'))
 source(here('code/functions', 'vis_gam_COLORS.R'))
 
@@ -58,7 +52,7 @@ bering_model_salt6 <- nc_open(here('data/salinity_netcdf',
 bering_model_salt7 <- nc_open(here('data/salinity_netcdf', 
                                    'B10K-K20_CORECFS_2015-2019_average_salt_surface5m.nc'))
 # check to see contents
-print(bering_model_temp)
+print(bering_model_temp1)
 
 # Function to extract data from .nc files
 nc_extract <- function(file, variable, varid_name){
@@ -71,9 +65,9 @@ nc_extract <- function(file, variable, varid_name){
   variable <- ncvar_get(file, varid = varid_name)
   variable[variable == fillvalue_t$value] <- NA
   return_list <- list("lon1" = lon1, "lat" = lat, "time1" = time1, "variable" = variable)
-} # need to get time to return properly
+} 
 
-# list of the four variables 
+# create lists of the four variables, one for salinity and temperature each
 temp_output1 <- nc_extract(bering_model_temp1, temp, 'temp')
 temp_output2 <- nc_extract(bering_model_temp2, temp, 'temp')
 temp_output3 <- nc_extract(bering_model_temp3, temp, 'temp')
@@ -90,6 +84,7 @@ salt_output5 <- nc_extract(bering_model_salt5, salt, 'salt')
 salt_output6 <- nc_extract(bering_model_salt6, salt, 'salt')
 salt_output7 <- nc_extract(bering_model_salt7, salt, 'salt')
 
+# close netcdf's
 nc_close(bering_model_temp1)
 nc_close(bering_model_temp2)
 nc_close(bering_model_temp3)
@@ -188,16 +183,16 @@ data_check <- function(egg, larvae){
 }
 clean_data <- function(data_formatted){
   # Most sampled net is 1, but there are instances of net 2 (and 3!) being sampled.
-  data_formatted[data_formatted$net == 3, ] # All net 3 samples are from a 153 um mesh size. They need to be discarded.
+  # All net 3 samples are from a 153 um mesh size. They need to be discarded.
   data_two <- data_formatted[data_formatted$net < 3, ] # Let us now check the net 2 samples
   # There are 659 stations with net = 2 recorded
   data_tmp <- table(data_two$id)
   # Of these 84 have been sampled twice, which means that we only need to retain one of the two nets from these 84 stations
   data_net2 <- names(data_tmp)[data_tmp == 2] # ID of stations with 2 net records
   data_net1 <- data_formatted[data_formatted$net == 1, ] # These are data for records with net 1 only (n=5495)
-  data_both <- data_two[data_two$id %in% id_2 &
+  data_both <- data_two[data_two$id %in% data_net2 &
                                 data_two$net == 1, ] # These are the data in which two nets were recorded, but I am only retaining net 1. We now need to remove data that were recorded with 2 nets, and then re-attach data with only net 1 (n=84)
-  data_one <- data_two[!data_two$id %in% id_2, ] # These are data where only 1 net was recorded, either 1 or 2 (n=5495+660-84*2=5987)
+  data_one <- data_two[!data_two$id %in% data_net2, ] # These are data where only 1 net was recorded, either 1 or 2 (n=5495+660-84*2=5987)
   data_clean <- rbind(data_one, data_both)
   data_clean <- data_clean[data_clean$primary_net == 'Y', ]
   return(data_clean)
@@ -219,6 +214,24 @@ final_data <- function(data_trim){
                             c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')]
   names(data_subset) <- c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')
   return(data_subset)
+}
+varid_match <- function(data, model_output1, model_output2){
+  data$roms_date <- NA
+  data$roms_temperature <- NA
+  data$roms_salinity <- NA
+  for (i in 1:nrow(data)) {
+    idx_time <- order(abs(model_output1[[3]] - data$date[i]))[1]
+    data$roms_date[i] <- model_output1[[3]][idx_time]
+    idx_grid <- order(distance_function(
+      data$lat[i],
+      data$lon[i],
+      c(model_output1[[2]]),
+      c(model_output1[[1]])
+    ))[1]
+    data$roms_temperature[i] <- c(model_output1[[4]][, , idx_time])[idx_grid]
+    data$roms_salinity[i] <- c(model_output2[[4]][, , idx_time])[idx_grid]
+  }
+  return(data)
 }
 
 ### Yellowfin Sole ----
@@ -312,24 +325,6 @@ yfs_subset_egg7 <- filter(yfs_subset_egg, year > 2014 & year < 2020)
 yfs_complete_larvae7 <- filter(yfs_subset_larvae, year > 2014 & year < 2020)
 
 #### Add Bering10K model temperatures and salinities
-varid_match <- function(data, model_output1, model_output2){
-  data$roms_date <- NA
-  data$roms_temperature <- NA
-  data$roms_salinity <- NA
-for (i in 1:nrow(data)) {
-  idx_time <- order(abs(model_output1[[3]] - data$date[i]))[1]
-  data$roms_date[i] <- model_output1[[3]][idx_time]
-  idx_grid <- order(distance_function(
-    data$lat[i],
-    data$lon[i],
-    c(model_output1[[2]]),
-    c(model_output1[[1]])
-  ))[1]
-  data$roms_temperature[i] <- c(model_output1[[4]][, , idx_time])[idx_grid]
-  data$roms_salinity[i] <- c(model_output2[[4]][, , idx_time])[idx_grid]
-}
-  return(data)
-  }
 
 yfs_complete_egg1 <- varid_match(yfs_subset_egg1, temp_output1, salt_output1)
 yfs_complete_egg2 <- varid_match(yfs_subset_egg2, temp_output2, salt_output2)
@@ -355,15 +350,84 @@ yfs_complete_larvae <- rbind(yfs_complete_larvae1, yfs_complete_larvae2, yfs_com
                       yfs_complete_larvae4, yfs_complete_larvae5, yfs_complete_larvae6,
                       yfs_complete_larvae7)
 
-# GAMs
-gam_egg_yfs <- gam(larvalcatchper10m2 ~ s(year) +
-    s(lon, lat) +
-    s(roms_temperature, k = 4),
-  data = yfs_complete_egg)
-summary(gam_egg_yfs)
+saveRDS(yfs_complete_egg, file = here('data', 'yfs_egg.rds'))
+saveRDS(yfs_complete_larvae, file = here('data', 'yfs_larvae.rds'))
 
-par(mfrow = c(1, 2))
-plot(gam_egg_yfs)
 
-par(mfrow = c(2, 2))
-gam.check(gam_egg_yfs)
+#### Alaska Plaice ----
+# change to lowercase
+akp_egg_formatted <- format_data(akp_egg_raw)
+akp_larvae_formatted <- format_data(akp_larvae_raw)
+
+# Check attributes of egg and larval data
+data_check(akp_egg_formatted, akp_larvae_formatted)
+
+table(akp_egg_formatted$haul_performance)
+table(akp_larvae_formatted$haul_performance)
+
+# Clean up data to remove unnecessary hauls
+akp_egg_clean <- clean_data(akp_egg_formatted)
+akp_larvae_clean <- clean_data(akp_larvae_formatted)
+
+table(akp_egg_clean$primary_net)
+table(akp_larvae_clean$primary_net)
+
+##### Trim egg and larval data
+# Year: 1988 forward
+# Month: all
+# Latitude: all
+akp_egg_trim <- trim_data(akp_egg_clean)
+akp_larvae_trim <- trim_data(akp_larvae_clean)
+
+# Inspect new data
+data_check(akp_egg_trim, akp_larvae_trim)
+
+# Select data for constrained analyses, including stations that are <30km away from the closest positive catch
+akp_subset_egg <- final_data(akp_egg_trim)
+akp_subset_larvae <- final_data(akp_larvae_trim)
+table(akp_subset_egg$year)
+table(akp_subset_larvae$year)
+
+#### Split egg and larvae data into separate datasets by date
+akp_subset_egg1 <- filter(akp_subset_egg, year < 1990)
+akp_complete_larvae1 <- filter(akp_subset_egg, year < 1990)
+akp_subset_egg2 <- filter(akp_subset_egg, year > 1989 & year < 1995)
+akp_complete_larvae2 <- filter(akp_subset_larvae, year > 1989 & year < 1995)
+akp_subset_egg3 <- filter(akp_subset_egg, year > 1994 & year < 2000)
+akp_complete_larvae3 <- filter(akp_subset_larvae, year > 1994 & year < 2000)
+akp_subset_egg4 <- filter(akp_subset_egg, year > 1999 & year < 2005)
+akp_complete_larvae4 <- filter(akp_subset_larvae, year > 1999 & year < 2005)
+akp_subset_egg5 <- filter(akp_subset_egg, year > 2004 & year < 2010)
+akp_complete_larvae5 <- filter(akp_subset_larvae, year > 2004 & year < 2010)
+akp_subset_egg6 <- filter(akp_subset_egg, year > 2009 & year < 2015)
+akp_complete_larvae6 <- filter(akp_subset_larvae, year > 2009 & year < 2015)
+akp_subset_egg7 <- filter(akp_subset_egg, year > 2014 & year < 2020)
+akp_complete_larvae7 <- filter(akp_subset_larvae, year > 2014 & year < 2020)
+
+#### Add Bering10K model temperatures and salinities
+akp_complete_egg1 <- varid_match(akp_subset_egg1, temp_output1, salt_output1)
+akp_complete_egg2 <- varid_match(akp_subset_egg2, temp_output2, salt_output2)
+akp_complete_egg3 <- varid_match(akp_subset_egg3, temp_output3, salt_output3)
+akp_complete_egg4 <- varid_match(akp_subset_egg4, temp_output4, salt_output4)
+akp_complete_egg5 <- varid_match(akp_subset_egg5, temp_output5, salt_output5)
+akp_complete_egg6 <- varid_match(akp_subset_egg6, temp_output6, salt_output6)
+akp_complete_egg7 <- varid_match(akp_subset_egg7, temp_output7, salt_output7)
+
+akp_complete_larvae1 <- varid_match(akp_complete_larvae1, temp_output1, salt_output1)
+akp_complete_larvae2 <- varid_match(akp_complete_larvae2, temp_output2, salt_output2)
+akp_complete_larvae3 <- varid_match(akp_complete_larvae3, temp_output3, salt_output3)
+akp_complete_larvae4 <- varid_match(akp_complete_larvae4, temp_output4, salt_output4)
+akp_complete_larvae5 <- varid_match(akp_complete_larvae5, temp_output5, salt_output5)
+akp_complete_larvae6 <- varid_match(akp_complete_larvae6, temp_output6, salt_output6)
+akp_complete_larvae7 <- varid_match(akp_complete_larvae7, temp_output7, salt_output7)
+
+# combine to create whole datasets for each
+akp_complete_egg <- rbind(akp_complete_egg1, akp_complete_egg2, akp_complete_egg3,
+                          akp_complete_egg4, akp_complete_egg5, akp_complete_egg6,
+                          akp_complete_egg7)
+akp_complete_larvae <- rbind(akp_complete_larvae1, akp_complete_larvae2, akp_complete_larvae3,
+                             akp_complete_larvae4, akp_complete_larvae5, akp_complete_larvae6,
+                             akp_complete_larvae7)
+
+saveRDS(akp_complete_egg, file = here('data', 'akp_egg.rds'))
+saveRDS(akp_complete_larvae, file = here('data', 'akp_larvae.rds'))
