@@ -355,3 +355,15 @@ yfs_complete_larvae <- rbind(yfs_complete_larvae1, yfs_complete_larvae2, yfs_com
                       yfs_complete_larvae4, yfs_complete_larvae5, yfs_complete_larvae6,
                       yfs_complete_larvae7)
 
+# GAMs
+gam_egg_yfs <- gam(larvalcatchper10m2 ~ s(year) +
+    s(lon, lat) +
+    s(roms_temperature, k = 4),
+  data = yfs_complete_egg)
+summary(gam_egg_yfs)
+
+par(mfrow = c(1, 2))
+plot(gam_egg_yfs)
+
+par(mfrow = c(2, 2))
+gam.check(gam_egg_yfs)
