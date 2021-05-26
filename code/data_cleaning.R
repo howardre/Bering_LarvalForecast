@@ -12,17 +12,6 @@ library(tidyverse)
 library(lubridate)
 library(date)
 source(here('code/functions', 'distance_function.R'))
-source(here('code/functions', 'vis_gam_COLORS.R'))
-
-### Depth data----
-# obtained from NGDC grid extract tool for ETOPO1
-str_name <- (here('data', 'bering_bathy.tiff'))
-bering_bathy <- as.bathy(raster(str_name) * -1)
-bathy_lat <- as.numeric(colnames(bering_bathy))
-bathy_lon <- as.numeric(rownames(bering_bathy))
-bathy_ylim = range(bathy_lat)
-bathy_xlim = range(bathy_lon)
-bering_bathy[bering_bathy <= -1] <- NA
 
 ### Bering 10K model output ----
 # Using avg surface temperatures & salinity
@@ -249,7 +238,7 @@ table(yfs_egg_formatted$haul_performance)
 table(yfs_larvae_formatted$haul_performance)
 
 # Egg data: check number of bongo nets per each station
-# These appear to be the same for all species, therefore use clean_data function for all other species
+# Same issues present for all data, therefore use clean_data function for all other species
 # table(yfs_egg_formatted$net) 
 # yfs_egg_formatted[yfs_egg_formatted$net == 3, ] 
 # yfs_egg_two <- yfs_egg_formatted[yfs_egg_formatted$net < 3, ] 
@@ -265,8 +254,8 @@ table(yfs_larvae_formatted$haul_performance)
 # yfs_egg <- rbind(yfs_egg_one, yfs_egg_both)
 # dim(yfs_egg)
 # 
-# # Larval catch data: check number of bongo nets per each station
-# # These appear to be the same for all species, use clean_data
+# Larval catch data: check number of bongo nets per each station
+# use clean_data
 # table(yfs_larvae_raw$net) 
 # yfs_larvae_raw[yfs_larvae_raw$net == 3, ] 
 # yfs_larvae_1_2 <- yfs_larvae_raw[yfs_larvae_raw$net < 3, ] 
