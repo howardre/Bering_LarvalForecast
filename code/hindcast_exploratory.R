@@ -9,6 +9,7 @@ library(fields)
 library(here)
 library(mgcv)
 library(tidyr)
+library(dplyr)
 library(ggplot2)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 
@@ -111,20 +112,24 @@ ggplot(fhs_egg) +
 ggplot(akp_egg) +
   geom_point(aes(roms_salinity, year))
 
-### Remove outliers ----
-yfs_egg <- filter(yfs_egg, larvalcatchper10m2 < 330)
-yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000,
-                     roms_salinity > 25)
-akp_egg <- filter(akp_egg, larvalcatchper10m2 < 4000)
-akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500,
-                     roms_salinity > 29)
-fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 1400,
-                  roms_salinity > 29)
-fhs_larvae <- filter(fhs_larvae, larvalcatchper10m2 < 9000)
-pk_egg <- filter(pk_egg, larvalcatchper10m2 < 350000,
-                 roms_salinity > 29)
-pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000,
-                    roms_salinity > 29)
+# Remove outliers?
+# yfs_egg <- filter(yfs_egg, larvalcatchper10m2 < 330)
+# yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000,
+#                      roms_salinity > 25)
+# akp_egg <- filter(akp_egg, larvalcatchper10m2 < 4000)
+# akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500,
+#                      roms_salinity > 29)
+# fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 1400,
+#                   roms_salinity > 29)
+# fhs_larvae <- filter(fhs_larvae, larvalcatchper10m2 < 9000)
+# pk_egg <- filter(pk_egg, larvalcatchper10m2 < 350000,
+#                  roms_salinity > 29)
+# pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000,
+#                     roms_salinity > 29)
+
+# only remove catches if there are few for a year
+# use something like 50-60 for year
+# keep early months?
 
 # map of data
 # Create bathymetry dataset
@@ -172,7 +177,7 @@ points(yfs_egg$lon[yfs_egg$larvalcatchper10m2 > 0],
 ### Yellowfin sole ----
 #### Eggs ----
 hist(yfs_egg$larvalcatchper10m2)
-yfs_egg_gam1 <- gam(larvalcatchper10m2 ~ factor(year) +
+yfs_egg_gam1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                       s(lon, lat) +
                       s(doy) +
                       s(roms_temperature) +
@@ -194,7 +199,7 @@ summary(yfs_egg_gam2)
 par(mfrow = c(2, 2))
 gam.check(yfs_egg_gam2)
 # not great unconstrained
-# possible overfitting
+# 92% deviance explained, possible overfitting?
 
 yfs_egg_gam3 <- gam(list(counts ~ s(year, k = 5) +
                            s(lon, lat) +
@@ -243,8 +248,7 @@ yfs_larvae_gam3 <- gam(list(counts ~ s(year, k = 5) +
                            s(lon, lat, k = 5) +
                            s(doy, k = 5)),
                     data = yfs_larvae,
-                    family = ziplss(),
-                    method = "REML") #ziplss
+                    family = ziplss()) #ziplss
 summary(yfs_larvae_gam3)
 par(mfrow = c(2, 2))
 gam.check(yfs_larvae_gam3)
@@ -261,4 +265,3 @@ yfs_larvae_gam4 <- gam(counts ~ s(year, k = 5) +
 summary(yfs_larvae_gam4)
 gam.check(yfs_larvae_gam4)
 plot(yfs_larvae_gam4)
-# concerned about
