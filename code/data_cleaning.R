@@ -203,8 +203,12 @@ trim_data <- function(data_clean){
 }
 final_data <- function(data_trim){
   data_subset <- data_trim[data_trim$dist < 30000, 
-                            c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')]
-  names(data_subset) <- c('larvalcatchper10m2', 'year', 'lat', 'lon', 'doy', 'date')
+                            c('larvalcatchper1000m3', 'larvalcatchper10m2', 
+                              'year', 'lat', 'lon', 'doy', 'date',
+                              'volume_filtered')]
+  names(data_subset) <- c('larvalcatchper1000m3', 'larvalcatchper10m2',
+                          'year', 'lat', 'lon', 'doy', 'date',
+                          'volume_filtered')
   return(data_subset)
 }
 varid_match <- function(data, model_output1, model_output2){
@@ -224,7 +228,7 @@ varid_match <- function(data, model_output1, model_output2){
     data$roms_salinity[i] <- c(model_output2[[4]][, , idx_time])[idx_grid]
   }
   return(data)
-}
+} # currently an issue with matching to specific lat/lons
 
 ### Yellowfin Sole ----
 # change to lowercase
@@ -317,7 +321,6 @@ yfs_subset_egg7 <- filter(yfs_subset_egg, year > 2014 & year < 2020)
 yfs_complete_larvae7 <- filter(yfs_subset_larvae, year > 2014 & year < 2020)
 
 # Add Bering10K model temperatures and salinities
-
 yfs_complete_egg1 <- varid_match(yfs_subset_egg1, temp_output1, salt_output1)
 yfs_complete_egg2 <- varid_match(yfs_subset_egg2, temp_output2, salt_output2)
 yfs_complete_egg3 <- varid_match(yfs_subset_egg3, temp_output3, salt_output3)
@@ -342,6 +345,13 @@ yfs_complete_larvae <- rbind(yfs_complete_larvae1, yfs_complete_larvae2, yfs_com
                       yfs_complete_larvae4, yfs_complete_larvae5, yfs_complete_larvae6,
                       yfs_complete_larvae7)
 
+# add counts
+yfs_complete_egg$count <- round(yfs_complete_egg$larvalcatchper1000m3 * 
+                                  yfs_complete_egg$volume_filtered / 1000, 0)
+yfs_complete_larvae$count <- round(yfs_complete_larvae$larvalcatchper1000m3 * 
+                                     yfs_complete_larvae$volume_filtered / 1000, 0)
+
+# save
 saveRDS(yfs_complete_egg, file = here('data', 'yfs_egg.rds'))
 saveRDS(yfs_complete_larvae, file = here('data', 'yfs_larvae.rds'))
 
@@ -420,6 +430,12 @@ akp_complete_egg <- rbind(akp_complete_egg1, akp_complete_egg2, akp_complete_egg
 akp_complete_larvae <- rbind(akp_complete_larvae1, akp_complete_larvae2, akp_complete_larvae3,
                              akp_complete_larvae4, akp_complete_larvae5, akp_complete_larvae6,
                              akp_complete_larvae7)
+
+# add counts
+akp_complete_egg$count <- round(akp_complete_egg$larvalcatchper1000m3 * 
+                                  akp_complete_egg$volume_filtered / 1000, 0)
+akp_complete_larvae$count <- round(akp_complete_larvae$larvalcatchper1000m3 * 
+                                     akp_complete_larvae$volume_filtered / 1000, 0)
 
 saveRDS(akp_complete_egg, file = here('data', 'akp_egg.rds'))
 saveRDS(akp_complete_larvae, file = here('data', 'akp_larvae.rds'))
@@ -500,6 +516,12 @@ fhs_complete_larvae <- rbind(fhs_complete_larvae1, fhs_complete_larvae2, fhs_com
                              fhs_complete_larvae4, fhs_complete_larvae5, fhs_complete_larvae6,
                              fhs_complete_larvae7)
 
+# add counts
+fhs_complete_egg$count <- round(fhs_complete_egg$larvalcatchper1000m3 * 
+                                  fhs_complete_egg$volume_filtered / 1000, 0)
+fhs_complete_larvae$count <- round(fhs_complete_larvae$larvalcatchper1000m3 * 
+                                     fhs_complete_larvae$volume_filtered / 1000, 0)
+
 saveRDS(fhs_complete_egg, file = here('data', 'fhs_egg.rds'))
 saveRDS(fhs_complete_larvae, file = here('data', 'fhs_larvae.rds'))
 
@@ -578,6 +600,12 @@ pk_complete_egg <- rbind(pk_complete_egg1, pk_complete_egg2, pk_complete_egg3,
 pk_complete_larvae <- rbind(pk_complete_larvae1, pk_complete_larvae2, pk_complete_larvae3,
                              pk_complete_larvae4, pk_complete_larvae5, pk_complete_larvae6,
                              pk_complete_larvae7)
+
+# add counts
+pk_complete_egg$count <- round(pk_complete_egg$larvalcatchper1000m3 * 
+                                  pk_complete_egg$volume_filtered / 1000, 0)
+pk_complete_larvae$count <- round(pk_complete_larvae$larvalcatchper1000m3 * 
+                                     pk_complete_larvae$volume_filtered / 1000, 0)
 
 saveRDS(pk_complete_egg, file = here('data', 'pk_egg.rds'))
 saveRDS(pk_complete_larvae, file = here('data', 'pk_larvae.rds'))
