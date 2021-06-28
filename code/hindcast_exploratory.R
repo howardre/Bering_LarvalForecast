@@ -624,10 +624,14 @@ pk_larvae_basep <- gam(count ~ factor(year) +
                     offset = log(volume_filtered))
 summary(pk_larvae_basep)
 
+windows()
 par(mfrow = c(2, 2))
 plot(pk_larvae_basep, select = 2, main = "DOY")
 plot(pk_larvae_basep, select = 3, main = "Salinity")
 plot(pk_larvae_basep, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results', 'pollok_larvae_basep.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_larvae_basep)
