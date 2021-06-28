@@ -11,7 +11,11 @@ library(mgcv)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(raster)
+library(rgdal)
+library(viridis)
 source(here('code/functions', 'vis_gam_COLORS.R'))
+source(here('code/functions', 'distance_function.R'))
 
 ### Load fish data ----
 yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
@@ -22,6 +26,15 @@ fhs_egg <- readRDS(here('data', 'fhs_egg.rds'))
 fhs_larvae <- readRDS(here('data', 'fhs_larvae.rds'))
 pk_egg <- readRDS(here('data', 'pk_egg.rds'))
 pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+
+### Load bathymetry data ----
+str_name <- (here('data', 'bering_bathy.tiff'))
+bering_bathy <- as.bathy(raster(str_name) * -1)
+bathy_lat <- as.numeric(colnames(bering_bathy))
+bathy_lon <- as.numeric(rownames(bering_bathy))
+bathy_ylim = range(bathy_lat)
+bathy_xlim = range(bathy_lon)
+bering_bathy[bering_bathy <= -1] <- NA
 
 ### Data exploration ----
 # Yellowfin
@@ -133,11 +146,11 @@ ggplot(akp_egg) +
 
 # map of data
 # Create bathymetry dataset
-BS_bathy <- getNOAA.bathy(lon1= -170, 
-                          lon2= -156, 
-                          lat1= 60.1, 
-                          lat2= 54.2, 
-                          resolution=1)
+BS_bathy <- getNOAA.bathy(lon1 = -180, 
+                          lon2 = -156, 
+                          lat1 = 66, 
+                          lat2 = 52, 
+                          resolution = 1)
 blues <- c("lightsteelblue4", 
            "lightsteelblue3", 
            "lightsteelblue2", 
@@ -145,6 +158,8 @@ blues <- c("lightsteelblue4",
 greys <- c(grey(0.6), 
            grey(0.93), 
            grey(0.99))
+
+windows()
 plot.bathy(
   BS_bathy,
   image = T,
@@ -153,23 +168,23 @@ plot.bathy(
   land = T,
   n = 0,
   bpal = list(c(0, max(BS_bathy), greys), c(min(BS_bathy), 0, blues)),
-  ylim = c(54.2, 60.1),
-  xlim = c(-170,-156),
+  ylim = c(52, 66),
+  xlim = c(-180,-156),
   ylab = "Latitude °N",
   xlab = "Longitude °W",
-  cex.lab = 2,
-  cex.main = 2.5,
-  cex.axis = 1.8)
-points(yfs_egg$lon[yfs_egg$larvalcatchper10m2 == 0],
-       yfs_egg$lat[yfs_egg$larvalcatchper10m2 == 0],
+  cex.lab = 1,
+  cex.main = 1,
+  cex.axis = 1)
+points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0],
+       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0],
        pch = 4,
        col = 'darkgray',
        cex = 1)
-points(yfs_egg$lon[yfs_egg$larvalcatchper10m2 > 0],
-       yfs_egg$lat[yfs_egg$larvalcatchper10m2 > 0],
+points(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0],
+       pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
        pch = 16,
        col = 'black',
-       cex = 1.3)
+       cex = 0.7)
 # doesn't seem to have anything weird going on
 # was fixed with the distance function during cleaning, don't need to do this for all species
 
@@ -177,43 +192,99 @@ points(yfs_egg$lon[yfs_egg$larvalcatchper10m2 > 0],
 ### Yellowfin sole ----
 #### Eggs ----
 hist(yfs_egg$larvalcatchper10m2)
-yfs_egg_gam1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                      s(lon, lat) +
-                      s(doy) +
-                      s(roms_temperature) +
-                      s(roms_salinity),
-                    data = yfs_egg)
-summary(yfs_egg_gam1)
-gam.check(yfs_egg_gam1)
-plot(yfs_egg_gam1)
 
-yfs_egg$counts <- as.integer(yfs_egg$larvalcatchper10m2)
-yfs_egg_gam2 <- gam(counts ~ s(year, k = 5) +
-                      s(lon, lat) +
-                      s(doy, k = 5) +
-                      s(roms_temperature, k = 5) +
-                      s(roms_salinity, k = 5),
-                    data = yfs_egg,
-                    family = ziP()) # ZIP family
-summary(yfs_egg_gam2)
+# Negative Binomial
+yfs_egg_basenb <- gam(count ~ offset(log(volume_filtered)) + 
+                      factor(year) + 
+                      s(lon, lat) + 
+                      s(doy, k = 5),
+    data = yfs_egg,
+    family = nb())
+summary(yfs_egg_basenb)
+
+yfs_egg_basenb$family$getTheta(TRUE) # 0.1145417
+
+plot(yfs_egg_basenb, select = 2, main = "Neg Binomial")
 par(mfrow = c(2, 2))
-gam.check(yfs_egg_gam2)
-# not great unconstrained
-# 92% deviance explained, possible overfitting?
+gam.check(yfs_egg_basenb)
 
-yfs_egg_gam3 <- gam(list(counts ~ s(year, k = 5) +
+# quasiPoisson
+yfs_egg_basep <- gam(count ~ offset(log(volume_filtered)) + 
+                       factor(year) + 
+                       s(lon, lat) + 
+                       s(doy),
+                     data = yfs_egg,
+                     family = quasipoisson(link = "log"))
+summary(yfs_egg_basep)
+
+plot(yfs_egg_basep, select = 2, main = "Poisson")
+
+par(mfrow = c(2, 2))
+gam.check(yfs_egg_basep)
+
+# Tweedie
+yfs_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy),
+                     data = yfs_egg,
+                     family = tw(link = 'log'),
+                     method = 'REML')
+summary(yfs_egg_baset)
+
+par(mfrow = c(2, 2))
+gam.check(yfs_egg_baset)
+
+plot(yfs_egg_baset, select = 2, main = "Tweedie")
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+yfs_egg_zip <- gam(count ~ offset(log(volume_filtered)) + 
+                       s(year) +  # cannot use year as a factor
+                       s(lon, lat) + 
+                       s(doy),
+                     data = yfs_egg,
+                     family = ziP())
+summary(yfs_egg_basezip)
+
+par(mfrow = c(2, 2))
+gam.check(yfs_egg_zip)
+
+plot(yfs_egg_zip, select = 3, main = "Zero-inflated Poisson (1-stage)")
+
+yfs_egg_baseziplss <- gam(list(count ~ s(year) +
                            s(lon, lat) +
-                           s(doy, k = 5) +
-                           s(roms_temperature, k = 5) +
-                           s(roms_salinity, k = 5),
-                         ~ s(year, k = 5) +
+                           s(doy),
+                         ~ s(year) +
                            s(lon, lat) +
-                           s(doy, k = 5)),
+                           s(doy)),
                     data = yfs_egg,
                     family = ziplss()) #ziplss
-summary(yfs_egg_gam3)
+summary(yfs_egg_baseziplss)
 par(mfrow = c(2, 2))
-gam.check(yfs_egg_gam3)
+gam.check(yfs_egg_baseziplss)
+
+# Zero-inflated negative binomial
+# Haven't found a good option for two-stage with different models
+# Using the gamlss package
+yfs_egg_zinb1 <- gamlss(count ~ cs(year)  +
+                         cs(doy) +
+                         cs(lon, lat),
+                       ~ year +
+                         doy +
+                         lon, lat,
+                        data = na.omit(yfs_egg),
+                 family = NBI(), k = 5) # won't allow smooth terms for both models
+summary(yfs_egg_zinb1)
+
+# Using the pscl package
+yfs_egg_zinb2 <- zeroinfl(count ~ year +
+                               doy +
+                               roms_temperature |
+                               year +
+                               doy ,
+                             data = yfs_egg)
+summary(yfs_egg_zinb2)
+
+
 
 #### Larvae ----
 hist(yfs_larvae$larvalcatchper10m2)
@@ -265,3 +336,367 @@ yfs_larvae_gam4 <- gam(counts ~ s(year, k = 5) +
 summary(yfs_larvae_gam4)
 gam.check(yfs_larvae_gam4)
 plot(yfs_larvae_gam4)
+
+
+### Walleye Pollock ----
+#### Eggs ----
+hist(pk_egg$larvalcatchper10m2)
+
+# Negative Binomial
+pk_egg_basenb <- gam(count ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = pk_egg,
+                     family = nb(),
+                     offset = log(volume_filtered))
+summary(pk_egg_basenb)
+
+pk_egg_basenb$family$getTheta(TRUE) # 0.2818324
+
+par(mfrow = c(2, 2))
+plot(pk_egg_basenb, select = 2, main = "DOY")
+plot(pk_egg_basenb, select = 3, main = "Salinity")
+plot(pk_egg_basenb, select = 4, main = "Temperature")
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_basenb)
+
+# quasiPoisson
+pk_egg_basep <- gam(count ~ factor(year) + 
+                      s(lon, lat) + 
+                      s(doy) +
+                      s(roms_salinity) +
+                      s(roms_temperature),
+                    data = pk_egg,
+                    family = quasipoisson(link = "log"),
+                    offset = log(volume_filtered))
+summary(pk_egg_basep)
+
+par(mfrow = c(2, 2))
+plot(pk_egg_basep, select = 2, main = "DOY")
+plot(pk_egg_basep, select = 3, main = "Salinity")
+plot(pk_egg_basep, select = 4, main = "Temperature")
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_basep)
+
+# Tweedie
+pk_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                      s(lon, lat) + 
+                      s(doy),
+                     data = pk_egg,
+                     family = tw(link = 'log'),
+                     method = 'REML')
+summary(pk_egg_baset)
+
+par(mfrow = c(2, 2))
+plot(pk_egg_baset, select = 2, main = "DOY")
+plot(pk_egg_baset, select = 3, main = "Salinity")
+plot(pk_egg_baset, select = 4, main = "Temperature")
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_baset)
+
+plot(pk_egg_baset, select = 2, main = "Tweedie")
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+pk_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                    s(lon, lat) + 
+                    s(doy) +
+                    s(roms_salinity) +
+                    s(roms_temperature),
+                  data = pk_egg,
+                  family = ziP(),
+                  offset = log(volume_filtered))
+summary(pk_egg_zip)
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_zip)
+
+plot(pk_egg_zip, select = 3, main = "Zero-inflated Poisson (1-stage)")
+
+pk_egg_ziplss <- gam(list(count ~ s(year) +
+                            s(lon, lat) +
+                            s(doy) +
+                            s(roms_salinity) +
+                            s(roms_temperature),
+                          ~ s(year) +
+                            s(lon, lat) +
+                            s(doy)),
+                         offset = log(volume_filtered),
+                         data = pk_egg,
+                         family = ziplss()) #ziplss
+summary(pk_egg_ziplss)
+par(mfrow = c(2, 2))
+gam.check(pk_egg_ziplss)
+
+# Zero-inflated negative binomial
+# Haven't found a good option for two-stage with different models
+# Using the gamlss package
+library(gamlss)
+pk_egg_zinb1 <- gamlss(count ~ cs(year)  +
+                         cs(doy) +
+                         cs(lon, lat) +
+                         cs(roms_salinity) +
+                         cs(roms_temperature),
+                       ~ year +
+                         doy +
+                         lon, lat,
+                        data = na.omit(pk_egg),
+                        family = NBI(), k = 5) # won't allow smooth terms for both models
+summary(pk_egg_zinb1)
+
+# Using the brms package modified to frequentist
+# library(brms) # takes too long
+# pk_egg_zinb2 <- brm(count ~ s(year, k = 4) +
+#                       s(doy, k = 4) +
+#                       s(lon, lat),
+#                     data = pk_egg,
+#                     family = zero_inflated_negbinomial(),
+#                     chains = 4,
+#                     cores = 4,
+#                     control = list(adapt_delta = 0.999))
+# summary(pk_egg_zinb2, WAIC = FALSE)
+# plot(marginal_effects(pk_egg_zinb2))
+
+# Using the VGAM package (likely the best option)
+
+
+# Two-part binomial and gaussian
+# binomial
+pk_egg$presence <- 1 * (pk_egg$count > 0)
+pk_egg_gam1 <- gam(presence ~ factor(year) +
+                     s(doy) +
+                     s(lon, lat),
+                   data = pk_egg,
+                   family = "binomial")
+summary(pk_egg_gam1)
+par(mfrow = c(2, 2))
+gam.check(pk_egg_gam1)
+
+# gaussian
+pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                     s(doy) +
+                     s(lon, lat) +
+                     s(roms_temperature) +
+                     s(roms_salinity),
+                   data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_gam2)
+par(mfrow = c(2, 2))
+gam.check(pk_egg_gam2)
+
+
+# Plot best model
+# Plot results of average geography and phenology along with decrease of MSE
+# Prediction grid
+nlat = 80
+nlon = 120
+latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+grid_extent <- expand.grid(lond, latd)
+names(grid_extent) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent$dist <- NA
+for (k in 1:nrow(grid_extent)) {
+  dist <- distance_function(grid_extent$lat[k],
+                            grid_extent$lon[k],
+                            pk_egg$lat,
+                            pk_egg$lon)
+  grid_extent$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+pk_egg_model <- pk_egg_baset
+grid_extent$year <- 2014
+grid_extent$doy <- median(pk_egg$doy)
+grid_extent$pred <- predict(pk_egg_model, newdata = grid_extent)
+grid_extent$pred[grid_extent$dist > 30000] <- NA
+
+# Plot
+windows(width = 12, height = 3.5)
+par(mfrow = c(1, 3), 
+    mai = c(0.7, 0.6, 0.4, 0.4))
+image(lond,
+      latd,
+      t(matrix(grid_extent$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      col = viridis(100, option = "F", direction = 1),
+      ylab = " ",
+      xlab = " ",
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      main = 'Distribution',
+      cex.main = 1.5,
+      cex.lab = 1.4,
+      cex.axis = 1.4)
+# contour(unique(bathy_dat$lon), # need to change to marmap contours
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 1,
+#         col = 'black',
+#         add = T)
+symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0],
+        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
+        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.1),
+        fg = alpha('black', 0.05),
+        add = T)
+points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0], 
+       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0], 
+       pch = '')
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
+
+# Plot phenology
+grid_extent2 <-
+  data.frame(
+    'lon' = rep(-170, 100),
+    'lat' = rep(57, 100),
+    'doy' = seq(min(pk_egg$doy), max(pk_egg$doy), length = 100),
+    'year' = rep(2014, 100))
+grid_extent2$pred <- predict(pk_egg, newdata = grid_extent2)
+grid_extent2$se <- predict(pk_egg, newdata = grid_extent2, se = T)[[2]]
+grid_extent2$pred.up <- grid_extent2$pred + 1.96 * grid_extent2$se
+grid_extent2$pred.lw <- grid_extent2$pred - 1.96 * grid_extent2$se
+plot(
+  grid_extent2$doy,
+  grid_extent2$pred,
+  main = 'Phenology',
+  type = 'l',
+  ylab = 'Egg density ln(n/10m2)',
+  xlab = 'Day of the year',
+  cex.lab = 1.4,
+  cex.axis = 1.4,
+  cex.main = 1.5,
+  xlim = c(60, 215),
+  ylim = range(c(
+    grid_extent2$pred.up, grid_extent2$pred.lw
+  )),
+  col = 'blue',
+  lwd = 2
+)
+polygon(
+  c(grid_extent2$doy, rev(grid_extent2$doy)),
+  c(grid_extent2$pred.lw, rev(grid_extent2$pred.up)),
+  col = alpha('blue', f = 0.2),
+  lty = 0
+)
+
+#Plot MSE as stacked bars, including year variability and SST variability
+barplot(
+  matrix(
+    c(
+      var.ratio.space,
+      var.ratio.space.vc,
+      var.ratio.month,
+      var.ratio.month.vc
+    ) * 100,
+    ncol = 2,
+    nrow = 2
+  ),
+  ylab = 'Delta MSE (%)',
+  names.arg = c('Variable distribution', 'Variable phenologies'),
+  ylim = c(0, 50),
+  main = 'Delta MSE',
+  cex.lab = 1.4,
+  cex.main = 1.5,
+  cex.axis = 1.4,
+  cex.names = 1.4,
+  space = c(0, 1),
+  beside = T,
+  col = c('azure4', 'azure3')
+)
+box()
+legend(
+  "topright",
+  legend = c('D-MSE|Year', 'D-MSE|SST'),
+  bty = 'n',
+  col = c('azure4', 'azure3'),
+  pch = 15,
+  pt.cex = 2.5,
+  cex = 1.5
+)
+#Plot color legend
+par(
+  new = T,
+  mfrow = c(1, 3),
+  mai = c(0.7, 0.5, 1.75, 5.3),
+  mfg = c(1, 1)
+)
+image.plot(
+  legend.only = T,
+  col = tim.colors(100),
+  zlim = range(t(
+    matrix(
+      grid_extent$pred,
+      nrow = length(latd),
+      ncol = length(lond),
+      byrow = T
+    )
+  ), na.rm = T),
+  legend.width = 3,
+  legend.cex = 1.3
+)
+
+
+
+#### Larvae ----
+hist(pk_larvae$larvalcatchper10m2)
+pk_larvae$counts <- as.integer(pk_larvae$larvalcatchper10m2)
+pk_larvae_gam1 <- gam(larvalcatchper10m2 ~ factor(year) +
+                         s(lon, lat) +
+                         s(doy) +
+                         s(roms_temperature) +
+                         s(roms_salinity),
+                       data = pk_larvae)
+summary(pk_larvae_gam1)
+gam.check(pk_larvae_gam1)
+plot(pk_larvae_gam1)
+
+pk_larvae_gam2 <- gam(counts ~ s(year, k = 5) +
+                         s(lon, lat) +
+                         s(doy, k = 5) +
+                         s(roms_temperature, k = 5) +
+                         s(roms_salinity, k = 5),
+                       data = pk_larvae,
+                       family = ziP())
+summary(pk_larvae_gam2)
+gam.check(pk_larvae_gam2)
+plot(pk_larvae_gam2)
+
+pk_larvae_gam3 <- gam(list(counts ~ s(year, k = 5) +
+                              s(lon, lat, k = 5) +
+                              s(doy, k = 5) +
+                              s(roms_temperature, k = 5) +
+                              s(roms_salinity, k = 5),
+                            ~ s(year, k = 5) +
+                              s(lon, lat, k = 5) +
+                              s(doy, k = 5)),
+                       data = pk_larvae,
+                       family = ziplss()) #ziplss
+summary(pk_larvae_gam3)
+par(mfrow = c(2, 2))
+gam.check(pk_larvae_gam3)
+
+# Tweedie
+pk_larvae_gam4 <- gam(counts ~ s(year, k = 5) +
+                         s(lon, lat) +
+                         s(doy, k = 5) +
+                         s(roms_temperature, k = 5) +
+                         s(roms_salinity, k = 5),
+                       data = pk_larvae,
+                       family = tw(),
+                       method = "REML")
+summary(pk_larvae_gam4)
+gam.check(pk_larvae_gam4)
+plot(pk_larvae_gam4)
