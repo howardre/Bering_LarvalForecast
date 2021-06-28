@@ -34,8 +34,7 @@ bathy_xlim = range(bathy_lon)
 bering_bathy[bering_bathy <= -1] <- NA
 
 # Bering 10K model output: avg bottom temp 2015-2019
-bering_model <-
-  nc_open(here('data', 'B10K-K20_CORECFS_2015-2019_average_temp_bottom5m.nc'))
+bering_model <- nc_open(here('data', 'B10K-K20_CORECFS_2015-2019_average_temp_bottom5m.nc'))
 print(bering_model)
 
 lon <- ncvar_get(bering_model, varid = 'lon_rho')
@@ -76,8 +75,7 @@ month <- "06"
 windows(width = 9, height = 10)
 par(mfrow = c(3, 2))
 for (i in 1:length(year)) {
-  starttime <-
-    (1:length(month_year))[month_year == paste(year[i], month, sep = "-")][1]
+  starttime <- (1:length(month_year))[month_year == paste(year[i], month, sep = "-")][1]
   
   # Get temp
   tempplot <- temp[, , starttime]
@@ -86,31 +84,28 @@ for (i in 1:length(year)) {
   plotday1 <- as.character(time1[starttime])
   
   # show Temp
-  image.plot(
-    lon,
-    lat,
-    tempplot,
-    ylab = "Latitude (north)",
-    col = viridis(100),
-    xlab = "Longitude (east)",
-    main = plotday1,
-    xlim = c(-180, -155) + 360,
-    ylim = c(54, 64),
-    zlim = c(-2, 17.5)
-  )
+  image.plot(lon,
+             lat,
+             tempplot,
+             ylab = "Latitude (north)",
+             col = viridis(100),
+             xlab = "Longitude (east)",
+             main = plotday1,
+             xlim = c(-180,-155) + 360,
+             ylim = c(54, 64),
+             zlim = c(-2, 17.5))
   map("world2",
       fill = T,
       col = "grey",
       add = T)
-}
-dev.copy(
-  jpeg,
-  'results/Bottom_temp_2015_2019.jpg',
-  height = 10,
-  width = 9,
-  res = 200,
-  units = 'in'
-)
+  }
+
+dev.copy(jpeg,
+         'results/Bottom_temp_2015_2019.jpg',
+         height = 10,
+         width = 9,
+         res = 200,
+         units = 'in')
 dev.off()
 
 # Add in pollock data ----
@@ -138,10 +133,9 @@ for (i in 1:nrow(pk_dat)) {
     pk_dat$start_latitude[i],
     pk_dat$start_longitude[i],
     c(lat),
-    c(lon1)
-  ))[1]
+    c(lon1)))[1]
   pk_dat$roms_temperature[i] <- c(temp[, , idx_time])[idx_grid]
-}
+  }
 
 # 2. Loess interpolation by year, in the month of July
 # Get index for "month"
@@ -150,19 +144,15 @@ pk_year <- unique(pk_dat$year)
 pk_dat$loess_temperature <- NA
 pk_dat$loess_date <- NA
 for (i in 1:length(pk_year)) {
-  idx_time <-
-    (1:length(month_year))[month_year == paste(pk_year[i], month, sep = "-")][1]
+  idx_time <- (1:length(month_year))[month_year == paste(pk_year[i], month, sep = "-")][1]
   # Get temp
   temp_plot <- temp[, , idx_time]
   # Get start and end date of data fields
   plot_day1 <- as.character(time1[idx_time])
   # Make data frame for loess
-  data_loess <-
-    na.exclude(data.frame(
-      z = c(temp_plot),
-      x = c(lon1),
-      y = c(lat)
-    ))
+  data_loess <- na.exclude(data.frame(z = c(temp_plot),
+                                      x = c(lon1),
+                                      y = c(lat)))
   # Fit loess and check predictions
   temp_loess <- loess(z ~ x * y,
                       data = data_loess,
@@ -183,70 +173,57 @@ head(pk_dat)
 # Check predictions
 windows(height = 8, width = 8)
 par(mfrow = c(2, 2))
-plot(
-  pk_dat$roms_temperature,
-  pk_dat$gear_temperature,
-  xlab = "Closest ROMS Temp",
-  ylab = "Gear temp",
-  main = "Observation vs ROMS_close"
-)
+plot(pk_dat$roms_temperature,
+     pk_dat$gear_temperature,
+     xlab = "Closest ROMS Temp",
+     ylab = "Gear temp",
+     main = "Observation vs ROMS_close")
 abline(0, 1, col = "red", lwd = 2)
-plot(
-  pk_dat$loess_temperature,
-  pk_dat$gear_temperature,
-  xlab = "LOESS Temp",
-  ylab = "Gear temp",
-  main = "Observation vs ROMS_loess"
-)
+plot(pk_dat$loess_temperature,
+     pk_dat$gear_temperature,
+     xlab = "LOESS Temp",
+     ylab = "Gear temp",
+     main = "Observation vs ROMS_loess")
 abline(0, 1, col = "red", lwd = 2)
-plot(
-  pk_dat$loess_temperature,
-  pk_dat$roms_temperature,
-  xlab = "LOESS Temp",
-  ylab = "Closest ROMS",
-  main = "ROMS_loess vs ROMS_close"
-)
+plot(pk_dat$loess_temperature,
+     pk_dat$roms_temperature,
+     xlab = "LOESS Temp",
+     ylab = "Closest ROMS",
+     main = "ROMS_loess vs ROMS_close")
 abline(0, 1, col = "red", lwd = 2)
-dev.copy(
-  jpeg,
-  'results/Model_Obs_Bottom_Temp.jpg',
-  height = 8,
-  width = 8,
-  res = 200,
-  units = 'in'
-)
+
+dev.copy(jpeg,
+         'results/Model_Obs_Bottom_Temp.jpg',
+         height = 8,
+         width = 8,
+         res = 200,
+         units = 'in')
 dev.off()
 
 #Fit GAMs using observed and predicted bottom temp
 #1. Observed BT
-gam_obs <- gam(
-  log(cpue_noha) ~ factor(year) +
-    s(start_longitude, start_latitude) +
-    s(gear_temperature, k = 4),
-  data = pk_dat[pk_dat$cpue_noha > 0, ]
-)
+gam_obs <- gam(log(cpue_noha) ~ factor(year) +
+                 s(start_longitude, start_latitude) +
+                 s(gear_temperature, k = 4),
+               data = pk_dat[pk_dat$cpue_noha > 0,])
 summary(gam_obs)
 # R-sq.(adj) =  0.383   Deviance explained = 39.3%
 # GCV = 1.8872  Scale est. = 1.854     n = 1864
 
 # 2. ROMS close
-gam_roms <- gam(
-  log(cpue_noha) ~ factor(year) +
-    s(start_longitude, start_latitude) +
-    s(roms_temperature, k = 4),
-  data = pk_dat[pk_dat$cpue_noha > 0, ]
-)
+gam_roms <- gam(log(cpue_noha) ~ factor(year) +
+                  s(start_longitude, start_latitude) +
+                  s(roms_temperature, k = 4),
+                data = pk_dat[pk_dat$cpue_noha > 0,])
 summary(gam_roms)
 #R-sq.(adj) =  0.344   Deviance explained = 35.6%
 #GCV = 2.0006  Scale est. = 1.9656    n = 1863
 
 # 3. ROMS loess
-gam_loess <- gam(
-  log(cpue_noha) ~ factor(year) +
-    s(start_longitude, start_latitude) +
-    s(loess_temperature, k = 4),
-  data = pk_dat[pk_dat$cpue_noha > 0, ]
-)
+gam_loess <- gam(log(cpue_noha) ~ factor(year) +
+                   s(start_longitude, start_latitude) +
+                   s(loess_temperature, k = 4),
+                 data = pk_dat[pk_dat$cpue_noha > 0,])
 summary(gam_loess)
 # R-sq.(adj) =  0.345   Deviance explained = 35.6%
 # GCV = 2.0018  Scale est. = 1.968     n = 1864
@@ -254,36 +231,28 @@ summary(gam_loess)
 # Plot all three temp effects
 windows(height = 8, width = 8)
 par(mfrow = c(2, 2))
-plot(
-  gam_obs,
-  select = 2,
-  scale = 0,
-  shade = T,
-  res = T,
-  main = "Observed temperature"
-)
-plot(
-  gam_roms,
-  select = 2,
-  scale = 0,
-  shade = T,
-  res = T,
-  main = "ROMS close temperature"
-)
-plot(
-  gam_loess,
-  select = 2,
-  scale = 0,
-  shade = T,
-  res = T,
-  main = "ROMS loess temperature"
-)
-dev.copy(
-  jpeg,
-  'results/GAM_Bottom_Temp.jpg',
-  height = 8,
-  width = 8,
-  res = 200,
-  units = 'in'
-)
+plot(gam_obs,
+     select = 2,
+     scale = 0,
+     shade = T,
+     res = T,
+     main = "Observed temperature")
+plot(gam_roms,
+     select = 2,
+     scale = 0,
+     shade = T,
+     res = T,
+     main = "ROMS close temperature")
+plot(gam_loess,
+     select = 2,
+     scale = 0,
+     shade = T,
+     res = T,
+     main = "ROMS loess temperature")
+dev.copy(jpeg,
+         'results/GAM_Bottom_Temp.jpg',
+         height = 8,
+         width = 8,
+         res = 200,
+         units = 'in')
 dev.off()
