@@ -583,57 +583,104 @@ polygon(c(grid_extent_eggpk2$doy, rev(grid_extent_eggpk2$doy)),
         c(grid_extent_eggpk2$pred.lw, rev(grid_extent_eggpk2$pred.up)),
         col = alpha('gray', 0.6),
         lty = 0)
-dev.copy(jpeg, here('results', 'pollok_base_egg.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
+dev.copy(jpeg, here('results', 'pollok_base_egg.jpg'), 
+         height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
 #### Larvae ----
-hist(pk_larvae$larvalcatchper10m2)
-pk_larvae$counts <- as.integer(pk_larvae$larvalcatchper10m2)
-pk_larvae_gam1 <- gam(larvalcatchper10m2 ~ factor(year) +
-                         s(lon, lat) +
-                         s(doy) +
-                         s(roms_temperature) +
-                         s(roms_salinity),
-                       data = pk_larvae)
-summary(pk_larvae_gam1)
-gam.check(pk_larvae_gam1)
-plot(pk_larvae_gam1)
+# Negative Binomial
+pk_larvae_basenb <- gam(count ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = pk_larvae,
+                     family = nb(),
+                     offset = log(volume_filtered))
+summary(pk_larvae_basenb)
 
-pk_larvae_gam2 <- gam(count ~ s(year, k = 5) +
-                         s(lon, lat) +
-                         s(doy, k = 5) +
-                         s(roms_temperature, k = 5) +
-                         s(roms_salinity, k = 5),
-                       data = pk_larvae,
-                       family = ziP())
-summary(pk_larvae_gam2)
-gam.check(pk_larvae_gam2)
-plot(pk_larvae_gam2)
+pk_larvae_basenb$family$getTheta(TRUE) # 0.3223544
 
-pk_larvae_gam3 <- gam(list(count ~ s(year, k = 5) +
-                              s(lon, lat, k = 5) +
-                              s(doy, k = 5) +
-                              s(roms_temperature, k = 5) +
-                              s(roms_salinity, k = 5),
-                            ~ s(year, k = 5) +
-                              s(lon, lat, k = 5) +
-                              s(doy, k = 5)),
-                       data = pk_larvae,
-                       family = ziplss()) #ziplss
-summary(pk_larvae_gam3)
+windows()
 par(mfrow = c(2, 2))
-gam.check(pk_larvae_gam3)
+plot(pk_larvae_basenb, select = 2, main = "DOY")
+plot(pk_larvae_basenb, select = 3, main = "Salinity")
+plot(pk_larvae_basenb, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results', 'pollok_larvae_basenb.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(pk_larvae_basenb)
+
+# quasiPoisson
+pk_larvae_basep <- gam(count ~ factor(year) + 
+                      s(lon, lat) + 
+                      s(doy) +
+                      s(roms_salinity) +
+                      s(roms_temperature),
+                    data = pk_larvae,
+                    family = quasipoisson(link = "log"),
+                    offset = log(volume_filtered))
+summary(pk_larvae_basep)
+
+par(mfrow = c(2, 2))
+plot(pk_larvae_basep, select = 2, main = "DOY")
+plot(pk_larvae_basep, select = 3, main = "Salinity")
+plot(pk_larvae_basep, select = 4, main = "Temperature")
+
+par(mfrow = c(2, 2))
+gam.check(pk_larvae_basep)
 
 # Tweedie
-pk_larvae_baset <- gam(count ~ s(year, k = 5) +
-                         s(lon, lat) +
-                         s(doy, k = 5),
-                       data = pk_larvae,
-                       family = tw(),
-                       method = "REML")
+pk_larvae_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                      s(lon, lat) + 
+                      s(doy),
+                    data = pk_larvae,
+                    family = tw(link = 'log'),
+                    method = 'REML')
 summary(pk_larvae_baset)
+
+par(mfrow = c(2, 2))
+plot(pk_larvae_baset, select = 2, main = "DOY")
+plot(pk_larvae_baset, select = 3, main = "Salinity")
+plot(pk_larvae_baset, select = 4, main = "Temperature")
+
+par(mfrow = c(2, 2))
 gam.check(pk_larvae_baset)
-plot(pk_larvae_baset)
+
+plot(pk_larvae_baset, select = 2, main = "Tweedie")
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+pk_larvae_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                    s(lon, lat) + 
+                    s(doy) +
+                    s(roms_salinity) +
+                    s(roms_temperature),
+                  data = pk_larvae,
+                  family = ziP(),
+                  offset = log(volume_filtered))
+summary(pk_larvae_zip)
+
+par(mfrow = c(2, 2))
+gam.check(pk_larvae_zip)
+
+plot(pk_larvae_zip, select = 3, main = "Zero-inflated Poisson (1-stage)")
+
+pk_larvae_ziplss <- gam(list(count ~ s(year) +
+                            s(lon, lat) +
+                            s(doy) +
+                            s(roms_salinity) +
+                            s(roms_temperature),
+                          ~ s(year) +
+                            s(lon, lat) +
+                            s(doy)),
+                     offset = log(volume_filtered),
+                     data = pk_larvae,
+                     family = ziplss()) #ziplss
+summary(pk_larvae_ziplss)
+par(mfrow = c(2, 2))
+gam.check(pk_larvae_ziplss)
 
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
