@@ -230,8 +230,8 @@ yfs_egg_basep <- gam(count ~ factor(year) +
                     family = quasipoisson(link = "log"),
                     offset = log(volume_filtered))
 summary(yfs_egg_basep)
-# R2: 0.315
-# Deviance: 68.5%
+# R2: 0.996
+# Deviance: 98.5%
 
 windows()
 par(mfrow = c(2, 2))
@@ -256,8 +256,8 @@ yfs_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) +
                     method = 'REML',
                     offset = log(volume_filtered))
 summary(yfs_egg_baset)
-# R2: -0.544
-# Deviance: 66.5%
+# R2: 0.474
+# Deviance: 81.5%
 
 windows()
 par(mfrow = c(2, 2))
@@ -265,13 +265,11 @@ plot(yfs_egg_baset, select = 2, main = "DOY")
 plot(yfs_egg_baset, select = 3, main = "Salinity")
 plot(yfs_egg_baset, select = 4, main = "Temperature")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_baset.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
+         height = 5, width = 5, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_egg_baset)
-
-plot(yfs_egg_baset, select = 2, main = "Tweedie")
 
 # Zero-inflated Poisson (1 stage and 2 stage)
 yfs_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
@@ -283,7 +281,7 @@ yfs_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
                   family = ziP(),
                   offset = log(volume_filtered))
 summary(yfs_egg_zip)
-# Deviance: 100%
+# Deviance: 89.9%
 
 windows()
 par(mfrow = c(2, 2))
@@ -291,13 +289,11 @@ plot(yfs_egg_zip, select = 3, main = "DOY")
 plot(yfs_egg_zip, select = 4, main = "Salinity")
 plot(yfs_egg_zip, select = 5, main = "Temperature")
 dev.copy(jpeg, here('results', 'yellowfin_egg_zip.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
+         height = 5, width = 5, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_egg_zip)
-
-plot(yfs_egg_zip, select = 3, main = "Zero-inflated Poisson (1-stage)")
 
 yfs_egg_ziplss <- gam(list(count ~ s(year) +
                             s(lon, lat) +
@@ -311,13 +307,13 @@ yfs_egg_ziplss <- gam(list(count ~ s(year) +
                      data = yfs_egg,
                      family = ziplss()) #ziplss
 summary(yfs_egg_ziplss)
-# Deviance: 64.6%
+# Deviance: 69.3%
 
 windows()
 par(mfrow = c(2, 2))
-plot(yfs_egg_ziplss, select = 2, main = "DOY")
-plot(yfs_egg_ziplss, select = 3, main = "Salinity")
-plot(yfs_egg_ziplss, select = 4, main = "Temperature")
+plot(yfs_egg_ziplss, select = 3, main = "DOY")
+plot(yfs_egg_ziplss, select = 4, main = "Salinity")
+plot(yfs_egg_ziplss, select = 5, main = "Temperature")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_ziplss.jpg'), 
          height = 5, width = 5, units = 'in', res = 200 )
 dev.off()
@@ -332,22 +328,39 @@ yfs_egg_gam1 <- gam(presence ~ factor(year) +
                      s(doy) +
                      s(lon, lat),
                    data = yfs_egg,
-                   family = "binomial")
+                   family = "binomial",
+                   offset = log(volume_filtered))
 summary(yfs_egg_gam1)
-# R2: 0.487
-# Deviance: 42.1
+# R2: 0.382
+# Deviance: 61.1%
+
+windows()
+plot(yfs_egg_gam1, select = 1, main = "DOY")
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_gam1.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_egg_gam1)
 
 # gaussian
 yfs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                     s(doy) +
-                     s(lon, lat),
-                   data = yfs_egg[yfs_egg$larvalcatchper10m2 > 0, ])
+                      s(doy, k = 4) +
+                      s(lon, lat, k = 4),
+                    offset = log(volume_filtered),
+                    data = yfs_egg[yfs_egg$larvalcatchper10m2 > 0, ])
 summary(yfs_egg_gam2)
-# R2: 0.411
-# Deviance: 42.5% 
+# R2: 0.0605
+# Deviance: 64.2% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(yfs_egg_gam2, select = 1, main = "DOY")
+plot(yfs_egg_gam2, select = 3, main = "Salinity")
+plot(yfs_egg_gam2, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_gam2.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_egg_gam2)
@@ -472,8 +485,8 @@ yfs_larvae_basenb <- gam(count ~ factor(year) +
                         family = nb(),
                         offset = log(volume_filtered))
 summary(yfs_larvae_basenb)
-# R2: 0.176
-# Deviance: 73.6%
+# R2: -1.54e+03
+# Deviance: 79.9%
 
 yfs_larvae_basenb$family$getTheta(TRUE) # 0.3223544
 
@@ -499,8 +512,8 @@ yfs_larvae_basep <- gam(count ~ factor(year) +
                        family = quasipoisson(link = "log"),
                        offset = log(volume_filtered))
 summary(yfs_larvae_basep)
-# R2: 0.502
-# Deviance: 76.3%
+# R2: -0.00972
+# Deviance: 69.9%
 
 windows()
 par(mfrow = c(2, 2))
