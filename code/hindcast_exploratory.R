@@ -288,7 +288,7 @@ par(mfrow = c(2, 2))
 plot(yfs_egg_zip, select = 3, main = "DOY")
 plot(yfs_egg_zip, select = 4, main = "Salinity")
 plot(yfs_egg_zip, select = 5, main = "Temperature")
-dev.copy(jpeg, here('results', 'yellowfin_egg_zip.jpg'), 
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_zip.jpg'), 
          height = 5, width = 5, units = 'in', res = 200)
 dev.off()
 
@@ -537,8 +537,8 @@ yfs_larvae_baset <- gam(larvalcatchper10m2 ~ factor(year) +
                        family = tw(link = 'log'),
                        method = 'REML')
 summary(yfs_larvae_baset)
-# R2: 0.163
-# Deviance: 77.1%
+# R2: 0.0891
+# Deviance: 74.1%
 
 windows()
 par(mfrow = c(2, 2))
@@ -562,12 +562,19 @@ yfs_larvae_zip <- gam(count ~ s(year) +  # cannot use year as a factor
                      family = ziP(),
                      offset = log(volume_filtered))
 summary(yfs_larvae_zip)
-# Deviance: 100% ?
+# Deviance: 26.6% ?
+
+windows()
+par(mfrow = c(2, 2))
+plot(yfs_larvae_zip, select = 3, main = "DOY")
+plot(yfs_larvae_zip, select = 4, main = "Salinity")
+plot(yfs_larvae_zip, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_zip.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_larvae_zip)
-
-plot(yfs_larvae_zip, select = 3, main = "Zero-inflated Poisson (1-stage)")
 
 yfs_larvae_ziplss <- gam(list(count ~ s(year) +
                                s(lon, lat) +
@@ -581,7 +588,16 @@ yfs_larvae_ziplss <- gam(list(count ~ s(year) +
                         data = yfs_larvae,
                         family = ziplss()) #ziplss
 summary(yfs_larvae_ziplss)
-# Deviance: 69.7%
+# Deviance: 39.8%
+
+windows()
+par(mfrow = c(2, 2))
+plot(yfs_larvae_ziplss, select = 3, main = "DOY")
+plot(yfs_larvae_ziplss, select = 4, main = "Salinity")
+plot(yfs_larvae_ziplss, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_ziplss.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(yfs_larvae_ziplss)
@@ -595,8 +611,8 @@ yfs_larvae_gam1 <- gam(presence ~ factor(year) +
                       data = yfs_larvae,
                       family = "binomial")
 summary(yfs_larvae_gam1)
-# R2: 0.587
-# Deviance: 51.5%
+# R2: 0.557
+# Deviance: 55.3%
 
 windows()
 plot(yfs_larvae_gam1, select = 1, main = "DOY")
@@ -609,19 +625,19 @@ gam.check(yfs_larvae_gam1)
 
 # gaussian
 yfs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                        s(doy) +
-                        s(lon, lat),
+                         s(doy) +
+                         s(lon, lat),
                       data = yfs_larvae[yfs_larvae$larvalcatchper10m2 > 0, ])
 summary(yfs_larvae_gam2)
-# R2: 0.464
-# Deviance: 48.2% 
+# R2: 0.339
+# Deviance: 38.8% 
 
 windows()
 par(mfrow = c(2, 2))
 plot(yfs_larvae_gam2, select = 1, main = "DOY")
 plot(yfs_larvae_gam2, select = 3, main = "Salinity")
 plot(yfs_larvae_gam2, select = 4, main = "Temperature")
-dev.copy(jpeg, here('results', 'yellowfin_larvae_gam2.jpg'), 
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_gam2.jpg'), 
          height = 5, width = 5, units = 'in', res = 200 )
 dev.off()
 
@@ -706,7 +722,7 @@ grid_extent_larvaeyfs2$pred2 <- predict(yfs_larvae_model2, newdata = grid_extent
 grid_extent_larvaeyfs2$pred <- grid_extent_larvaeyfs2$pred1 * grid_extent_larvaeyfs2$pred2
 grid_extent_larvaeyfs2$se1 <- predict(yfs_larvae_model1, newdata = grid_extent_larvaeyfs2, se = T)[[2]]
 grid_extent_larvaeyfs2$se2 <- predict(yfs_larvae_model2, newdata = grid_extent_larvaeyfs2, se = T)[[2]]
-grid_extent_larvaeyfs2$se <- grid_extent_larvaeyfs2$se1 * grid_extent_larvaeyfs2$se2
+grid_extent_larvaeyfs2$se <- grid_extent_larvaeyfs2$se1 * grid_extent_larvaeyfs2$se2 # need to change this, can't just be multiplied
 grid_extent_larvaeyfs2$pred_up <- grid_extent_larvaeyfs2$pred + 1.96 * grid_extent_larvaeyfs2$se
 grid_extent_larvaeyfs2$pred_lw <- grid_extent_larvaeyfs2$pred - 1.96 * grid_extent_larvaeyfs2$se
 plot(grid_extent_larvaeyfs2$doy,
@@ -1254,4 +1270,1116 @@ polygon(c(grid_extent_larvaepk2$doy, rev(grid_extent_larvaepk2$doy)),
         col = alpha('gray', 0.6),
         lty = 0)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
+dev.off()
+
+### Flathead sole ----
+#### Eggs ----
+hist(fhs_egg$larvalcatchper10m2)
+
+# Negative Binomial
+fhs_egg_basenb <- gam(count ~ factor(year) + 
+                        s(lon, lat) + 
+                        s(doy) +
+                        s(roms_salinity) +
+                        s(roms_temperature),
+                      data = fhs_egg,
+                      family = nb(),
+                      offset = log(volume_filtered))
+summary(fhs_egg_basenb)
+# R2: 0.15
+# Deviance: 81.1%
+
+fhs_egg_basenb$family$getTheta(TRUE) # 0.3481331
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_basenb, select = 2, main = "DOY")
+plot(fhs_egg_basenb, select = 3, main = "Salinity")
+plot(fhs_egg_basenb, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_basenb.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_basenb)
+
+# quasiPoisson
+fhs_egg_basep <- gam(count ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = fhs_egg,
+                     family = quasipoisson(link = "log"),
+                     offset = log(volume_filtered))
+summary(fhs_egg_basep)
+# R2: 0.483
+# Deviance: 77.5%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_basep, select = 2, main = "DOY")
+plot(fhs_egg_basep, select = 3, main = "Salinity")
+plot(fhs_egg_basep, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_basep.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_basep)
+
+# Tweedie
+fhs_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = fhs_egg,
+                     family = tw(link = 'log'),
+                     method = 'REML',
+                     offset = log(volume_filtered))
+summary(fhs_egg_baset)
+# R2: 0.285
+# Deviance: 77%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_baset, select = 2, main = "DOY")
+plot(fhs_egg_baset, select = 3, main = "Salinity")
+plot(fhs_egg_baset, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_baset.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_baset)
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+fhs_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                     s(lon, lat) + 
+                     s(doy) +
+                     s(roms_salinity) +
+                     s(roms_temperature),
+                   data = fhs_egg,
+                   family = ziP(),
+                   offset = log(volume_filtered))
+summary(fhs_egg_zip)
+# Deviance: 65%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_zip, select = 3, main = "DOY")
+plot(fhs_egg_zip, select = 4, main = "Salinity")
+plot(fhs_egg_zip, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_zip.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_zip)
+
+fhs_egg_ziplss <- gam(list(count ~ s(year) +
+                             s(lon, lat) +
+                             s(doy) +
+                             s(roms_salinity) +
+                             s(roms_temperature),
+                           ~ s(year) +
+                             s(lon, lat) +
+                             s(doy)),
+                      offset = log(volume_filtered),
+                      data = fhs_egg,
+                      family = ziplss()) #ziplss
+summary(fhs_egg_ziplss)
+# Deviance: 58.2%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_ziplss, select = 3, main = "DOY")
+plot(fhs_egg_ziplss, select = 4, main = "Salinity")
+plot(fhs_egg_ziplss, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_ziplss.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_ziplss)
+
+# Two-part binomial and gaussian
+# binomial
+fhs_egg$presence <- 1 * (fhs_egg$count > 0)
+fhs_egg_gam1 <- gam(presence ~ factor(year) +
+                      s(doy) +
+                      s(lon, lat),
+                    data = fhs_egg,
+                    family = "binomial",
+                    offset = log(volume_filtered))
+summary(fhs_egg_gam1)
+# R2: 0.535
+# Deviance: 53.9%
+
+windows()
+plot(fhs_egg_gam1, select = 1, main = "DOY")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_gam1.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_gam1)
+
+# gaussian
+fhs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                      s(doy, k = 4) +
+                      s(lon, lat, k = 4),
+                    offset = log(volume_filtered),
+                    data = fhs_egg[fhs_egg$larvalcatchper10m2 > 0, ])
+summary(fhs_egg_gam2)
+# R2: 0.116
+# Deviance: 19.7% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_egg_gam2, select = 1, main = "DOY")
+plot(fhs_egg_gam2, select = 3, main = "Salinity")
+plot(fhs_egg_gam2, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_gam2.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_egg_gam2)
+
+
+# Plot best model
+# Plot results of average geography and phenology along with decrease of MSE
+# Prediction grid
+nlat = 80
+nlon = 120
+latd = seq(min(fhs_egg$lat), max(fhs_egg$lat), length.out = nlat)
+lond = seq(min(fhs_egg$lon), max(fhs_egg$lon), length.out = nlon)
+grid_extent_eggfhs <- expand.grid(lond, latd)
+names(grid_extent_eggfhs) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent_eggfhs$dist <- NA
+for (k in 1:nrow(grid_extent_eggfhs)) {
+  dist <- distance_function(grid_extent_eggfhs$lat[k],
+                            grid_extent_eggfhs$lon[k],
+                            fhs_egg$lat,
+                            fhs_egg$lon)
+  grid_extent_eggfhs$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+fhs_egg_model1 <- fhs_egg_gam1
+fhs_egg_model2 <- fhs_egg_gam2
+grid_extent_eggfhs$year <- 2014
+grid_extent_eggfhs$doy <- median(fhs_egg$doy)
+grid_extent_eggfhs$pred1 <- predict(fhs_egg_model1, newdata = grid_extent_eggfhs)
+grid_extent_eggfhs$pred2 <- predict(fhs_egg_model2, newdata = grid_extent_eggfhs)
+grid_extent_eggfhs$pred <- grid_extent_eggfhs$pred1 * grid_extent_eggfhs$pred2
+grid_extent_eggfhs$pred[grid_extent_eggfhs$dist > 30000] <- NA
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+image(lond,
+      latd,
+      t(matrix(grid_extent_eggfhs$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      col = viridis(100, option = "F", direction = 1),
+      ylab = "Latitude",
+      xlab = "Longitude",
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      main = 'Distribution',
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis = 1.1)
+# contour(unique(bathy_dat$lon), # need to change to marmap contours
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 1,
+#         col = 'black',
+#         add = T)
+symbols(fhs_egg$lon[fhs_egg$larvalcatchper10m2 > 0],
+        fhs_egg$lat[fhs_egg$larvalcatchper10m2 > 0],
+        circles = log(fhs_egg$larvalcatchper10m2 + 1)[fhs_egg$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.1),
+        fg = alpha('black', 0.05),
+        add = T)
+points(fhs_egg$lon[fhs_egg$larvalcatchper10m2 == 0], 
+       fhs_egg$lat[fhs_egg$larvalcatchper10m2 == 0], 
+       pch = '')
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
+
+# Plot phenology
+grid_extent_eggfhs2 <- data.frame('lon' = rep(-170, 100),
+                                  'lat' = rep(57, 100),
+                                  'doy' = seq(min(fhs_egg$doy), 
+                                              max(fhs_egg$doy), 
+                                              length = 100),
+                                  'year' = rep(2014, 100))
+grid_extent_eggfhs2$pred1 <- predict(fhs_egg_model1, newdata = grid_extent_eggfhs2)
+grid_extent_eggfhs2$pred2 <- predict(fhs_egg_model2, newdata = grid_extent_eggfhs2)
+grid_extent_eggfhs2$pred <- grid_extent_eggfhs2$pred1 * grid_extent_eggfhs2$pred2
+grid_extent_eggfhs2$se1 <- predict(fhs_egg_model1, newdata = grid_extent_eggfhs2, se = T)[[2]]
+grid_extent_eggfhs2$se2 <- predict(fhs_egg_model2, newdata = grid_extent_eggfhs2, se = T)[[2]]
+grid_extent_eggfhs2$se <- grid_extent_eggfhs2$se1 * grid_extent_eggfhs2$se2
+grid_extent_eggfhs2$pred_up <- grid_extent_eggfhs2$pred + 1.96 * grid_extent_eggfhs2$se
+grid_extent_eggfhs2$pred_lw <- grid_extent_eggfhs2$pred - 1.96 * grid_extent_eggfhs2$se
+plot(grid_extent_eggfhs2$doy,
+     grid_extent_eggfhs2$pred,
+     main = 'Phenology',
+     type = 'l',
+     ylab = 'Egg density ln(n/10m2)',
+     xlab = 'Day of the year',
+     cex.lab = 1.1,
+     cex.axis = 1.1,
+     cex.main = 1.2,
+     xlim = c(60, 215),
+     ylim = range(c(grid_extent_eggfhs2$pred_up, grid_extent_eggfhs2$pred_lw)),
+     col = 'blue',
+     lwd = 2)
+polygon(c(grid_extent_eggfhs2$doy, rev(grid_extent_eggfhs2$doy)),
+        c(grid_extent_eggfhs2$pred_lw, rev(grid_extent_eggfhs2$pred_up)),
+        col = alpha('gray', 0.6),
+        lty = 0)
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_base_egg.jpg'), 
+         height = 3.5, width = 8, res = 200, units = 'in')
+dev.off()
+
+#### Larvae ----
+# Negative Binomial
+fhs_larvae_basenb <- gam(count ~ factor(year) + 
+                           s(lon, lat) + 
+                           s(doy) +
+                           s(roms_salinity) +
+                           s(roms_temperature),
+                         data = fhs_larvae,
+                         family = nb(),
+                         offset = log(volume_filtered))
+summary(fhs_larvae_basenb)
+# R2: 0.246
+# Deviance: 76.8%
+
+fhs_larvae_basenb$family$getTheta(TRUE) # 0.3615238
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_basenb, select = 2, main = "DOY")
+plot(fhs_larvae_basenb, select = 3, main = "Salinity")
+plot(fhs_larvae_basenb, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_basenb.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_basenb)
+
+# quasiPoisson
+fhs_larvae_basep <- gam(count ~ factor(year) + 
+                          s(lon, lat) + 
+                          s(doy) +
+                          s(roms_salinity) +
+                          s(roms_temperature),
+                        data = fhs_larvae,
+                        family = quasipoisson(link = "log"),
+                        offset = log(volume_filtered))
+summary(fhs_larvae_basep)
+# R2: 0.493
+# Deviance: 75%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_basep, select = 2, main = "DOY")
+plot(fhs_larvae_basep, select = 3, main = "Salinity")
+plot(fhs_larvae_basep, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_basep.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_basep)
+
+# Tweedie
+fhs_larvae_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                          s(lon, lat) + 
+                          s(doy) +
+                          s(roms_salinity) +
+                          s(roms_temperature),
+                        data = fhs_larvae,
+                        family = tw(link = 'log'),
+                        method = 'REML')
+summary(fhs_larvae_baset)
+# R2: 0.293
+# Deviance: 74.3%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_baset, select = 2, main = "DOY")
+plot(fhs_larvae_baset, select = 3, main = "Salinity")
+plot(fhs_larvae_baset, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_baset.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_baset)
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+fhs_larvae_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                        s(lon, lat) + 
+                        s(doy) +
+                        s(roms_salinity) +
+                        s(roms_temperature),
+                      data = fhs_larvae,
+                      family = ziP(),
+                      offset = log(volume_filtered))
+summary(fhs_larvae_zip)
+# Deviance: 58.7% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_zip, select = 3, main = "DOY")
+plot(fhs_larvae_zip, select = 4, main = "Salinity")
+plot(fhs_larvae_zip, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_zip.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_zip)
+
+fhs_larvae_ziplss <- gam(list(count ~ s(year) +
+                                s(lon, lat) +
+                                s(doy) +
+                                s(roms_salinity) +
+                                s(roms_temperature),
+                              ~ s(year) +
+                                s(lon, lat) +
+                                s(doy)),
+                         offset = log(volume_filtered),
+                         data = fhs_larvae,
+                         family = ziplss()) #ziplss
+summary(fhs_larvae_ziplss)
+# Deviance: 57.5%
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_ziplss, select = 3, main = "DOY")
+plot(fhs_larvae_ziplss, select = 4, main = "Salinity")
+plot(fhs_larvae_ziplss, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_ziplss.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_ziplss)
+
+# Two-part binomial and gaussian
+# binomial
+fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
+fhs_larvae_gam1 <- gam(presence ~ factor(year) +
+                         s(doy) +
+                         s(lon, lat),
+                       data = fhs_larvae,
+                       family = "binomial")
+summary(fhs_larvae_gam1)
+# R2: 0.514
+# Deviance: 49.4%
+
+windows()
+plot(fhs_larvae_gam1, select = 1, main = "DOY")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_gam1.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_gam1)
+
+# gaussian
+fhs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                         s(doy) +
+                         s(lon, lat),
+                       data = fhs_larvae[fhs_larvae$larvalcatchper10m2 > 0, ])
+summary(fhs_larvae_gam2)
+# R2: 0.383
+# Deviance: 41.7% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(fhs_larvae_gam2, select = 1, main = "DOY")
+plot(fhs_larvae_gam2, select = 3, main = "Salinity")
+plot(fhs_larvae_gam2, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_gam2.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(fhs_larvae_gam2)
+
+# Plot best model
+# Plot results of average geography and phenology along with decrease of MSE
+# Prediction grid
+grid_extent_larvaefhs <- expand.grid(lond, latd)
+names(grid_extent_larvaefhs) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent_larvaefhs$dist <- NA
+for (k in 1:nrow(grid_extent_larvaefhs)) {
+  dist <- distance_function(grid_extent_larvaefhs$lat[k],
+                            grid_extent_larvaefhs$lon[k],
+                            fhs_larvae$lat,
+                            fhs_larvae$lon)
+  grid_extent_larvaefhs$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+fhs_larvae_model1 <- fhs_larvae_gam1
+fhs_larvae_model2 <- fhs_larvae_gam2
+grid_extent_larvaefhs$year <- 2014
+grid_extent_larvaefhs$doy <- median(fhs_larvae$doy)
+grid_extent_larvaefhs$pred1 <- predict(fhs_larvae_model1, newdata = grid_extent_larvaefhs)
+grid_extent_larvaefhs$pred2 <- predict(fhs_larvae_model2, newdata = grid_extent_larvaefhs)
+grid_extent_larvaefhs$pred <- grid_extent_larvaefhs$pred1 * grid_extent_larvaefhs$pred2
+grid_extent_larvaefhs$pred[grid_extent_larvaefhs$dist > 30000] <- NA
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+image(lond,
+      latd,
+      t(matrix(grid_extent_larvaefhs$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      col = viridis(100, option = "F", direction = 1),
+      ylab = "Latitude",
+      xlab = "Longitude",
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      main = 'Distribution',
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis = 1.1)
+# contour(unique(bathy_dat$lon), # need to change to marmap contours
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 1,
+#         col = 'black',
+#         add = T)
+symbols(fhs_larvae$lon[fhs_larvae$larvalcatchper10m2 > 0],
+        fhs_larvae$lat[fhs_larvae$larvalcatchper10m2 > 0],
+        circles = log(fhs_larvae$larvalcatchper10m2 + 1)[fhs_larvae$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.1),
+        fg = alpha('black', 0.05),
+        add = T)
+points(fhs_larvae$lon[fhs_larvae$larvalcatchper10m2 == 0], 
+       fhs_larvae$lat[fhs_larvae$larvalcatchper10m2 == 0], 
+       pch = '')
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
+
+# Plot phenology
+grid_extent_larvaefhs2 <- data.frame('lon' = rep(-170, 100),
+                                     'lat' = rep(57, 100),
+                                     'doy' = seq(min(fhs_larvae$doy), max(fhs_larvae$doy), length = 100),
+                                     'year' = rep(2014, 100))
+grid_extent_larvaefhs2$pred1 <- predict(fhs_larvae_model1, newdata = grid_extent_larvaefhs2)
+grid_extent_larvaefhs2$pred2 <- predict(fhs_larvae_model2, newdata = grid_extent_larvaefhs2)
+grid_extent_larvaefhs2$pred <- grid_extent_larvaefhs2$pred1 * grid_extent_larvaefhs2$pred2
+grid_extent_larvaefhs2$se1 <- predict(fhs_larvae_model1, newdata = grid_extent_larvaefhs2, se = T)[[2]]
+grid_extent_larvaefhs2$se2 <- predict(fhs_larvae_model2, newdata = grid_extent_larvaefhs2, se = T)[[2]]
+grid_extent_larvaefhs2$se <- grid_extent_larvaefhs2$se1 * grid_extent_larvaefhs2$se2 # need to change this, can't just be multiplied
+grid_extent_larvaefhs2$pred_up <- grid_extent_larvaefhs2$pred + 1.96 * grid_extent_larvaefhs2$se
+grid_extent_larvaefhs2$pred_lw <- grid_extent_larvaefhs2$pred - 1.96 * grid_extent_larvaefhs2$se
+plot(grid_extent_larvaefhs2$doy,
+     grid_extent_larvaefhs2$pred,
+     main = 'Phenology',
+     type = 'l',
+     ylab = 'Larval density ln(n/10m2)',
+     xlab = 'Day of the year',
+     cex.lab = 1.1,
+     cex.axis = 1.1,
+     cex.main = 1.2,
+     xlim = c(60, 215),
+     ylim = range(c(grid_extent_larvaefhs2$pred_up, grid_extent_larvaefhs2$pred_lw)),
+     col = 'blue',
+     lwd = 2)
+polygon(c(grid_extent_larvaefhs2$doy, rev(grid_extent_larvaefhs2$doy)),
+        c(grid_extent_larvaefhs2$pred_lw, rev(grid_extent_larvaefhs2$pred_up)),
+        col = alpha('gray', 0.6),
+        lty = 0)
+dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
+dev.off()
+
+### Alaska Plaice ----
+#### Eggs ----
+hist(akp_egg$larvalcatchper10m2)
+
+# Negative Binomial
+akp_egg_basenb <- gam(count ~ factor(year) + 
+                        s(lon, lat) + 
+                        s(doy) +
+                        s(roms_salinity) +
+                        s(roms_temperature),
+                      data = akp_egg,
+                      family = nb(),
+                      offset = log(volume_filtered))
+summary(akp_egg_basenb)
+# R2: -6.93
+# Deviance: 85.2%
+
+akp_egg_basenb$family$getTheta(TRUE) # 0.3602255
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_basenb, select = 2, main = "DOY")
+plot(akp_egg_basenb, select = 3, main = "Salinity")
+plot(akp_egg_basenb, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_basenb.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_basenb)
+
+# quasiPoisson
+akp_egg_basep <- gam(count ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = akp_egg,
+                     family = quasipoisson(link = "log"),
+                     offset = log(volume_filtered))
+summary(akp_egg_basep)
+# R2: 0.537
+# Deviance: 83.8%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_basep, select = 2, main = "DOY")
+plot(akp_egg_basep, select = 3, main = "Salinity")
+plot(akp_egg_basep, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_basep.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_basep)
+
+# Tweedie
+akp_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                       s(lon, lat) + 
+                       s(doy) +
+                       s(roms_salinity) +
+                       s(roms_temperature),
+                     data = akp_egg,
+                     family = tw(link = 'log'),
+                     method = 'REML',
+                     offset = log(volume_filtered))
+summary(akp_egg_baset)
+# R2: -13.1
+# Deviance: 85.7%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_baset, select = 2, main = "DOY")
+plot(akp_egg_baset, select = 3, main = "Salinity")
+plot(akp_egg_baset, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_baset.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_baset)
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+akp_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                     s(lon, lat) + 
+                     s(doy) +
+                     s(roms_salinity) +
+                     s(roms_temperature),
+                   data = akp_egg,
+                   family = ziP(),
+                   offset = log(volume_filtered))
+summary(akp_egg_zip)
+# Deviance: 69.7%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_zip, select = 3, main = "DOY")
+plot(akp_egg_zip, select = 4, main = "Salinity")
+plot(akp_egg_zip, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_zip.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_zip)
+
+akp_egg_ziplss <- gam(list(count ~ s(year) +
+                             s(lon, lat) +
+                             s(doy) +
+                             s(roms_salinity) +
+                             s(roms_temperature),
+                           ~ s(year) +
+                             s(lon, lat) +
+                             s(doy)),
+                      offset = log(volume_filtered),
+                      data = akp_egg,
+                      family = ziplss()) #ziplss
+summary(akp_egg_ziplss)
+# Deviance: 68.2%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_ziplss, select = 3, main = "DOY")
+plot(akp_egg_ziplss, select = 4, main = "Salinity")
+plot(akp_egg_ziplss, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_ziplss.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_ziplss)
+
+# Two-part binomial and gaussian
+# binomial
+akp_egg$presence <- 1 * (akp_egg$count > 0)
+akp_egg_gam1 <- gam(presence ~ factor(year) +
+                      s(doy) +
+                      s(lon, lat),
+                    data = akp_egg,
+                    family = "binomial",
+                    offset = log(volume_filtered))
+summary(akp_egg_gam1)
+# R2: 0.594
+# Deviance: 61.3%
+
+windows()
+plot(akp_egg_gam1, select = 1, main = "DOY")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_gam1.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_gam1)
+
+# gaussian
+akp_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                      s(doy, k = 4) +
+                      s(lon, lat, k = 4),
+                    offset = log(volume_filtered),
+                    data = akp_egg[akp_egg$larvalcatchper10m2 > 0, ])
+summary(akp_egg_gam2)
+# R2: 0.278
+# Deviance: 46.3% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_egg_gam2, select = 1, main = "DOY")
+plot(akp_egg_gam2, select = 3, main = "Salinity")
+plot(akp_egg_gam2, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_gam2.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_egg_gam2)
+
+
+# Plot best model
+# Plot results of average geography and phenology along with decrease of MSE
+# Prediction grid
+nlat = 80
+nlon = 120
+latd = seq(min(akp_egg$lat), max(akp_egg$lat), length.out = nlat)
+lond = seq(min(akp_egg$lon), max(akp_egg$lon), length.out = nlon)
+grid_extent_eggakp <- expand.grid(lond, latd)
+names(grid_extent_eggakp) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent_eggakp$dist <- NA
+for (k in 1:nrow(grid_extent_eggakp)) {
+  dist <- distance_function(grid_extent_eggakp$lat[k],
+                            grid_extent_eggakp$lon[k],
+                            akp_egg$lat,
+                            akp_egg$lon)
+  grid_extent_eggakp$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+akp_egg_model1 <- akp_egg_gam1
+akp_egg_model2 <- akp_egg_gam2
+grid_extent_eggakp$year <- 2014
+grid_extent_eggakp$doy <- median(akp_egg$doy)
+grid_extent_eggakp$pred1 <- predict(akp_egg_model1, newdata = grid_extent_eggakp)
+grid_extent_eggakp$pred2 <- predict(akp_egg_model2, newdata = grid_extent_eggakp)
+grid_extent_eggakp$pred <- grid_extent_eggakp$pred1 * grid_extent_eggakp$pred2
+grid_extent_eggakp$pred[grid_extent_eggakp$dist > 30000] <- NA
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+image(lond,
+      latd,
+      t(matrix(grid_extent_eggakp$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      col = viridis(100, option = "F", direction = 1),
+      ylab = "Latitude",
+      xlab = "Longitude",
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      main = 'Distribution',
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis = 1.1)
+# contour(unique(bathy_dat$lon), # need to change to marmap contours
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 1,
+#         col = 'black',
+#         add = T)
+symbols(akp_egg$lon[akp_egg$larvalcatchper10m2 > 0],
+        akp_egg$lat[akp_egg$larvalcatchper10m2 > 0],
+        circles = log(akp_egg$larvalcatchper10m2 + 1)[akp_egg$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.1),
+        fg = alpha('black', 0.05),
+        add = T)
+points(akp_egg$lon[akp_egg$larvalcatchper10m2 == 0], 
+       akp_egg$lat[akp_egg$larvalcatchper10m2 == 0], 
+       pch = '')
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
+
+# Plot phenology
+grid_extent_eggakp2 <- data.frame('lon' = rep(-170, 100),
+                                  'lat' = rep(57, 100),
+                                  'doy' = seq(min(akp_egg$doy), 
+                                              max(akp_egg$doy), 
+                                              length = 100),
+                                  'year' = rep(2014, 100))
+grid_extent_eggakp2$pred1 <- predict(akp_egg_model1, newdata = grid_extent_eggakp2)
+grid_extent_eggakp2$pred2 <- predict(akp_egg_model2, newdata = grid_extent_eggakp2)
+grid_extent_eggakp2$pred <- grid_extent_eggakp2$pred1 * grid_extent_eggakp2$pred2
+grid_extent_eggakp2$se1 <- predict(akp_egg_model1, newdata = grid_extent_eggakp2, se = T)[[2]]
+grid_extent_eggakp2$se2 <- predict(akp_egg_model2, newdata = grid_extent_eggakp2, se = T)[[2]]
+grid_extent_eggakp2$se <- grid_extent_eggakp2$se1 * grid_extent_eggakp2$se2
+grid_extent_eggakp2$pred_up <- grid_extent_eggakp2$pred + 1.96 * grid_extent_eggakp2$se
+grid_extent_eggakp2$pred_lw <- grid_extent_eggakp2$pred - 1.96 * grid_extent_eggakp2$se
+plot(grid_extent_eggakp2$doy,
+     grid_extent_eggakp2$pred,
+     main = 'Phenology',
+     type = 'l',
+     ylab = 'Egg density ln(n/10m2)',
+     xlab = 'Day of the year',
+     cex.lab = 1.1,
+     cex.axis = 1.1,
+     cex.main = 1.2,
+     xlim = c(60, 215),
+     ylim = range(c(grid_extent_eggakp2$pred_up, grid_extent_eggakp2$pred_lw)),
+     col = 'blue',
+     lwd = 2)
+polygon(c(grid_extent_eggakp2$doy, rev(grid_extent_eggakp2$doy)),
+        c(grid_extent_eggakp2$pred_lw, rev(grid_extent_eggakp2$pred_up)),
+        col = alpha('gray', 0.6),
+        lty = 0)
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_base_egg.jpg'), 
+         height = 3.5, width = 8, res = 200, units = 'in')
+dev.off()
+
+#### Larvae ----
+# Negative Binomial
+akp_larvae_basenb <- gam(count ~ factor(year) + 
+                           s(lon, lat) + 
+                           s(doy) +
+                           s(roms_salinity) +
+                           s(roms_temperature),
+                         data = akp_larvae,
+                         family = nb(),
+                         offset = log(volume_filtered))
+summary(akp_larvae_basenb)
+# R2: 0.246
+# Deviance: 87.5%
+
+akp_larvae_basenb$family$getTheta(TRUE) # 0.3615238
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_basenb, select = 2, main = "DOY")
+plot(akp_larvae_basenb, select = 3, main = "Salinity")
+plot(akp_larvae_basenb, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_basenb.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_basenb)
+
+# quasiPoisson
+akp_larvae_basep <- gam(count ~ factor(year) + 
+                          s(lon, lat) + 
+                          s(doy) +
+                          s(roms_salinity) +
+                          s(roms_temperature),
+                        data = akp_larvae,
+                        family = quasipoisson(link = "log"),
+                        offset = log(volume_filtered))
+summary(akp_larvae_basep)
+# R2: 0.659
+# Deviance: 86.9%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_basep, select = 2, main = "DOY")
+plot(akp_larvae_basep, select = 3, main = "Salinity")
+plot(akp_larvae_basep, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_basep.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_basep)
+
+# Tweedie
+akp_larvae_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+                          s(lon, lat) + 
+                          s(doy) +
+                          s(roms_salinity) +
+                          s(roms_temperature),
+                        data = akp_larvae,
+                        family = tw(link = 'log'),
+                        method = 'REML')
+summary(akp_larvae_baset)
+# R2: 0.519
+# Deviance: 82.4%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_baset, select = 2, main = "DOY")
+plot(akp_larvae_baset, select = 3, main = "Salinity")
+plot(akp_larvae_baset, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_baset.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_baset)
+
+# Zero-inflated Poisson (1 stage and 2 stage)
+akp_larvae_zip <- gam(count ~ s(year) +  # cannot use year as a factor
+                        s(lon, lat) + 
+                        s(doy) +
+                        s(roms_salinity) +
+                        s(roms_temperature),
+                      data = akp_larvae,
+                      family = ziP(),
+                      offset = log(volume_filtered))
+summary(akp_larvae_zip)
+# Deviance: 78.6% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_zip, select = 3, main = "DOY")
+plot(akp_larvae_zip, select = 4, main = "Salinity")
+plot(akp_larvae_zip, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_zip.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200)
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_zip)
+
+akp_larvae_ziplss <- gam(list(count ~ s(year) +
+                                s(lon, lat) +
+                                s(doy) +
+                                s(roms_salinity) +
+                                s(roms_temperature),
+                              ~ s(year) +
+                                s(lon, lat) +
+                                s(doy)),
+                         offset = log(volume_filtered),
+                         data = akp_larvae,
+                         family = ziplss()) #ziplss
+summary(akp_larvae_ziplss)
+# Deviance: 71%
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_ziplss, select = 3, main = "DOY")
+plot(akp_larvae_ziplss, select = 4, main = "Salinity")
+plot(akp_larvae_ziplss, select = 5, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_ziplss.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_ziplss)
+
+# Two-part binomial and gaussian
+# binomial
+akp_larvae$presence <- 1 * (akp_larvae$count > 0)
+akp_larvae_gam1 <- gam(presence ~ factor(year) +
+                         s(doy) +
+                         s(lon, lat),
+                       data = akp_larvae,
+                       family = "binomial")
+summary(akp_larvae_gam1)
+# R2: 0.432
+# Deviance: 49.4%
+
+windows()
+plot(akp_larvae_gam1, select = 1, main = "DOY")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_gam1.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_gam1)
+
+# gaussian
+akp_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                         s(doy) +
+                         s(lon, lat),
+                       data = akp_larvae[akp_larvae$larvalcatchper10m2 > 0, ])
+summary(akp_larvae_gam2)
+# R2: 0.512
+# Deviance: 58.6% 
+
+windows()
+par(mfrow = c(2, 2))
+plot(akp_larvae_gam2, select = 1, main = "DOY")
+plot(akp_larvae_gam2, select = 3, main = "Salinity")
+plot(akp_larvae_gam2, select = 4, main = "Temperature")
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_gam2.jpg'), 
+         height = 5, width = 5, units = 'in', res = 200 )
+dev.off()
+
+par(mfrow = c(2, 2))
+gam.check(akp_larvae_gam2)
+
+# Plot best model
+# Plot results of average geography and phenology along with decrease of MSE
+# Prediction grid
+grid_extent_larvaeakp <- expand.grid(lond, latd)
+names(grid_extent_larvaeakp) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent_larvaeakp$dist <- NA
+for (k in 1:nrow(grid_extent_larvaeakp)) {
+  dist <- distance_function(grid_extent_larvaeakp$lat[k],
+                            grid_extent_larvaeakp$lon[k],
+                            akp_larvae$lat,
+                            akp_larvae$lon)
+  grid_extent_larvaeakp$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+akp_larvae_model1 <- akp_larvae_gam1
+akp_larvae_model2 <- akp_larvae_gam2
+grid_extent_larvaeakp$year <- 2014
+grid_extent_larvaeakp$doy <- median(akp_larvae$doy)
+grid_extent_larvaeakp$pred1 <- predict(akp_larvae_model1, newdata = grid_extent_larvaeakp)
+grid_extent_larvaeakp$pred2 <- predict(akp_larvae_model2, newdata = grid_extent_larvaeakp)
+grid_extent_larvaeakp$pred <- grid_extent_larvaeakp$pred1 * grid_extent_larvaeakp$pred2
+grid_extent_larvaeakp$pred[grid_extent_larvaeakp$dist > 30000] <- NA
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+image(lond,
+      latd,
+      t(matrix(grid_extent_larvaeakp$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      col = viridis(100, option = "F", direction = 1),
+      ylab = "Latitude",
+      xlab = "Longitude",
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      main = 'Distribution',
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis = 1.1)
+# contour(unique(bathy_dat$lon), # need to change to marmap contours
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 1,
+#         col = 'black',
+#         add = T)
+symbols(akp_larvae$lon[akp_larvae$larvalcatchper10m2 > 0],
+        akp_larvae$lat[akp_larvae$larvalcatchper10m2 > 0],
+        circles = log(akp_larvae$larvalcatchper10m2 + 1)[akp_larvae$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.1),
+        fg = alpha('black', 0.05),
+        add = T)
+points(akp_larvae$lon[akp_larvae$larvalcatchper10m2 == 0], 
+       akp_larvae$lat[akp_larvae$larvalcatchper10m2 == 0], 
+       pch = '')
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
+
+# Plot phenology
+grid_extent_larvaeakp2 <- data.frame('lon' = rep(-170, 100),
+                                     'lat' = rep(57, 100),
+                                     'doy' = seq(min(akp_larvae$doy), max(akp_larvae$doy), length = 100),
+                                     'year' = rep(2014, 100))
+grid_extent_larvaeakp2$pred1 <- predict(akp_larvae_model1, newdata = grid_extent_larvaeakp2)
+grid_extent_larvaeakp2$pred2 <- predict(akp_larvae_model2, newdata = grid_extent_larvaeakp2)
+grid_extent_larvaeakp2$pred <- grid_extent_larvaeakp2$pred1 * grid_extent_larvaeakp2$pred2
+grid_extent_larvaeakp2$se1 <- predict(akp_larvae_model1, newdata = grid_extent_larvaeakp2, se = T)[[2]]
+grid_extent_larvaeakp2$se2 <- predict(akp_larvae_model2, newdata = grid_extent_larvaeakp2, se = T)[[2]]
+grid_extent_larvaeakp2$se <- grid_extent_larvaeakp2$se1 * grid_extent_larvaeakp2$se2 # need to change this, can't just be multiplied
+grid_extent_larvaeakp2$pred_up <- grid_extent_larvaeakp2$pred + 1.96 * grid_extent_larvaeakp2$se
+grid_extent_larvaeakp2$pred_lw <- grid_extent_larvaeakp2$pred - 1.96 * grid_extent_larvaeakp2$se
+plot(grid_extent_larvaeakp2$doy,
+     grid_extent_larvaeakp2$pred,
+     main = 'Phenology',
+     type = 'l',
+     ylab = 'Larval density ln(n/10m2)',
+     xlab = 'Day of the year',
+     cex.lab = 1.1,
+     cex.axis = 1.1,
+     cex.main = 1.2,
+     xlim = c(60, 215),
+     ylim = range(c(grid_extent_larvaeakp2$pred_up, grid_extent_larvaeakp2$pred_lw)),
+     col = 'blue',
+     lwd = 2)
+polygon(c(grid_extent_larvaeakp2$doy, rev(grid_extent_larvaeakp2$doy)),
+        c(grid_extent_larvaeakp2$pred_lw, rev(grid_extent_larvaeakp2$pred_up)),
+        col = alpha('gray', 0.6),
+        lty = 0)
+dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
