@@ -55,6 +55,7 @@ nc_close(bering_model_salt)
 
 ### Predict future distributions ----
 #### Pollock ----
+##### Eggs ----
 # Two-part binomial and gaussian
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
@@ -111,22 +112,36 @@ for (k in 1:nrow(grid_extent_eggpk)) {
 }
 
 # Assign a within sample year and doy to the grid data
-grid_extent_eggpk$year <- 2020
+grid_extent_eggpk$year <- 2022
 grid_extent_eggpk$date <- rep(as.Date("2022-02-18"), length(grid_extent_eggpk))
 grid_extent_eggpk$doy <- rep(49, length(grid_extent_eggpk))
 
 # Attach ROMs forecast
 grid_extent_eggpk <- varid_match(grid_extent_eggpk, temp_output, salt_output)
 
+# Predict on forecasted output
 grid_extent_eggpk$pred1 <- predict(pk_egg_gam1, newdata = grid_extent_eggpk)
 grid_extent_eggpk$pred2 <- predict(pk_egg_gam2, newdata = grid_extent_eggpk)
 grid_extent_eggpk$pred <- grid_extent_eggpk$pred1 * grid_extent_eggpk$pred2
 grid_extent_eggpk$pred[grid_extent_eggpk$dist > 30000] <- NA
 
 # Plot
-windows(width = 6, height = 5)
+windows(width = 6, height = 5, family = "serif")
 par(mfrow = c(1, 1), 
     mai = c(0.8, 0.9, 0.5, 0.5))
+image(lond,
+      latd,
+      t(matrix(grid_extent_eggpk$pred,
+               nrow = length(latd),
+               ncol = length(lond),
+               byrow = T)),
+      xlim = c(-176.5, -156.5),
+      ylim = c(52, 62),
+      axes = FALSE,
+      xlab = "",
+      ylab = "")
+rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "aliceblue")
+par(new = TRUE)
 image(lond,
       latd,
       t(matrix(grid_extent_eggpk$pred,
@@ -146,3 +161,6 @@ maps::map("worldHires",
     fill = T,
     col = "wheat4",
     add = T)
+dev.copy(jpeg, here('results/pollock_forecast', 'pollock_egg_forecast.jpg'), 
+         height = 5, width = 6, res = 200, units = 'in')
+dev.off()
