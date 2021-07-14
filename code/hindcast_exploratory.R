@@ -17,6 +17,96 @@ library(viridis)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 source(here('code/functions', 'distance_function.R'))
 
+# Function to make maps
+map_phenology <- function(data, grid, grid2){
+  nlat = 80
+  nlon = 120
+  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
+  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
+                                "#AFABCB", "#DAD9E5", "#F9F9F9",
+                                "#FFDAB7", "#FFB377","#E18811",
+                                "#AC6000", "#743700"))
+  color_levels = 100
+  max_absolute_value = max(abs(c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)))) 
+  color_sequence = seq(-max_absolute_value, max_absolute_value, 
+                       length.out = color_levels + 1)
+  n_in_class = hist(grid$pred, breaks = color_sequence, plot = F)$counts > 0
+  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
+  image(lond,
+        latd,
+        t(matrix(grid$pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        axes = FALSE,
+        xlab = "",
+        ylab = "")
+  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
+  par(new = TRUE)
+  image(lond,
+        latd,
+        t(matrix(grid$pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        col = my_color(n = color_levels)[col_to_include], 
+        breaks = color_sequence[breaks_to_include],
+        ylab = "Latitude",
+        xlab = "Longitude",
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        main = "Distribution",
+        cex.main = 1.2,
+        cex.lab = 1.1,
+        cex.axis = 1.1)
+  symbols(data$lon[data$larvalcatchper10m2 > 0],
+          data$lat[data$larvalcatchper10m2 > 0],
+          circles = log(data$larvalcatchper10m2 + 1)[data$larvalcatchper10m2 > 0],
+          inches = 0.1,
+          bg = alpha('grey', 0.1),
+          fg = alpha('black', 0.05),
+          add = T)
+  points(data$lon[data$larvalcatchper10m2 == 0], 
+         data$lat[data$larvalcatchper10m2 == 0], 
+         pch = '')
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
+  image.plot(legend.only = T,
+             col = my_color(n = color_levels)[col_to_include],
+             legend.shrink = 0.2,
+             smallplot = c(.765, .79, .25, .37),
+             legend.cex = 0.4,
+             axis.args = list(cex.axis = 0.6),
+             legend.width = 0.5,
+             legend.mar = 6,
+             zlim = c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)),
+             legend.args = list("Predicted \n Change",
+                                side = 2, cex = 0.7))
+  plot(grid2$doy,
+       grid2$pred,
+       main = 'Phenology',
+       type = 'l',
+       ylab = 'Egg density ln(n/10m2)',
+       xlab = 'Day of the year',
+       cex.lab = 1.1,
+       cex.axis = 1.1,
+       cex.main = 1.2,
+       xlim = c(60, 215),
+       ylim = range(c(grid2$pred_up, grid2$pred_lw)),
+       col = 'blue',
+       lwd = 2)
+  polygon(c(grid2$doy, rev(grid2$doy)),
+          c(grid2$pred_lw, rev(grid2$pred_up)),
+          col = alpha('gray', 0.6),
+          lty = 0)
+}
+
 ### Load fish data ----
 yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
 yfs_larvae <- readRDS(here('data', 'yfs_larvae.rds'))
@@ -325,7 +415,7 @@ gam.check(yfs_egg_ziplss)
 # binomial
 yfs_egg$presence <- 1 * (yfs_egg$count > 0)
 yfs_egg_gam1 <- gam(presence ~ factor(year) +
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = yfs_egg,
                    family = "binomial",
@@ -396,49 +486,7 @@ grid_extent_eggyfs$pred2 <- predict(yfs_egg_model2, newdata = grid_extent_eggyfs
 grid_extent_eggyfs$pred <- grid_extent_eggyfs$pred1 * grid_extent_eggyfs$pred2
 grid_extent_eggyfs$pred[grid_extent_eggyfs$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_eggyfs$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(yfs_egg$lon[yfs_egg$larvalcatchper10m2 > 0],
-        yfs_egg$lat[yfs_egg$larvalcatchper10m2 > 0],
-        circles = log(yfs_egg$larvalcatchper10m2 + 1)[yfs_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(yfs_egg$lon[yfs_egg$larvalcatchper10m2 == 0], 
-       yfs_egg$lat[yfs_egg$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
-# Plot phenology
+# Phenology
 grid_extent_eggyfs2 <- data.frame('lon' = rep(-170, 100),
                                  'lat' = rep(57, 100),
                                  'doy' = seq(min(yfs_egg$doy), 
@@ -453,23 +501,12 @@ grid_extent_eggyfs2$se2 <- predict(yfs_egg_model2, newdata = grid_extent_eggyfs2
 grid_extent_eggyfs2$se <- grid_extent_eggyfs2$se1 * grid_extent_eggyfs2$se2
 grid_extent_eggyfs2$pred_up <- grid_extent_eggyfs2$pred + 1.96 * grid_extent_eggyfs2$se
 grid_extent_eggyfs2$pred_lw <- grid_extent_eggyfs2$pred - 1.96 * grid_extent_eggyfs2$se
-plot(grid_extent_eggyfs2$doy,
-     grid_extent_eggyfs2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Egg density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_eggyfs2$pred_up, grid_extent_eggyfs2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_eggyfs2$doy, rev(grid_extent_eggyfs2$doy)),
-        c(grid_extent_eggyfs2$pred_lw, rev(grid_extent_eggyfs2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(yfs_egg, grid_extent_eggyfs, grid_extent_eggyfs2)
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
@@ -606,7 +643,7 @@ gam.check(yfs_larvae_ziplss)
 # binomial
 yfs_larvae$presence <- 1 * (yfs_larvae$count > 0)
 yfs_larvae_gam1 <- gam(presence ~ factor(year) +
-                        s(doy) +
+                        s(doy, k = 4) +
                         s(lon, lat),
                       data = yfs_larvae,
                       family = "binomial")
@@ -625,7 +662,7 @@ gam.check(yfs_larvae_gam1)
 
 # gaussian
 yfs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy) +
+                         s(doy, k = 4) +
                          s(lon, lat),
                       data = yfs_larvae[yfs_larvae$larvalcatchper10m2 > 0, ])
 summary(yfs_larvae_gam2)
@@ -670,48 +707,6 @@ grid_extent_larvaeyfs$pred2 <- predict(yfs_larvae_model2, newdata = grid_extent_
 grid_extent_larvaeyfs$pred <- grid_extent_larvaeyfs$pred1 * grid_extent_larvaeyfs$pred2
 grid_extent_larvaeyfs$pred[grid_extent_larvaeyfs$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_larvaeyfs$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(yfs_larvae$lon[yfs_larvae$larvalcatchper10m2 > 0],
-        yfs_larvae$lat[yfs_larvae$larvalcatchper10m2 > 0],
-        circles = log(yfs_larvae$larvalcatchper10m2 + 1)[yfs_larvae$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(yfs_larvae$lon[yfs_larvae$larvalcatchper10m2 == 0], 
-       yfs_larvae$lat[yfs_larvae$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_larvaeyfs2 <- data.frame('lon' = rep(-170, 100),
                                     'lat' = rep(57, 100),
@@ -725,23 +720,12 @@ grid_extent_larvaeyfs2$se2 <- predict(yfs_larvae_model2, newdata = grid_extent_l
 grid_extent_larvaeyfs2$se <- grid_extent_larvaeyfs2$se1 * grid_extent_larvaeyfs2$se2 # need to change this, can't just be multiplied
 grid_extent_larvaeyfs2$pred_up <- grid_extent_larvaeyfs2$pred + 1.96 * grid_extent_larvaeyfs2$se
 grid_extent_larvaeyfs2$pred_lw <- grid_extent_larvaeyfs2$pred - 1.96 * grid_extent_larvaeyfs2$se
-plot(grid_extent_larvaeyfs2$doy,
-     grid_extent_larvaeyfs2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Larval density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_larvaeyfs2$pred_up, grid_extent_larvaeyfs2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_larvaeyfs2$doy, rev(grid_extent_larvaeyfs2$doy)),
-        c(grid_extent_larvaeyfs2$pred_lw, rev(grid_extent_larvaeyfs2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(yfs_larvae, grid_extent_larvaeyfs, grid_extent_larvaeyfs2)
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
@@ -885,7 +869,7 @@ gam.check(pk_egg_ziplss)
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
 pk_egg_gam1 <- gam(presence ~ factor(year) +
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = pk_egg,
                    family = "binomial")
@@ -898,7 +882,7 @@ gam.check(pk_egg_gam1)
 
 # gaussian
 pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_gam2)
@@ -939,49 +923,7 @@ grid_extent_eggpk$pred2 <- predict(pk_egg_model2, newdata = grid_extent_eggpk)
 grid_extent_eggpk$pred <- grid_extent_eggpk$pred1 * grid_extent_eggpk$pred2
 grid_extent_eggpk$pred[grid_extent_eggpk$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_eggpk$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0],
-        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
-        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0], 
-       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
-# Plot phenology
+# Phenology
 grid_extent_eggpk2 <- data.frame('lon' = rep(-170, 100),
                            'lat' = rep(57, 100),
                            'doy' = seq(min(pk_egg$doy), 
@@ -996,23 +938,12 @@ grid_extent_eggpk2$se2 <- predict(pk_egg_model2, newdata = grid_extent_eggpk2, s
 grid_extent_eggpk2$se <- grid_extent_eggpk2$se1 * grid_extent_eggpk2$se2
 grid_extent_eggpk2$pred_up <- grid_extent_eggpk2$pred + 1.96 * grid_extent_eggpk2$se
 grid_extent_eggpk2$pred_lw <- grid_extent_eggpk2$pred - 1.96 * grid_extent_eggpk2$se
-plot(grid_extent_eggpk2$doy,
-     grid_extent_eggpk2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Egg density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_eggpk2$pred_up, grid_extent_eggpk2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_eggpk2$doy, rev(grid_extent_eggpk2$doy)),
-        c(grid_extent_eggpk2$pred_lw, rev(grid_extent_eggpk2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
@@ -1133,7 +1064,7 @@ gam.check(pk_larvae_ziplss)
 # binomial
 pk_larvae$presence <- 1 * (pk_larvae$count > 0)
 pk_larvae_gam1 <- gam(presence ~ factor(year) +
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = pk_larvae,
                    family = "binomial")
@@ -1152,7 +1083,7 @@ gam.check(pk_larvae_gam1)
 
 # gaussian
 pk_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                        s(doy) +
+                        s(doy, k = 4) +
                         s(lon, lat),
                       data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
 summary(pk_larvae_gam2)
@@ -1197,48 +1128,6 @@ grid_extent_larvaepk$pred2 <- predict(pk_larvae_model2, newdata = grid_extent_la
 grid_extent_larvaepk$pred <- grid_extent_larvaepk$pred1 * grid_extent_larvaepk$pred2
 grid_extent_larvaepk$pred[grid_extent_larvaepk$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_larvaepk$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(pk_larvae$lon[pk_larvae$larvalcatchper10m2 > 0],
-        pk_larvae$lat[pk_larvae$larvalcatchper10m2 > 0],
-        circles = log(pk_larvae$larvalcatchper10m2 + 1)[pk_larvae$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(pk_larvae$lon[pk_larvae$larvalcatchper10m2 == 0], 
-       pk_larvae$lat[pk_larvae$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_larvaepk2 <- data.frame('lon' = rep(-170, 100),
                            'lat' = rep(57, 100),
@@ -1252,23 +1141,12 @@ grid_extent_larvaepk2$se2 <- predict(pk_larvae_model2, newdata = grid_extent_lar
 grid_extent_larvaepk2$se <- grid_extent_larvaepk2$se1 * grid_extent_larvaepk2$se2
 grid_extent_larvaepk2$pred_up <- grid_extent_larvaepk2$pred + 1.96 * grid_extent_larvaepk2$se
 grid_extent_larvaepk2$pred_lw <- grid_extent_larvaepk2$pred - 1.96 * grid_extent_larvaepk2$se
-plot(grid_extent_larvaepk2$doy,
-     grid_extent_larvaepk2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Larval density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_larvaepk2$pred_up, grid_extent_larvaepk2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_larvaepk2$doy, rev(grid_extent_larvaepk2$doy)),
-        c(grid_extent_larvaepk2$pred_lw, rev(grid_extent_larvaepk2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(pk_larvae, grid_extent_larvaepk, grid_extent_larvaepk2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
@@ -1408,8 +1286,8 @@ gam.check(fhs_egg_ziplss)
 # binomial
 fhs_egg$presence <- 1 * (fhs_egg$count > 0)
 fhs_egg_gam1 <- gam(presence ~ factor(year) +
-                      s(doy) +
-                      s(lon, lat),
+                      s(doy, k = 4) +
+                      s(lon, lat, k = 4),
                     data = fhs_egg,
                     family = "binomial",
                     offset = log(volume_filtered))
@@ -1479,48 +1357,6 @@ grid_extent_eggfhs$pred2 <- predict(fhs_egg_model2, newdata = grid_extent_eggfhs
 grid_extent_eggfhs$pred <- grid_extent_eggfhs$pred1 * grid_extent_eggfhs$pred2
 grid_extent_eggfhs$pred[grid_extent_eggfhs$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_eggfhs$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(fhs_egg$lon[fhs_egg$larvalcatchper10m2 > 0],
-        fhs_egg$lat[fhs_egg$larvalcatchper10m2 > 0],
-        circles = log(fhs_egg$larvalcatchper10m2 + 1)[fhs_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(fhs_egg$lon[fhs_egg$larvalcatchper10m2 == 0], 
-       fhs_egg$lat[fhs_egg$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_eggfhs2 <- data.frame('lon' = rep(-170, 100),
                                   'lat' = rep(57, 100),
@@ -1536,23 +1372,12 @@ grid_extent_eggfhs2$se2 <- predict(fhs_egg_model2, newdata = grid_extent_eggfhs2
 grid_extent_eggfhs2$se <- grid_extent_eggfhs2$se1 * grid_extent_eggfhs2$se2
 grid_extent_eggfhs2$pred_up <- grid_extent_eggfhs2$pred + 1.96 * grid_extent_eggfhs2$se
 grid_extent_eggfhs2$pred_lw <- grid_extent_eggfhs2$pred - 1.96 * grid_extent_eggfhs2$se
-plot(grid_extent_eggfhs2$doy,
-     grid_extent_eggfhs2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Egg density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_eggfhs2$pred_up, grid_extent_eggfhs2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_eggfhs2$doy, rev(grid_extent_eggfhs2$doy)),
-        c(grid_extent_eggfhs2$pred_lw, rev(grid_extent_eggfhs2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(fhs_egg, grid_extent_eggfhs, grid_extent_eggfhs2)
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
@@ -1689,8 +1514,8 @@ gam.check(fhs_larvae_ziplss)
 # binomial
 fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
 fhs_larvae_gam1 <- gam(presence ~ factor(year) +
-                         s(doy) +
-                         s(lon, lat),
+                         s(doy, k = 4) +
+                         s(lon, lat, k = 4),
                        data = fhs_larvae,
                        family = "binomial")
 summary(fhs_larvae_gam1)
@@ -1708,8 +1533,8 @@ gam.check(fhs_larvae_gam1)
 
 # gaussian
 fhs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy) +
-                         s(lon, lat),
+                         s(doy, k = 4) +
+                         s(lon, lat, k = 4),
                        data = fhs_larvae[fhs_larvae$larvalcatchper10m2 > 0, ])
 summary(fhs_larvae_gam2)
 # R2: 0.383
@@ -1753,48 +1578,6 @@ grid_extent_larvaefhs$pred2 <- predict(fhs_larvae_model2, newdata = grid_extent_
 grid_extent_larvaefhs$pred <- grid_extent_larvaefhs$pred1 * grid_extent_larvaefhs$pred2
 grid_extent_larvaefhs$pred[grid_extent_larvaefhs$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_larvaefhs$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(fhs_larvae$lon[fhs_larvae$larvalcatchper10m2 > 0],
-        fhs_larvae$lat[fhs_larvae$larvalcatchper10m2 > 0],
-        circles = log(fhs_larvae$larvalcatchper10m2 + 1)[fhs_larvae$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(fhs_larvae$lon[fhs_larvae$larvalcatchper10m2 == 0], 
-       fhs_larvae$lat[fhs_larvae$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_larvaefhs2 <- data.frame('lon' = rep(-170, 100),
                                      'lat' = rep(57, 100),
@@ -1808,23 +1591,12 @@ grid_extent_larvaefhs2$se2 <- predict(fhs_larvae_model2, newdata = grid_extent_l
 grid_extent_larvaefhs2$se <- grid_extent_larvaefhs2$se1 * grid_extent_larvaefhs2$se2 # need to change this, can't just be multiplied
 grid_extent_larvaefhs2$pred_up <- grid_extent_larvaefhs2$pred + 1.96 * grid_extent_larvaefhs2$se
 grid_extent_larvaefhs2$pred_lw <- grid_extent_larvaefhs2$pred - 1.96 * grid_extent_larvaefhs2$se
-plot(grid_extent_larvaefhs2$doy,
-     grid_extent_larvaefhs2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Larval density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_larvaefhs2$pred_up, grid_extent_larvaefhs2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_larvaefhs2$doy, rev(grid_extent_larvaefhs2$doy)),
-        c(grid_extent_larvaefhs2$pred_lw, rev(grid_extent_larvaefhs2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(fhs_larvae, grid_extent_larvaefhs, grid_extent_larvaefhs2)
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
@@ -1964,8 +1736,8 @@ gam.check(akp_egg_ziplss)
 # binomial
 akp_egg$presence <- 1 * (akp_egg$count > 0)
 akp_egg_gam1 <- gam(presence ~ factor(year) +
-                      s(doy) +
-                      s(lon, lat),
+                      s(doy, k = 4) +
+                      s(lon, lat, k = 4),
                     data = akp_egg,
                     family = "binomial",
                     offset = log(volume_filtered))
@@ -2035,48 +1807,6 @@ grid_extent_eggakp$pred2 <- predict(akp_egg_model2, newdata = grid_extent_eggakp
 grid_extent_eggakp$pred <- grid_extent_eggakp$pred1 * grid_extent_eggakp$pred2
 grid_extent_eggakp$pred[grid_extent_eggakp$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_eggakp$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(akp_egg$lon[akp_egg$larvalcatchper10m2 > 0],
-        akp_egg$lat[akp_egg$larvalcatchper10m2 > 0],
-        circles = log(akp_egg$larvalcatchper10m2 + 1)[akp_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(akp_egg$lon[akp_egg$larvalcatchper10m2 == 0], 
-       akp_egg$lat[akp_egg$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('Egg density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_eggakp2 <- data.frame('lon' = rep(-170, 100),
                                   'lat' = rep(57, 100),
@@ -2092,23 +1822,12 @@ grid_extent_eggakp2$se2 <- predict(akp_egg_model2, newdata = grid_extent_eggakp2
 grid_extent_eggakp2$se <- grid_extent_eggakp2$se1 * grid_extent_eggakp2$se2
 grid_extent_eggakp2$pred_up <- grid_extent_eggakp2$pred + 1.96 * grid_extent_eggakp2$se
 grid_extent_eggakp2$pred_lw <- grid_extent_eggakp2$pred - 1.96 * grid_extent_eggakp2$se
-plot(grid_extent_eggakp2$doy,
-     grid_extent_eggakp2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Egg density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_eggakp2$pred_up, grid_extent_eggakp2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_eggakp2$doy, rev(grid_extent_eggakp2$doy)),
-        c(grid_extent_eggakp2$pred_lw, rev(grid_extent_eggakp2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(akp_egg, grid_extent_eggakp, grid_extent_eggakp2)
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
@@ -2245,8 +1964,8 @@ gam.check(akp_larvae_ziplss)
 # binomial
 akp_larvae$presence <- 1 * (akp_larvae$count > 0)
 akp_larvae_gam1 <- gam(presence ~ factor(year) +
-                         s(doy) +
-                         s(lon, lat),
+                         s(doy, k = 4) +
+                         s(lon, lat, k = 4),
                        data = akp_larvae,
                        family = "binomial")
 summary(akp_larvae_gam1)
@@ -2264,8 +1983,8 @@ gam.check(akp_larvae_gam1)
 
 # gaussian
 akp_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy) +
-                         s(lon, lat),
+                         s(doy, k = 4) +
+                         s(lon, lat, k = 4),
                        data = akp_larvae[akp_larvae$larvalcatchper10m2 > 0, ])
 summary(akp_larvae_gam2)
 # R2: 0.512
@@ -2309,48 +2028,6 @@ grid_extent_larvaeakp$pred2 <- predict(akp_larvae_model2, newdata = grid_extent_
 grid_extent_larvaeakp$pred <- grid_extent_larvaeakp$pred1 * grid_extent_larvaeakp$pred2
 grid_extent_larvaeakp$pred[grid_extent_larvaeakp$dist > 30000] <- NA
 
-# Plot
-windows(width = 8, height = 3.5)
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
-image(lond,
-      latd,
-      t(matrix(grid_extent_larvaeakp$pred,
-               nrow = length(latd),
-               ncol = length(lond),
-               byrow = T)),
-      col = viridis(100, option = "F", direction = 1),
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5, -156.5),
-      ylim = c(52, 62),
-      main = 'Distribution',
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
-# contour(unique(bathy_dat$lon), # need to change to marmap contours
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 1,
-#         col = 'black',
-#         add = T)
-symbols(akp_larvae$lon[akp_larvae$larvalcatchper10m2 > 0],
-        akp_larvae$lat[akp_larvae$larvalcatchper10m2 > 0],
-        circles = log(akp_larvae$larvalcatchper10m2 + 1)[akp_larvae$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('grey', 0.1),
-        fg = alpha('black', 0.05),
-        add = T)
-points(akp_larvae$lon[akp_larvae$larvalcatchper10m2 == 0], 
-       akp_larvae$lat[akp_larvae$larvalcatchper10m2 == 0], 
-       pch = '')
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-# mtext('larvae density ln(n/10m2)', 1, line = 4.0, cex = 1.2)
-
 # Plot phenology
 grid_extent_larvaeakp2 <- data.frame('lon' = rep(-170, 100),
                                      'lat' = rep(57, 100),
@@ -2364,22 +2041,11 @@ grid_extent_larvaeakp2$se2 <- predict(akp_larvae_model2, newdata = grid_extent_l
 grid_extent_larvaeakp2$se <- grid_extent_larvaeakp2$se1 * grid_extent_larvaeakp2$se2 # need to change this, can't just be multiplied
 grid_extent_larvaeakp2$pred_up <- grid_extent_larvaeakp2$pred + 1.96 * grid_extent_larvaeakp2$se
 grid_extent_larvaeakp2$pred_lw <- grid_extent_larvaeakp2$pred - 1.96 * grid_extent_larvaeakp2$se
-plot(grid_extent_larvaeakp2$doy,
-     grid_extent_larvaeakp2$pred,
-     main = 'Phenology',
-     type = 'l',
-     ylab = 'Larval density ln(n/10m2)',
-     xlab = 'Day of the year',
-     cex.lab = 1.1,
-     cex.axis = 1.1,
-     cex.main = 1.2,
-     xlim = c(60, 215),
-     ylim = range(c(grid_extent_larvaeakp2$pred_up, grid_extent_larvaeakp2$pred_lw)),
-     col = 'blue',
-     lwd = 2)
-polygon(c(grid_extent_larvaeakp2$doy, rev(grid_extent_larvaeakp2$doy)),
-        c(grid_extent_larvaeakp2$pred_lw, rev(grid_extent_larvaeakp2$pred_up)),
-        col = alpha('gray', 0.6),
-        lty = 0)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_phenology(akp_larvae, grid_extent_larvaeakp, grid_extent_larvaeakp2)
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
