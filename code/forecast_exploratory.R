@@ -14,6 +14,7 @@ library(tidyverse)
 library(lubridate)
 library(date)
 library(rgdal)
+library(RColorBrewer)
 source(here('code/functions', 'distance_function.R'))
 
 # Using avg surface temperatures & salinity
@@ -71,6 +72,17 @@ grid_predict <- function(grid, title){
   nlon = 120
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
   lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
+                                "#AFABCB", "#DAD9E5", "#F9F9F9",
+                                "#FFDAB7", "#FFB377","#E18811",
+                                "#AC6000", "#743700"))
+  color_levels = 100
+  max_absolute_value = max(abs(c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)))) 
+  color_sequence = seq(-max_absolute_value, max_absolute_value, 
+                       length.out = color_levels + 1)
+  n_in_class = hist(grid$pred, breaks = color_sequence, plot = F)$counts > 0
+  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
   image(lond,
         latd,
         t(matrix(grid$pred,
@@ -82,7 +94,7 @@ grid_predict <- function(grid, title){
         axes = FALSE,
         xlab = "",
         ylab = "")
-  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "aliceblue")
+  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
   par(new = TRUE)
   image(lond,
         latd,
@@ -90,7 +102,8 @@ grid_predict <- function(grid, title){
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
-        col = viridis(100, option = "F", direction = 1),
+        col = my_color(n = color_levels)[col_to_include], 
+        breaks = color_sequence[breaks_to_include],
         ylab = "Latitude",
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
@@ -103,6 +116,17 @@ grid_predict <- function(grid, title){
             fill = T,
             col = "wheat4",
             add = T)
+  image.plot(legend.only = T,
+             col = my_color(n = color_levels)[col_to_include],
+             legend.shrink = 0.2,
+             smallplot = c(.79, .82, .20, .37),
+             legend.cex = 0.8,
+             axis.args = list(cex.axis = 0.8),
+             legend.width = 0.5,
+             legend.mar = 6,
+             zlim = c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)),
+             legend.args = list("Predicted \n Change",
+                                side = 2, cex = 1))
 }
 
 # create lists of the four variables, one for salinity and temperature each
@@ -120,7 +144,7 @@ nc_close(bering_model_salt)
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
 pk_egg_gam1 <- gam(presence ~ 
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = pk_egg,
                    family = "binomial")
@@ -177,7 +201,7 @@ grid_predict(grid_extent_eggpk, "Forecasted Distribution")
 # binomial
 pk_larvae$presence <- 1 * (pk_larvae$count > 0)
 pk_larvae_gam1 <- gam(presence ~ 
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = pk_larvae,
                    family = "binomial")
@@ -227,13 +251,13 @@ windows(width = 6, height = 5, family = "serif")
 grid_predict(grid_extent_larvaepk, "Forecasted Distribution")
 
 # Combined plot
-windows(width = 8, height = 3.5, family = "serif")
+windows(width = 12, height = 5, family = "serif")
 par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
+    mai = c(0.9, 0.9, 0.5, 0.5))
 grid_predict(grid_extent_eggpk, "Egg Distribution")
 grid_predict(grid_extent_larvaepk, "Larval Distribution")
 dev.copy(jpeg, here('results/pollock_forecast', 'pollock_forecast.jpg'), 
-         height = 3.5, width = 8, res = 200, units = 'in')
+         height = 5, width = 12, res = 200, units = 'in', family = "serif")
 dev.off()
 
 #### Flathead Sole ----
@@ -242,7 +266,7 @@ dev.off()
 # binomial
 fhs_egg$presence <- 1 * (fhs_egg$count > 0)
 fhs_egg_gam1 <- gam(presence ~ 
-                     s(doy) +
+                     s(doy, k = 4) +
                      s(lon, lat),
                    data = fhs_egg,
                    family = "binomial")
@@ -297,7 +321,7 @@ grid_predict(grid_extent_eggfhs, "Forecasted Distribution")
 # binomial
 fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
 fhs_larvae_gam1 <- gam(presence ~ 
-                        s(doy) +
+                        s(doy, k = 4) +
                         s(lon, lat),
                       data = fhs_larvae,
                       family = "binomial")
@@ -347,13 +371,13 @@ windows(width = 6, height = 5, family = "serif")
 grid_predict(grid_extent_larvaefhs, "Forecasted Distribution")
 
 # Combined plot
-windows(width = 8, height = 3.5, family = "serif")
+windows(width = 12, height = 5, family = "serif")
 par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
+    mai = c(0.9, 0.9, 0.5, 0.5))
 grid_predict(grid_extent_eggfhs, "Egg Distribution")
 grid_predict(grid_extent_larvaefhs, "Larval Distribution")
 dev.copy(jpeg, here('results/flathead_forecast', 'flathead_forecast.jpg'), 
-         height = 3.5, width = 8, res = 200, units = 'in')
+         width = 12, height = 5, res = 200, units = 'in', family = "serif")
 dev.off()
 
 #### Alaska Plaice ----
@@ -362,7 +386,7 @@ dev.off()
 # binomial
 akp_egg$presence <- 1 * (akp_egg$count > 0)
 akp_egg_gam1 <- gam(presence ~ 
-                      s(doy) +
+                      s(doy, k = 4) +
                       s(lon, lat),
                     data = akp_egg,
                     family = "binomial")
@@ -417,7 +441,7 @@ grid_predict(grid_extent_eggakp, "Forecasted Distribution")
 # binomial
 akp_larvae$presence <- 1 * (akp_larvae$count > 0)
 akp_larvae_gam1 <- gam(presence ~ 
-                         s(doy) +
+                         s(doy, k = 4) +
                          s(lon, lat),
                        data = akp_larvae,
                        family = "binomial")
@@ -467,13 +491,13 @@ windows(width = 6, height = 5, family = "serif")
 grid_predict(grid_extent_larvaeakp, "Forecasted Distribution")
 
 # Combined plot
-windows(width = 8, height = 3.5, family = "serif")
+windows(width = 12, height = 5, family = "serif")
 par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
+    mai = c(0.9, 0.9, 0.5, 0.5))
 grid_predict(grid_extent_eggakp, "Egg Distribution")
 grid_predict(grid_extent_larvaeakp, "Larval Distribution")
 dev.copy(jpeg, here('results/plaice_forecast', 'plaice_forecast.jpg'), 
-         height = 3.5, width = 8, res = 200, units = 'in')
+         width = 12, height = 5, res = 200, units = 'in', family = "serif")
 dev.off()
 
 #### Yellowfin Sole ----
@@ -482,7 +506,7 @@ dev.off()
 # binomial
 yfs_egg$presence <- 1 * (yfs_egg$count > 0)
 yfs_egg_gam1 <- gam(presence ~ 
-                      s(doy) +
+                      s(doy, k = 4) +
                       s(lon, lat),
                     data = yfs_egg,
                     family = "binomial")
@@ -537,7 +561,7 @@ grid_predict(grid_extent_eggyfs, "Forecasted Distribution")
 # binomial
 yfs_larvae$presence <- 1 * (yfs_larvae$count > 0)
 yfs_larvae_gam1 <- gam(presence ~ 
-                         s(doy) +
+                         s(doy, k = 4) +
                          s(lon, lat),
                        data = yfs_larvae,
                        family = "binomial")
@@ -587,11 +611,11 @@ windows(width = 6, height = 5, family = "serif")
 grid_predict(grid_extent_larvaeyfs, "Forecasted Distribution")
 
 # Combined plot
-windows(width = 8, height = 3.5, family = "serif")
+windows(width = 12, height = 5, family = "serif")
 par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5))
+    mai = c(0.9, 0.9, 0.5, 0.5))
 grid_predict(grid_extent_eggyfs, "Egg Distribution")
 grid_predict(grid_extent_larvaeyfs, "Larval Distribution")
 dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_forecast.jpg'), 
-         height = 3.5, width = 8, res = 200, units = 'in')
+         width = 12, height = 5, res = 200, units = 'in', family = "serif")
 dev.off()
