@@ -145,7 +145,8 @@ nc_close(bering_model_salt)
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
 pk_egg_gam1 <- gam(presence ~ 
-                     s(doy, k = 4)
+                     s(doy) +
+                     s(lat, lon)
                    data = pk_egg,
                    family = "binomial")
 plot(pk_egg_gam1)
@@ -153,8 +154,7 @@ plot(pk_egg_gam1)
 
 # gaussian
 pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                     s(doy, k = 4) +
-                     s(lon, lat) +
+                     s(doy) +
                      s(roms_salinity, k = 4) +
                      s(roms_temperature, k = 4),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
@@ -203,14 +203,14 @@ grid_predict(grid_extent_eggpk, "Forecasted Distribution")
 # binomial
 pk_larvae$presence <- 1 * (pk_larvae$count > 0)
 pk_larvae_gam1 <- gam(presence ~ 
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = pk_larvae,
                    family = "binomial")
 
 # gaussian
 pk_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat) +
                      s(roms_salinity, k = 4) +
                      s(roms_temperature, k = 4),
@@ -268,7 +268,7 @@ dev.off()
 # binomial
 fhs_egg$presence <- 1 * (fhs_egg$count > 0)
 fhs_egg_gam1 <- gam(presence ~ 
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = fhs_egg,
                    family = "binomial")
@@ -276,7 +276,7 @@ fhs_egg_gam1 <- gam(presence ~
 
 # gaussian
 fhs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat) +
                      s(roms_salinity, k = 4) +
                      s(roms_temperature, k = 4),
@@ -323,14 +323,14 @@ grid_predict(grid_extent_eggfhs, "Forecasted Distribution")
 # binomial
 fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
 fhs_larvae_gam1 <- gam(presence ~ 
-                        s(doy, k = 4) +
+                        s(doy) +
                         s(lon, lat),
                       data = fhs_larvae,
                       family = "binomial")
 
 # gaussian
 fhs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                        s(doy, k = 4) +
+                        s(doy) +
                         s(lon, lat) +
                         s(roms_salinity, k = 4) +
                         s(roms_temperature, k = 4),
@@ -388,7 +388,7 @@ dev.off()
 # binomial
 akp_egg$presence <- 1 * (akp_egg$count > 0)
 akp_egg_gam1 <- gam(presence ~ 
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat),
                     data = akp_egg,
                     family = "binomial")
@@ -396,7 +396,7 @@ akp_egg_gam1 <- gam(presence ~
 
 # gaussian
 akp_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat) +
                       s(roms_salinity, k = 4) +
                       s(roms_temperature, k = 4),
@@ -443,14 +443,14 @@ grid_predict(grid_extent_eggakp, "Forecasted Distribution")
 # binomial
 akp_larvae$presence <- 1 * (akp_larvae$count > 0)
 akp_larvae_gam1 <- gam(presence ~ 
-                         s(doy, k = 4) +
+                         s(doy) +
                          s(lon, lat),
                        data = akp_larvae,
                        family = "binomial")
 
 # gaussian
 akp_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                         s(doy, k = 4) +
+                         s(doy) +
                          s(lon, lat) +
                          s(roms_salinity, k = 4) +
                          s(roms_temperature, k = 4),
@@ -508,7 +508,7 @@ dev.off()
 # binomial
 yfs_egg$presence <- 1 * (yfs_egg$count > 0)
 yfs_egg_gam1 <- gam(presence ~ 
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat),
                     data = yfs_egg,
                     family = "binomial")
@@ -516,7 +516,7 @@ yfs_egg_gam1 <- gam(presence ~
 
 # gaussian
 yfs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat) +
                       s(roms_salinity, k = 4) +
                       s(roms_temperature, k = 4),
@@ -563,14 +563,14 @@ grid_predict(grid_extent_eggyfs, "Forecasted Distribution")
 # binomial
 yfs_larvae$presence <- 1 * (yfs_larvae$count > 0)
 yfs_larvae_gam1 <- gam(presence ~ 
-                         s(doy, k = 4) +
+                         s(doy) +
                          s(lon, lat),
                        data = yfs_larvae,
                        family = "binomial")
 
 # gaussian
 yfs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                         s(doy, k = 4) +
+                         s(doy) +
                          s(lon, lat) +
                          s(roms_salinity, k = 4) +
                          s(roms_temperature, k = 4),
