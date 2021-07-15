@@ -15,6 +15,7 @@ library(lubridate)
 library(date)
 library(rgdal)
 library(RColorBrewer)
+library(mgcv)
 source(here('code/functions', 'distance_function.R'))
 
 # Using avg surface temperatures & salinity
@@ -144,10 +145,10 @@ nc_close(bering_model_salt)
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
 pk_egg_gam1 <- gam(presence ~ 
-                     s(doy, k = 4) +
-                     s(lon, lat),
+                     s(doy, k = 4)
                    data = pk_egg,
                    family = "binomial")
+plot(pk_egg_gam1)
 
 
 # gaussian
@@ -157,7 +158,8 @@ pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~
                      s(roms_salinity, k = 4) +
                      s(roms_temperature, k = 4),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-
+par(mfrow = c(2, 2))
+plot(pk_egg_gam2)
 
 
 # Prediction grid

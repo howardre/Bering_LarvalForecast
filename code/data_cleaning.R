@@ -187,6 +187,7 @@ clean_data <- function(data_formatted){
   data_one <- data_two[!data_two$id %in% data_net2, ] # These are data where only 1 net was recorded, either 1 or 2 (n=5495+660-84*2=5987)
   data_clean <- rbind(data_one, data_both)
   data_clean <- data_clean[data_clean$primary_net == 'Y', ]
+  data_clean <- filter()
   return(data_clean)
 }
 trim_data <- function(data_clean){
@@ -240,6 +241,13 @@ data_check(yfs_egg_formatted, yfs_larvae_formatted)
 
 table(yfs_egg_formatted$haul_performance)
 table(yfs_larvae_formatted$haul_performance)
+
+#####TRIM EGG DATA
+#Year: 1988 forwad and > 40 samples/year. Remove also 1997 and 2011 due to uneven spatial coverage
+#Month: March to July
+#Latitude: 53-59
+pk_egg<-pk_egg[pk_egg$MONTH_>2&pk_egg$MONTH<8&pk_egg$YEAR_>1987&pk_egg$YEAR_!=1997&pk_egg$YEAR_!=2011,]
+
 
 # Egg data: check number of bongo nets per each station
 # Same issues present for all data, therefore use clean_data function for all other species
