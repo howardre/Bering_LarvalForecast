@@ -97,7 +97,7 @@ map_phenology <- function(data, grid, grid2){
        cex.lab = 1.1,
        cex.axis = 1.1,
        cex.main = 1.2,
-       xlim = c(60, 215),
+       xlim = c(min(grid2$doy, na.rm = T), max(grid2$doy, na.rm = T)),
        ylim = range(c(grid2$pred_up, grid2$pred_lw)),
        col = 'blue',
        lwd = 2)
@@ -415,7 +415,7 @@ gam.check(yfs_egg_ziplss)
 # binomial
 yfs_egg$presence <- 1 * (yfs_egg$count > 0)
 yfs_egg_gam1 <- gam(presence ~ factor(year) +
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = yfs_egg,
                    family = "binomial",
@@ -435,7 +435,7 @@ gam.check(yfs_egg_gam1)
 
 # gaussian
 yfs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat, k = 4),
                     offset = log(volume_filtered),
                     data = yfs_egg[yfs_egg$larvalcatchper10m2 > 0, ])
@@ -643,7 +643,7 @@ gam.check(yfs_larvae_ziplss)
 # binomial
 yfs_larvae$presence <- 1 * (yfs_larvae$count > 0)
 yfs_larvae_gam1 <- gam(presence ~ factor(year) +
-                        s(doy, k = 4) +
+                        s(doy) +
                         s(lon, lat),
                       data = yfs_larvae,
                       family = "binomial")
@@ -662,7 +662,7 @@ gam.check(yfs_larvae_gam1)
 
 # gaussian
 yfs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy, k = 4) +
+                         s(doy) +
                          s(lon, lat),
                       data = yfs_larvae[yfs_larvae$larvalcatchper10m2 > 0, ])
 summary(yfs_larvae_gam2)
@@ -684,6 +684,10 @@ gam.check(yfs_larvae_gam2)
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
 # Prediction grid
+nlat = 80
+nlon = 120
+latd = seq(min(yfs_larvae$lat), max(yfs_larvae$lat), length.out = nlat)
+lond = seq(min(yfs_larvae$lon), max(yfs_larvae$lon), length.out = nlon)
 grid_extent_larvaeyfs <- expand.grid(lond, latd)
 names(grid_extent_larvaeyfs) <- c('lon', 'lat')
 
@@ -869,7 +873,7 @@ gam.check(pk_egg_ziplss)
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
 pk_egg_gam1 <- gam(presence ~ factor(year) +
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = pk_egg,
                    family = "binomial")
@@ -882,7 +886,7 @@ gam.check(pk_egg_gam1)
 
 # gaussian
 pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_gam2)
@@ -1064,7 +1068,7 @@ gam.check(pk_larvae_ziplss)
 # binomial
 pk_larvae$presence <- 1 * (pk_larvae$count > 0)
 pk_larvae_gam1 <- gam(presence ~ factor(year) +
-                     s(doy, k = 4) +
+                     s(doy) +
                      s(lon, lat),
                    data = pk_larvae,
                    family = "binomial")
@@ -1083,7 +1087,7 @@ gam.check(pk_larvae_gam1)
 
 # gaussian
 pk_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                        s(doy, k = 4) +
+                        s(doy) +
                         s(lon, lat),
                       data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
 summary(pk_larvae_gam2)
@@ -1105,6 +1109,8 @@ gam.check(pk_larvae_gam2)
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
 # Prediction grid
+latd = seq(min(pk_larvae$lat), max(pk_larvae$lat), length.out = nlat)
+lond = seq(min(pk_larvae$lon), max(pk_larvae$lon), length.out = nlon)
 grid_extent_larvaepk <- expand.grid(lond, latd)
 names(grid_extent_larvaepk) <- c('lon', 'lat')
 
@@ -1286,7 +1292,7 @@ gam.check(fhs_egg_ziplss)
 # binomial
 fhs_egg$presence <- 1 * (fhs_egg$count > 0)
 fhs_egg_gam1 <- gam(presence ~ factor(year) +
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat, k = 4),
                     data = fhs_egg,
                     family = "binomial",
@@ -1306,7 +1312,7 @@ gam.check(fhs_egg_gam1)
 
 # gaussian
 fhs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                      s(doy, k = 4) +
+                      s(doy) +
                       s(lon, lat, k = 4),
                     offset = log(volume_filtered),
                     data = fhs_egg[fhs_egg$larvalcatchper10m2 > 0, ])
@@ -1514,8 +1520,8 @@ gam.check(fhs_larvae_ziplss)
 # binomial
 fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
 fhs_larvae_gam1 <- gam(presence ~ factor(year) +
-                         s(doy, k = 4) +
-                         s(lon, lat, k = 4),
+                         s(doy) +
+                         s(lon, lat),
                        data = fhs_larvae,
                        family = "binomial")
 summary(fhs_larvae_gam1)
@@ -1533,8 +1539,8 @@ gam.check(fhs_larvae_gam1)
 
 # gaussian
 fhs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy, k = 4) +
-                         s(lon, lat, k = 4),
+                         s(doy) +
+                         s(lon, lat),
                        data = fhs_larvae[fhs_larvae$larvalcatchper10m2 > 0, ])
 summary(fhs_larvae_gam2)
 # R2: 0.383
@@ -1555,6 +1561,8 @@ gam.check(fhs_larvae_gam2)
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
 # Prediction grid
+latd = seq(min(fhs_larvae$lat), max(fhs_larvae$lat), length.out = nlat)
+lond = seq(min(fhs_larvae$lon), max(fhs_larvae$lon), length.out = nlon)
 grid_extent_larvaefhs <- expand.grid(lond, latd)
 names(grid_extent_larvaefhs) <- c('lon', 'lat')
 
@@ -1736,8 +1744,8 @@ gam.check(akp_egg_ziplss)
 # binomial
 akp_egg$presence <- 1 * (akp_egg$count > 0)
 akp_egg_gam1 <- gam(presence ~ factor(year) +
-                      s(doy, k = 4) +
-                      s(lon, lat, k = 4),
+                      s(doy) +
+                      s(lon, lat),
                     data = akp_egg,
                     family = "binomial",
                     offset = log(volume_filtered))
@@ -1756,8 +1764,8 @@ gam.check(akp_egg_gam1)
 
 # gaussian
 akp_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                      s(doy, k = 4) +
-                      s(lon, lat, k = 4),
+                      s(doy) +
+                      s(lon, lat),
                     offset = log(volume_filtered),
                     data = akp_egg[akp_egg$larvalcatchper10m2 > 0, ])
 summary(akp_egg_gam2)
@@ -1964,8 +1972,8 @@ gam.check(akp_larvae_ziplss)
 # binomial
 akp_larvae$presence <- 1 * (akp_larvae$count > 0)
 akp_larvae_gam1 <- gam(presence ~ factor(year) +
-                         s(doy, k = 4) +
-                         s(lon, lat, k = 4),
+                         s(doy) +
+                         s(lon, lat),
                        data = akp_larvae,
                        family = "binomial")
 summary(akp_larvae_gam1)
@@ -1983,8 +1991,8 @@ gam.check(akp_larvae_gam1)
 
 # gaussian
 akp_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                         s(doy, k = 4) +
-                         s(lon, lat, k = 4),
+                         s(doy) +
+                         s(lon, lat),
                        data = akp_larvae[akp_larvae$larvalcatchper10m2 > 0, ])
 summary(akp_larvae_gam2)
 # R2: 0.512
@@ -2005,6 +2013,8 @@ gam.check(akp_larvae_gam2)
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
 # Prediction grid
+latd = seq(min(akp_larvae$lat), max(akp_larvae$lat), length.out = nlat)
+lond = seq(min(akp_larvae$lon), max(akp_larvae$lon), length.out = nlon)
 grid_extent_larvaeakp <- expand.grid(lond, latd)
 names(grid_extent_larvaeakp) <- c('lon', 'lat')
 
