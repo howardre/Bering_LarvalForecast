@@ -187,7 +187,6 @@ clean_data <- function(data_formatted){
   data_one <- data_two[!data_two$id %in% data_net2, ] # These are data where only 1 net was recorded, either 1 or 2 (n=5495+660-84*2=5987)
   data_clean <- rbind(data_one, data_both)
   data_clean <- data_clean[data_clean$primary_net == 'Y', ]
-  data_clean <- filter()
   return(data_clean)
 }
 trim_data <- function(data_clean){
@@ -242,53 +241,6 @@ data_check(yfs_egg_formatted, yfs_larvae_formatted)
 table(yfs_egg_formatted$haul_performance)
 table(yfs_larvae_formatted$haul_performance)
 
-#####TRIM EGG DATA
-#Year: 1988 forwad and > 40 samples/year. Remove also 1997 and 2011 due to uneven spatial coverage
-#Month: March to July
-#Latitude: 53-59
-pk_egg<-pk_egg[pk_egg$MONTH_>2&pk_egg$MONTH<8&pk_egg$YEAR_>1987&pk_egg$YEAR_!=1997&pk_egg$YEAR_!=2011,]
-
-
-# Egg data: check number of bongo nets per each station
-# Same issues present for all data, therefore use clean_data function for all other species
-# table(yfs_egg_formatted$net) 
-# yfs_egg_formatted[yfs_egg_formatted$net == 3, ] 
-# yfs_egg_two <- yfs_egg_formatted[yfs_egg_formatted$net < 3, ] 
-# yfs_egg_tmp <- table(yfs_egg_two$id)
-# yfs_egg_net2 <- names(yfs_egg_tmp)[yfs_egg_tmp == 2] 
-# yfs_egg_net1 <- yfs_egg_formatted[yfs_egg_formatted$net == 1, ] 
-# dim(yfs_egg_net1)
-# yfs_egg_both <- yfs_egg_two[yfs_egg_two$id %in% id_2 &
-#                yfs_egg_two$net == 1, ] 
-# dim(yfs_egg_both)
-# yfs_egg_one <- yfs_egg_two[!yfs_egg_two$id %in% id_2, ] 
-# dim(yfs_egg_one)
-# yfs_egg <- rbind(yfs_egg_one, yfs_egg_both)
-# dim(yfs_egg)
-# 
-# Larval catch data: check number of bongo nets per each station
-# use clean_data
-# table(yfs_larvae_raw$net) 
-# yfs_larvae_raw[yfs_larvae_raw$net == 3, ] 
-# yfs_larvae_1_2 <- yfs_larvae_raw[yfs_larvae_raw$net < 3, ] 
-# table(yfs_larvae_1_2$net) 
-# tmp <- table(yfs_larvae_1_2$id)
-# table(tmp) 
-# id_2 <- names(tmp)[tmp == 2]
-# yfs_larvae_2 <- yfs_larvae_1_2[yfs_larvae_1_2$id %in% id_2 &
-#                   yfs_larvae_1_2$net == 1, ] 
-# dim(yfs_larvae_2)
-# yfs_larvae_1net <- yfs_larvae_1_2[!yfs_larvae_1_2$id %in% id_2, ]
-# dim(yfs_larvae_1net)
-# yfs_larvae <- rbind(yfs_larvae_1net, yfs_larvae_2)
-# dim(yfs_larvae)
-
-# As per Lauren email (9/12/19) only retain station where primary_net == Y
-# table(yfs_egg$primary_net)
-# table(yfs_larvae$primary_net)
-# yfs_egg <- yfs_egg[yfs_egg$primary_net == 'Y', ]
-# yfs_larvae <- yfs_larvae[yfs_larvae$primary_net == 'Y', ]
-
 # Clean up data to remove unnecessary hauls
 yfs_egg_clean <- clean_data(yfs_egg_formatted)
 yfs_larvae_clean <- clean_data(yfs_larvae_formatted)
@@ -297,11 +249,16 @@ table(yfs_egg_clean$primary_net)
 table(yfs_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward
-# Month: all
+# Year: 1988 forward, remove 1997 and 2011 for sporadic sampling
+# Month: remove May & June for larvae
 # Latitude: all
 yfs_egg_trim <- trim_data(yfs_egg_clean)
+yfs_egg_trim <- filter(yfs_egg_trim,
+                       year != 1997, year != 2011)
 yfs_larvae_trim <- trim_data(yfs_larvae_clean)
+yfs_larvae_trim <- filter(yfs_larvae_trim,
+                          month > 6,
+                          year != 1997, year != 2011)
 
 # Inspect new data
 data_check(yfs_egg_trim, yfs_larvae_trim)
@@ -383,11 +340,17 @@ table(akp_egg_clean$primary_net)
 table(akp_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward
-# Month: all
+# Year: 1988 forward, 1997 and 2011 for sporadic sampling
+# Month: 4 - 6 for eggs, 5 - 7 for larvae
 # Latitude: all
 akp_egg_trim <- trim_data(akp_egg_clean)
+akp_egg_trim <- filter(akp_egg_trim,
+                       month > 3, month < 7,
+                       year != 1997, year != 2011)
 akp_larvae_trim <- trim_data(akp_larvae_clean)
+akp_larvae_trim <- filter(akp_larvae_trim,
+                       month > 4, month < 8,
+                       year != 1997, year != 2011)
 
 # Inspect new data
 data_check(akp_egg_trim, akp_larvae_trim)
@@ -468,11 +431,17 @@ table(fhs_egg_clean$primary_net)
 table(fhs_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward
-# Month: all
+# Year: 1988 forward, remove 1997 and 2011 for sporadic samping
+# Month: 5 - 9 for eggs, 4 - 7 for larvae
 # Latitude: all
 fhs_egg_trim <- trim_data(fhs_egg_clean)
+fhs_egg_trim <- filter(fhs_egg_trim,
+                       month > 4, month < 10,
+                       year != 1997, year != 2011)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
+fhs_egg_trim <- filter(fhs_egg_trim,
+                       month > 3, month < 8,
+                       year != 1997, year != 2011)
 
 # Inspect new data
 data_check(fhs_egg_trim, fhs_larvae_trim)
@@ -553,11 +522,17 @@ table(pk_egg_clean$primary_net)
 table(pk_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward
-# Month: all
+# Year: 1988 forward, remove 1997 and 2011 as well
+# Month: 3 - 7
 # Latitude: all
 pk_egg_trim <- trim_data(pk_egg_clean)
+pk_egg_trim <- filter(pk_egg_trim,
+                      month > 2, month < 8, 
+                      year != 1997, year != 2011)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
+pk_larvae_trim <- filter(pk_larvae_trim,
+                         month > 2, month < 8,
+                         year != 1997, year != 2011)
 
 # Inspect new data
 data_check(pk_egg_trim, pk_larvae_trim)
