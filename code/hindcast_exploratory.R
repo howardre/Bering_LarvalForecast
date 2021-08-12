@@ -126,6 +126,11 @@ bathy_ylim = range(bathy_lat)
 bathy_xlim = range(bathy_lon)
 bering_bathy[bering_bathy <= -1] <- NA
 
+## NCEP SST data ----
+# https://www.esrl.noaa.gov/psd/data/timeseries/ 
+# Latitude Range used: 56.2 to  56.2, Longitude Range used: 195.0 to 196.9
+ncep_temp <- read.csv(here('data', 'NCEP_Temp.csv'))
+
 ### Data exploration ----
 # Yellowfin
 ggplot(yfs_egg) +
@@ -951,6 +956,49 @@ map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
+
+## Variable coefficient GAM using best models
+pk_egg$sst_may <- ncep_temp$may[match(pk_egg$year, ncep_temp$year)]
+range(pk_egg$sst_may)
+
+# This will again use the presence GAM from the two stage models
+# create variable phenology model by adding doy*sst
+month_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                           s(doy) +
+                           s(lon, lat) +
+                           s(doy, by = sst_may))
+pk_egg_month <- gam(month_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month)
+
+par(mfrow = c(2,2))
+plot(pk_egg_month)
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month)
+
+# Use the original presence model from before
+var_ratio_pk_month <- (summary(pk_egg_gam2)$scale - summary(pk_egg_month)$scale) / 
+  summary(pk_egg_gam2)$scale
+var_ratio_pk_month
+
+# Create variable geography using space*sst
+space_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                           s(doy) +
+                           s(lon, lat) +
+                           s(lon, lat, by = sst_may))
+pk_egg_space <- gam(space_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_space)
+
+par(mfrow = c(2,2))
+plot(pk_egg_space)
+
+par(mfrow = c(2, 2))
+gam.check(pk_egg_space)
+
+# Use the original presence model from before
+var_ratio_pk_space <- (summary(pk_egg_gam2)$scale - summary(pk_egg_space)$scale) / 
+  summary(pk_egg_gam2)$scale
+var_ratio_pk_space
 
 #### Larvae ----
 # Negative Binomial
