@@ -106,6 +106,77 @@ map_phenology <- function(data, grid, grid2){
           col = alpha('gray', 0.6),
           lty = 0)
 }
+map_vc <- function(data, grid){
+  nlat = 80
+  nlon = 120
+  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
+  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
+                                "#AFABCB", "#DAD9E5", "#F9F9F9",
+                                "#FFDAB7", "#FFB377","#E18811",
+                                "#AC6000", "#743700"))
+  color_levels = 100
+  max_absolute_value = max(abs(c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)))) 
+  color_sequence = seq(-max_absolute_value, max_absolute_value, 
+                       length.out = color_levels + 1)
+  n_in_class = hist(grid$pred, breaks = color_sequence, plot = F)$counts > 0
+  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
+  image(lond,
+        latd,
+        t(matrix(grid$pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        axes = FALSE,
+        xlab = "",
+        ylab = "")
+  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
+  par(new = TRUE)
+  image(lond,
+        latd,
+        t(matrix(grid$pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        col = my_color(n = color_levels)[col_to_include], 
+        breaks = color_sequence[breaks_to_include],
+        ylab = "Latitude",
+        xlab = "Longitude",
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        main = "Distribution",
+        cex.main = 1.2,
+        cex.lab = 1.1,
+        cex.axis = 1.1)
+  symbols(data$lon[data$larvalcatchper10m2 > 0],
+          data$lat[data$larvalcatchper10m2 > 0],
+          circles = log(data$larvalcatchper10m2 + 1)[data$larvalcatchper10m2 > 0],
+          inches = 0.1,
+          bg = alpha('grey', 0.1),
+          fg = alpha('black', 0.05),
+          add = T)
+  points(data$lon[data$larvalcatchper10m2 == 0], 
+         data$lat[data$larvalcatchper10m2 == 0], 
+         pch = '+')
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
+  image.plot(legend.only = T,
+             col = my_color(n = color_levels)[col_to_include],
+             legend.shrink = 0.2,
+             smallplot = c(.83, .86, .18, .31),
+             legend.cex = 0.6,
+             axis.args = list(cex.axis = 0.8),
+             legend.width = 0.5,
+             legend.mar = 6,
+             zlim = c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)),
+             legend.args = list("Predicted \n Change",
+                                side = 2, cex = 0.8))
+}
 
 ### Load fish data ----
 yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
@@ -953,11 +1024,52 @@ windows(width = 8, height = 3.5)
 par(mfrow = c(1, 2), 
     mai = c(0.8, 0.9, 0.5, 0.5))
 map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
-dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_egg.jpg'), 
+dev.copy(jpeg, here('results/pollock_hindcast/variable_coefficient', 'pollock_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
-## Variable coefficient GAM using best models
+##### Variable coefficient GAM using best models ----
+# Flexible phenology and geography
+# add month * year components: flexible phenology
+flex_phenology <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) + 
+                        s(lon, lat) + 
+                        s(doy, by = factor(year)))
+pk_egg_phenology <- gam(flex_phenology, data = pk_egg)
+summary(pk_egg_phenology)
+# R2 adj =  0.499   Deviance explained = 52.2%
+# GCV = 4.3868  Scale est. = 4.1837    n = 2876
+
+windows()
+plot(pk_egg_phenology, pages = 1, scale = 0)
+
+windows()
+gam.check(pk_egg_phenology)
+
+ratio_pk_phenology <- (summary(pk_egg_gam2)$scale - 
+                      summary(pk_egg_phenology)$scale) / summary(pk_egg_gam2)$scale
+ratio_pk_phenology
+# -0.2551643
+
+# add space * year components: variable geography
+flex_geography <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                        s(lon, lat, by = factor(year)) +
+                        s(doy))
+pk_egg_geography <- gam(flex_geography, data = pk_egg)
+summary(pk_egg_geography)
+# R2 adj =  0.619   Deviance explained = 66.5%
+# GCV = 3.613  Scale est. = 3.18    n = 2876
+
+windows()
+plot(flex_geography, pages = 1, scale = 0)
+
+windows()
+gam.check(pk_egg_geography)
+
+ratio_pk_geography <- (summary(pk_egg_gam2)$scale - 
+                      summary(pk_egg_geography)$scale) / summary(pk_egg_gam2)$scale
+ratio_pk_geography
+
+# Add monthly temperature values from NCEP
 pk_egg$sst_may <- ncep_temp$may[match(pk_egg$year, ncep_temp$year)]
 range(pk_egg$sst_may)
 
@@ -969,9 +1081,16 @@ month_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                            s(doy, by = sst_may))
 pk_egg_month <- gam(month_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month)
+# Deviance explained: 41.4%
+# R2 adj: 0.396
 
-par(mfrow = c(2,2))
-plot(pk_egg_month)
+windows()
+par(mfrow = c(1, 2))
+plot(pk_egg_month, select = 1, main = "DOY")
+plot(pk_egg_month, select = 3, main = "DOY by SST in May")
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_monthvc.jpg'), 
+         height = 5, width = 10, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month)
@@ -979,7 +1098,7 @@ gam.check(pk_egg_month)
 # Use the original presence model from before
 var_ratio_pk_month <- (summary(pk_egg_gam2)$scale - summary(pk_egg_month)$scale) / 
   summary(pk_egg_gam2)$scale
-var_ratio_pk_month
+var_ratio_pk_month # 0.02064972
 
 # Create variable geography using space*sst
 space_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
@@ -988,9 +1107,17 @@ space_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                            s(lon, lat, by = sst_may))
 pk_egg_space <- gam(space_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_space)
+# Deviance explained: 46.1%
+# R2 adj.: 0.439
 
-par(mfrow = c(2,2))
-plot(pk_egg_space)
+windows()
+par(mfrow = c(2, 2))
+plot(pk_egg_space, select = 1, main = "DOY")
+plot(pk_egg_space, select = 2, main = "Location")
+plot(pk_egg_space, select = 3, main = "Location by SST in May")
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_spacevc.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200 )
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_space)
@@ -998,7 +1125,7 @@ gam.check(pk_egg_space)
 # Use the original presence model from before
 var_ratio_pk_space <- (summary(pk_egg_gam2)$scale - summary(pk_egg_space)$scale) / 
   summary(pk_egg_gam2)$scale
-var_ratio_pk_space
+var_ratio_pk_space # 0.09066846
 
 # Plot the results of the average geography and phenology and decrease of MSE
 # Use same grid as in first part
@@ -1019,32 +1146,69 @@ grid_vc_eggpk$doy <- median(pk_egg$doy)
 grid_vc_eggpk$pred <- predict(pk_egg_gam2, newdata = grid_vc_eggpk)
 grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
 
+# Plot phenology
+grid_vc_eggpk2 <- data.frame('lon' = rep(-170, 100),
+                           'lat' = rep(57, 100),
+                           'doy' = seq(min(pk_egg$doy), max(pk_egg$doy), length = 100),
+                           'year' = rep(2014, 100))
+grid_vc_eggpk2$pred <- predict(pk_egg_gam2, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se <- predict(pk_egg_gam2, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
+grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
+
+
+# Plot MSE as stacked bars, including year variability and SST variability
+barplot(matrix(c(ratio_pk_geography,
+                 var_ratio_pk_space,
+                 ratio_pk_phenology,
+                 var_ratio_pk_month) * 100, 
+               ncol = 2,
+               nrow = 2),
+        ylab = 'Delta MSE (%)',
+        names.arg = c('Variable distribution', 'Variable phenologies'),
+        ylim = c(0, 50),
+        main = 'Delta MSE',
+        cex.lab = 1.4,
+        cex.main = 1.5,
+        cex.axis = 1.4,
+        cex.names = 1.4,
+        space = c(0, 1),
+        beside = T,
+        col = c('azure4', 'azure3'))
+box()
+legend("topright",
+       legend = c('D-MSE|Year', 'D-MSE|SST'),
+       bty = 'n',
+       col = c('azure4', 'azure3'),
+       pch = 15,
+       pt.cex = 2.5,
+       cex = 1.5)
+par(new = T,
+    mfrow = c(1, 3),
+    mai = c(0.7, 0.5, 1.75, 5.3),
+    mfg = c(1, 1))
+image.plot(legend.only = T,
+           col = tim.colors(100),
+           zlim = range(t(matrix(
+             grid.extent$pred,
+             nrow = length(latd),
+             ncol = length(lond),
+             byrow = T)), na.rm = T),
+           legend.width = 3,
+           legend.cex = 1.3)
+dev.copy(jpeg,
+         'pollok_base_MSE.jpg',
+         height = 3.5,
+         width = 12,
+         res = 200,
+         units = 'in')
+dev.off()
+
 # plot
-windows(height = 12, width = 3.5)
-image(lond, latd, 
-      t(matrix(grid_vc_eggpk$pred, nrow = length(latd), ncol = length(lond), byrow = T)),
-      col = tim.colors(100),
-      ylab = "", xlab = "",
-      xlim = c(-176.5, -156.5), 
-      ylim = c(52, 62),
-      main = "Distribution",
-      cex.main = 1.5,
-      cex.lab = 1.4,
-      cex.axis = 1.4)
-symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0], 
-        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
-        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha("grey", f = 0.1),
-        fg = alpha("black", f = 0.05),
-        add = T)
-points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0], 
-       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0],
-       pch = "+")
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
+windows(height = 10, width = 10)
+map_vc(pk_egg, grid_vc_eggpk)
+
+
 
 #### Larvae ----
 # Negative Binomial
