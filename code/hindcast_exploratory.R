@@ -1000,6 +1000,52 @@ var_ratio_pk_space <- (summary(pk_egg_gam2)$scale - summary(pk_egg_space)$scale)
   summary(pk_egg_gam2)$scale
 var_ratio_pk_space
 
+# Plot the results of the average geography and phenology and decrease of MSE
+# Use same grid as in first part
+grid_vc_eggpk <- expand.grid(lond, latd)
+names(grid_vc_eggpk) <- c('lon', 'lat')
+grid_vc_eggpk$dist <- NA
+for (k in 1:nrow(grid_extent_eggpk)) {
+  dist <- distance_function(grid_vc_eggpk$lat[k],
+                            grid_vc_eggpk$lon[k],
+                            pk_egg$lat,
+                            pk_egg$lon)
+  grid_vc_eggpk$dist[k] <- min(dist)
+}
+
+# Assign year and doy
+grid_vc_eggpk$year <- 2014
+grid_vc_eggpk$doy <- median(pk_egg$doy)
+grid_vc_eggpk$pred <- predict(pk_egg_gam2, newdata = grid_vc_eggpk)
+grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
+
+# plot
+windows(height = 12, width = 3.5)
+image(lond, latd, 
+      t(matrix(grid_vc_eggpk$pred, nrow = length(latd), ncol = length(lond), byrow = T)),
+      col = tim.colors(100),
+      ylab = "", xlab = "",
+      xlim = c(-176.5, -156.5), 
+      ylim = c(52, 62),
+      main = "Distribution",
+      cex.main = 1.5,
+      cex.lab = 1.4,
+      cex.axis = 1.4)
+symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0], 
+        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
+        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha("grey", f = 0.1),
+        fg = alpha("black", f = 0.05),
+        add = T)
+points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0], 
+       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0],
+       pch = "+")
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+
 #### Larvae ----
 # Negative Binomial
 pk_larvae_basenb <- gam(count ~ factor(year) + 
