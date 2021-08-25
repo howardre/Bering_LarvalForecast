@@ -1060,7 +1060,7 @@ summary(pk_egg_geography)
 # GCV = 3.613  Scale est. = 3.18    n = 2876
 
 windows()
-plot(flex_geography, pages = 1, scale = 0)
+plot(pk_egg_geography, pages = 1, scale = 0)
 
 windows()
 gam.check(pk_egg_geography)
@@ -1068,6 +1068,7 @@ gam.check(pk_egg_geography)
 ratio_pk_geography <- (summary(pk_egg_gam2)$scale - 
                       summary(pk_egg_geography)$scale) / summary(pk_egg_gam2)$scale
 ratio_pk_geography
+# 0.0459835
 
 # Add monthly temperature values from NCEP
 pk_egg$sst_may <- ncep_temp$may[match(pk_egg$year, ncep_temp$year)]
@@ -1128,35 +1129,6 @@ var_ratio_pk_space <- (summary(pk_egg_gam2)$scale - summary(pk_egg_space)$scale)
 var_ratio_pk_space # 0.09066846
 
 # Plot the results of the average geography and phenology and decrease of MSE
-# Use same grid as in first part
-grid_vc_eggpk <- expand.grid(lond, latd)
-names(grid_vc_eggpk) <- c('lon', 'lat')
-grid_vc_eggpk$dist <- NA
-for (k in 1:nrow(grid_extent_eggpk)) {
-  dist <- distance_function(grid_vc_eggpk$lat[k],
-                            grid_vc_eggpk$lon[k],
-                            pk_egg$lat,
-                            pk_egg$lon)
-  grid_vc_eggpk$dist[k] <- min(dist)
-}
-
-# Assign year and doy
-grid_vc_eggpk$year <- 2014
-grid_vc_eggpk$doy <- median(pk_egg$doy)
-grid_vc_eggpk$pred <- predict(pk_egg_gam2, newdata = grid_vc_eggpk)
-grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
-
-# Plot phenology
-grid_vc_eggpk2 <- data.frame('lon' = rep(-170, 100),
-                           'lat' = rep(57, 100),
-                           'doy' = seq(min(pk_egg$doy), max(pk_egg$doy), length = 100),
-                           'year' = rep(2014, 100))
-grid_vc_eggpk2$pred <- predict(pk_egg_gam2, newdata = grid_vc_eggpk2)
-grid_vc_eggpk2$se <- predict(pk_egg_gam2, newdata = grid_vc_eggpk2, se = T)[[2]]
-grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
-grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
-
-
 # Plot MSE as stacked bars, including year variability and SST variability
 barplot(matrix(c(ratio_pk_geography,
                  var_ratio_pk_space,
@@ -1204,11 +1176,150 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-# plot
-windows(height = 10, width = 10)
-map_vc(pk_egg, grid_vc_eggpk)
+# Plot VC GAMs
+# Spatial
+nlat = 40
+nlon = 60
+latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+grid_vc_eggpk <- expand.grid(lond, latd)
+names(grid_vc_eggpk) <- c('lon', 'lat')
+grid_vc_eggpk$dist <- NA
+for (k in 1:nrow(grid_vc_eggpk)) {
+  dist <-  distance_function(grid_vc_eggpk$lat[k],
+                             grid_vc_eggpk$lon[k],
+                             pk_egg$lat,
+                             pk_egg$lon)
+  grid_vc_eggpk$dist[k] <- min(dist)
+}
+grid_vc_eggpk$year <- 2014
+grid_vc_eggpk$doy <- median(pk_egg$doy)
+grid_vc_eggpk$sst_may <- mean(pk_egg$sst_may)
+grid_vc_eggpk$pred <- predict(pk_egg_geography, newdata = grid_vc_eggpk)
+grid_vc_eggpk$se <- predict(pk_egg_geography, newdata = grid_vc_eggpk, se = T)[[2]]
+grid_vc_eggpk$pred_up <- grid_vc_eggpk$pred + 1.96 * grid_vc_eggpk$se
+grid_vc_eggpk$pred_lw <- grid_vc_eggpk$pred - 1.96 * grid_vc_eggpk$se
+grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
+grid_vc_eggpk$sst_may <- mean(pk_egg$sst_may) + 1
+grid_vc_eggpk$pred2 <- predict(pk_egg_space, newdata = grid_vc_eggpk)
+grid_vc_eggpk$se2 <- predict(pk_egg_space, newdata = grid_vc_eggpk, se = T)[[2]]
+grid_vc_eggpk$pred2_up <- grid_vc_eggpk$pred2 + 1.96 * grid_vc_eggpk$se2
+grid_vc_eggpk$pred2_lw <- grid_vc_eggpk$pred2 - 1.96 * grid_vc_eggpk$se2
+grid_vc_eggpk$diff <- grid_vc_eggpk$pred2 - grid_vc_eggpk$pred
+grid_vc_eggpk$sig_pos <- c(grid_vc_eggpk$pred2_lw > grid_vc_eggpk$pred_up)
+grid_vc_eggpk$sig_neg <- c(grid_vc_eggpk$pred2_up < grid_vc_eggpk$pred_lw)
+grid_vc_eggpk$pos_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_pos
+grid_vc_eggpk$neg_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_neg
+max_slope <- max(grid_vc_eggpk$diff, na.rm = T)
 
+# Plot
+windows(width = 7, height = 9)
+par(mfrow = c(1, 1), mai = c(0.9, 1.4, 0.4, 0.1))
+image.plot(lond,
+           latd,
+           t(matrix(
+             grid_vc_eggpk$diff,
+             nrow = length(latd),
+             ncol = length(lond),
+             byrow = T)), 
+           col = tim.colors(100),
+           ylab = "",
+           xlab = "",
+           xlim = c(-176.5,-156.5),
+           ylim = c(52, 62),
+           main = 'Change in distribution',
+           cex = 1.2,
+           zlim = c(-1.4, 2.5),
+           legend.mar = 8)
+# contour(unique(bathy_dat$lon),
+#         sort(unique(bathy_dat$lat)),
+#         bathy_mat,
+#         levels = -c(50, 200),
+#         labcex = 0.4,
+#         col = 'black',
+#         add = T)
+map("worldHires",
+    fill = T,
+    col = "wheat4",
+    add = T)
+mtext('Egg density ln(n/10m2)', 4, line = 4.8, cex = 1.35)
 
+# Temporal
+grid.extent <-  data.frame('lon' = rep(-170, 100),
+                           'lat' = rep(57, 100),
+                           'doy' = seq(min(pk_egg$doy), 
+                                       max(pk_egg$doy), 
+                                       length = 100),
+                           sst_may = rep(mean(subset.egg$sst_may), 100),
+                           'year' = rep(2014, 100))
+grid.extent$pred <- predict(gam.month.vc, newdata = grid.extent)
+grid.extent$se <- predict(gam.month.vc, newdata = grid.extent, se = T)[[2]]
+grid.extent$pred.up <- grid.extent$pred + 1.96 * grid.extent$se
+grid.extent$pred.lw <- grid.extent$pred - 1.96 * grid.extent$se
+####
+grid.extent$sst_may <- mean(subset.egg$sst_may) + 1
+grid.extent$pred2 <- predict(gam.month.vc, newdata = grid.extent)
+grid.extent$se2 <- predict(gam.month.vc, newdata = grid.extent, se = T)[[2]]
+grid.extent$pred2.up <- grid.extent$pred2 + 1.96 * grid.extent$se2
+grid.extent$pred2.lw <- grid.extent$pred2 - 1.96 * grid.extent$se2
+
+plot(
+  grid.extent$doy,
+  grid.extent$pred,
+  main = '',
+  type = 'l',
+  ylim = range(
+    c(
+      grid.extent$pred.up,
+      grid.extent$pred2.up,
+      grid.extent$pred.lw,
+      grid.extent$pred2.lw
+    )
+  ),
+  xlim = c(60, 215),
+  col = 'blue',
+  lwd = 2,
+  xlab = 'Day of the year',
+  ylab = 'Egg density ln(n/10m2)',
+  cex.lab = 1.2,
+  cex.axis = 1.2,
+  cex.main = 1.2
+)
+polygon(
+  c(grid.extent$doy, rev(grid.extent$doy)),
+  c(grid.extent$pred.lw, rev(grid.extent$pred.up)),
+  col = alpha('blue', f = 0.2),
+  lty = 0
+)
+lines(grid.extent$doy,
+      grid.extent$pred2,
+      col = 'red',
+      lwd = 2)
+polygon(
+  c(grid.extent$doy, rev(grid.extent$doy)),
+  c(grid.extent$pred2.lw, rev(grid.extent$pred2.up)),
+  col = alpha('red', f = 0.2),
+  lty = 0
+)
+legend(
+  110,
+  4,
+  legend = c('Mean SST', '+ 1C'),
+  col = c('blue', 'red'),
+  lty = 1,
+  bty = 'n',
+  lwd = 2,
+  cex = 1.2
+)
+dev.copy(
+  jpeg,
+  'pollok_VCGAM.jpg',
+  height = 9,
+  width = 7,
+  res = 200,
+  units = 'in'
+)
+dev.off()
 
 #### Larvae ----
 # Negative Binomial
