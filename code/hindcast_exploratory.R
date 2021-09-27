@@ -168,21 +168,41 @@ map_vc <- function(data, grid, grid2){
                                 side = 2, cex = 0.8))
   plot(grid2$doy,
        grid2$pred,
-       main = 'Phenology',
+       main = '',
        type = 'l',
-       ylab = 'Egg density ln(n/10m2)',
+       ylim = range(c(grid2$pred_up,
+                      grid2$pred2_up,
+                      grid2$pred_lw,
+                      grid2$pred2_lw)),
+       xlim = c(60, 215),
+       col = 'blue',
+       lwd = 2,
        xlab = 'Day of the year',
+       ylab = 'Egg density ln(n/10m2)',
+       main = 'Change in Phenology'
        cex.lab = 1.1,
        cex.axis = 1.1,
-       cex.main = 1.2,
-       xlim = c(min(grid2$doy, na.rm = T), max(grid2$doy, na.rm = T)),
-       ylim = range(c(grid2$pred_up, grid2$pred_lw)),
-       col = 'blue',
-       lwd = 2)
+       cex.main = 1.2)
   polygon(c(grid2$doy, rev(grid2$doy)),
           c(grid2$pred_lw, rev(grid2$pred_up)),
-          col = alpha('gray', 0.6),
+          col = alpha('blue', 0.2), 
           lty = 0)
+  lines(grid2$doy,
+        grid2$pred2,
+        col = 'red',
+        lwd = 2)
+  polygon(c(grid2$doy, rev(grid2$doy)),
+    c(grid2$pred2_lw, rev(grid2$pred2_up)),
+    col = alpha('red', 0.2),
+    lty = 0)
+  legend(110,
+         0,
+         legend = c('Mean SST', '+ 1C'),
+         col = c('blue', 'red'),
+         lty = 1,
+         bty = 'n',
+         lwd = 2,
+         cex = 0.8)
 }
 
 ### Load fish data ----
@@ -873,15 +893,14 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_basep)
 
 # Tweedie
-pk_egg_baset <- gam(larvalcatchper10m2 ~ factor(year) + 
+pk_egg_baset <- gam((larvalcatchper10m2 + 1) ~ factor(year) + 
                       s(lon, lat) + 
                       s(doy) +
                       s(roms_salinity) +
                       s(roms_temperature),
                     data = pk_egg,
                     family = tw(link = 'log'),
-                    method = 'REML',
-                    offset = log(volume_filtered))
+                    method = 'REML')
 summary(pk_egg_baset)
 # R2: -0.544
 # Deviance: 66.5%
@@ -895,6 +914,7 @@ dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_baset.jpg'),
          height = 5, width = 5, units = 'in', res = 200 )
 dev.off()
 
+windows()
 par(mfrow = c(2, 2))
 gam.check(pk_egg_baset)
 
@@ -979,6 +999,9 @@ summary(pk_egg_gam2)
 par(mfrow = c(2, 2))
 gam.check(pk_egg_gam2)
 
+windows()
+par(mfrow = c(2, 2))
+plot(pk_egg_gam2)
 
 # Plot best model
 # Plot results of average geography and phenology along with decrease of MSE
@@ -1041,10 +1064,10 @@ dev.off()
 flex_phenology <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) + 
                         s(lon, lat) + 
                         s(doy, by = factor(year)))
-pk_egg_phenology <- gam(flex_phenology, data = pk_egg)
+pk_egg_phenology <- gam(flex_phenology, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_phenology)
-# R2 adj =  0.499   Deviance explained = 52.2%
-# GCV = 4.3868  Scale est. = 4.1837    n = 2876
+# R2 adj =  0.454   Deviance explained = 48.2%
+# GCV = 3.0995  Scale est. = 2.9469    n = 2195
 
 windows()
 plot(pk_egg_phenology, pages = 1, scale = 0)
@@ -1055,16 +1078,16 @@ gam.check(pk_egg_phenology)
 ratio_pk_phenology <- (summary(pk_egg_gam2)$scale - 
                       summary(pk_egg_phenology)$scale) / summary(pk_egg_gam2)$scale
 ratio_pk_phenology
-# -0.2551643
+# 0.04084272
 
 # add space * year components: variable geography
 flex_geography <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                         s(lon, lat, by = factor(year)) +
                         s(doy))
-pk_egg_geography <- gam(flex_geography, data = pk_egg)
+pk_egg_geography <- gam(flex_geography, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_geography)
-# R2 adj =  0.619   Deviance explained = 66.5%
-# GCV = 3.613  Scale est. = 3.18    n = 2876
+# R2 adj =  0.56   Deviance explained = 61.6%
+# GCV = 2.722  Scale est. = 2.3743    n = 2195
 
 windows()
 plot(pk_egg_geography, pages = 1, scale = 0)
@@ -1075,7 +1098,7 @@ gam.check(pk_egg_geography)
 ratio_pk_geography <- (summary(pk_egg_gam2)$scale - 
                       summary(pk_egg_geography)$scale) / summary(pk_egg_gam2)$scale
 ratio_pk_geography
-# 0.0459835
+# 0.2272111
 
 # Add monthly temperature values from NCEP
 pk_egg$sst_may <- ncep_temp$may[match(pk_egg$year, ncep_temp$year)]
@@ -1184,23 +1207,23 @@ barplot(matrix(c(ratio_pk_geography,
                nrow = 2),
         ylab = 'Delta MSE (%)',
         names.arg = c('Variable distribution', 'Variable phenologies'),
-        ylim = c(-30, 10),
+        ylim = c(0, 25),
         main = 'Delta MSE',
-        cex.lab = 1.4,
-        cex.main = 1.5,
-        cex.axis = 1.4,
-        cex.names = 1.4,
+        cex.lab = 1.1,
+        cex.main = 1.2,
+        cex.axis = 1.1,
+        cex.names = 1.1,
         space = c(0, 1),
         beside = T,
         col = c('azure4', 'azure3'))
 box()
-legend("bottomleft",
+legend("topright",
        legend = c('D-MSE|Year', 'D-MSE|SST'),
        bty = 'n',
        col = c('azure4', 'azure3'),
        pch = 15,
        pt.cex = 2.5,
-       cex = 1.5)
+       cex = 1.1)
 dev.copy(jpeg,
          here('results/pollock_hindcast', 
               'pollock_egg_MSE.jpg'),
