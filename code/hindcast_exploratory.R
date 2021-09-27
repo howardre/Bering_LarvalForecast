@@ -106,25 +106,25 @@ map_phenology <- function(data, grid, grid2){
           col = alpha('gray', 0.6),
           lty = 0)
 }
-map_vc <- function(data, grid){
+map_vc <- function(data, grid, grid2){
   nlat = 80
   nlon = 120
-  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
-  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+  lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
   my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
                                 "#AFABCB", "#DAD9E5", "#F9F9F9",
                                 "#FFDAB7", "#FFB377","#E18811",
                                 "#AC6000", "#743700"))
   color_levels = 100
-  max_absolute_value = max(abs(c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)))) 
+  max_absolute_value = max(abs(c(min(grid$diff, na.rm = T), max(grid$diff, na.rm = T)))) 
   color_sequence = seq(-max_absolute_value, max_absolute_value, 
                        length.out = color_levels + 1)
-  n_in_class = hist(grid$pred, breaks = color_sequence, plot = F)$counts > 0
+  n_in_class = hist(grid$diff, breaks = color_sequence, plot = F)$counts > 0
   col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
   breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
   image(lond,
         latd,
-        t(matrix(grid$pred,
+        t(matrix(grid$diff,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -137,30 +137,20 @@ map_vc <- function(data, grid){
   par(new = TRUE)
   image(lond,
         latd,
-        t(matrix(grid$pred,
+        t(matrix(grid$diff,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
-        col = my_color(n = color_levels)[col_to_include], 
+        col = my_color(n = color_levels)[col_to_include],
         breaks = color_sequence[breaks_to_include],
-        ylab = "Latitude",
-        xlab = "Longitude",
+        ylab = "Longitude",
+        xlab = "Latitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        main = "Distribution",
+        main = 'Change in distribution',
         cex.main = 1.2,
         cex.lab = 1.1,
         cex.axis = 1.1)
-  symbols(data$lon[data$larvalcatchper10m2 > 0],
-          data$lat[data$larvalcatchper10m2 > 0],
-          circles = log(data$larvalcatchper10m2 + 1)[data$larvalcatchper10m2 > 0],
-          inches = 0.1,
-          bg = alpha('grey', 0.1),
-          fg = alpha('black', 0.05),
-          add = T)
-  points(data$lon[data$larvalcatchper10m2 == 0], 
-         data$lat[data$larvalcatchper10m2 == 0], 
-         pch = '+')
   maps::map("worldHires",
             fill = T,
             col = "wheat4",
@@ -168,14 +158,31 @@ map_vc <- function(data, grid){
   image.plot(legend.only = T,
              col = my_color(n = color_levels)[col_to_include],
              legend.shrink = 0.2,
-             smallplot = c(.83, .86, .18, .31),
+             smallplot = c(.73, .76, .25, .39),
              legend.cex = 0.6,
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)),
+             zlim = c(min(grid$diff, na.rm = T), max(grid$diff, na.rm = T)),
              legend.args = list("Predicted \n Change",
                                 side = 2, cex = 0.8))
+  plot(grid2$doy,
+       grid2$pred,
+       main = 'Phenology',
+       type = 'l',
+       ylab = 'Egg density ln(n/10m2)',
+       xlab = 'Day of the year',
+       cex.lab = 1.1,
+       cex.axis = 1.1,
+       cex.main = 1.2,
+       xlim = c(min(grid2$doy, na.rm = T), max(grid2$doy, na.rm = T)),
+       ylim = range(c(grid2$pred_up, grid2$pred_lw)),
+       col = 'blue',
+       lwd = 2)
+  polygon(c(grid2$doy, rev(grid2$doy)),
+          c(grid2$pred_lw, rev(grid2$pred_up)),
+          col = alpha('gray', 0.6),
+          lty = 0)
 }
 
 ### Load fish data ----
@@ -850,8 +857,8 @@ pk_egg_basep <- gam(count ~ factor(year) +
                     family = quasipoisson(link = "log"),
                     offset = log(volume_filtered))
 summary(pk_egg_basep)
-# R2: 0.315
-# Deviance: 68.5%
+# R2: 0.383
+# Deviance: 66.1%
 
 windows()
 par(mfrow = c(2, 2))
@@ -931,7 +938,7 @@ pk_egg_ziplss <- gam(list(count ~ s(year) +
                          data = pk_egg,
                          family = ziplss()) #ziplss
 summary(pk_egg_ziplss)
-# Deviance: 64.6%
+# Deviance: 60%
 
 windows()
 par(mfrow = c(2, 2))
@@ -954,8 +961,8 @@ pk_egg_gam1 <- gam(presence ~ factor(year) +
                    data = pk_egg,
                    family = "binomial")
 summary(pk_egg_gam1)
-# R2: 0.487
-# Deviance: 42.1
+# R2: 0.309
+# Deviance: 29.2%
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_gam1)
@@ -966,8 +973,8 @@ pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                      s(lon, lat),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_gam2)
-# R2: 0.411
-# Deviance: 42.5% 
+# R2: 0.383
+# Deviance: 39.9% 
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_gam2)
@@ -1024,7 +1031,7 @@ windows(width = 8, height = 3.5)
 par(mfrow = c(1, 2), 
     mai = c(0.8, 0.9, 0.5, 0.5))
 map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
-dev.copy(jpeg, here('results/pollock_hindcast/variable_coefficient', 'pollock_base_egg.jpg'), 
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_egg.jpg'), 
          height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
 
@@ -1042,7 +1049,7 @@ summary(pk_egg_phenology)
 windows()
 plot(pk_egg_phenology, pages = 1, scale = 0)
 
-windows()
+par(mfrow = c(2, 2))
 gam.check(pk_egg_phenology)
 
 ratio_pk_phenology <- (summary(pk_egg_gam2)$scale - 
@@ -1062,7 +1069,7 @@ summary(pk_egg_geography)
 windows()
 plot(pk_egg_geography, pages = 1, scale = 0)
 
-windows()
+par(mfrow = c(2, 2))
 gam.check(pk_egg_geography)
 
 ratio_pk_geography <- (summary(pk_egg_gam2)$scale - 
@@ -1117,7 +1124,7 @@ plot(pk_egg_space, select = 1, main = "DOY")
 plot(pk_egg_space, select = 2, main = "Location")
 plot(pk_egg_space, select = 3, main = "Location by SST in May")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_spacevc.jpg'), 
-         height = 10, width = 10, units = 'in', res = 200 )
+         height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
@@ -1129,6 +1136,45 @@ var_ratio_pk_space <- (summary(pk_egg_gam2)$scale - summary(pk_egg_space)$scale)
 var_ratio_pk_space # 0.09066846
 
 # Plot the results of the average geography and phenology and decrease of MSE
+nlat = 80
+nlon = 120
+latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+grid_pkegg_avg <- expand.grid(lond, latd)
+names(grid_pkegg_avg) <- c('lon', 'lat')
+
+# Geography grid
+grid_pkegg_avg$dist <- NA
+for (k in 1:nrow(grid_pkegg_avg)) {
+  dist <-
+    distance_function(grid_pkegg_avg$lat[k],
+                      grid_pkegg_avg$lon[k],
+                      pk_egg$lat,
+                      pk_egg$lon)
+  grid_pkegg_avg$dist[k] <- min(dist)
+}
+grid_pkegg_avg$year <- 2014
+grid_pkegg_avg$doy <- median(pk_egg$doy)
+grid_pkegg_avg$pred <- predict(pk_egg_gam2, newdata = grid_pkegg_avg)
+grid_pkegg_avg$pred[grid_pkegg_avg$dist > 30000] <- NA
+
+# Phenology grid
+grid_pkegg_avg2 <-  data.frame('lon' = rep(-170, 100),
+                                'lat' = rep(57, 100),
+                                'doy' = seq(min(pk_egg$doy), 
+                                            max(pk_egg$doy), 
+                                            length = 100),
+                                'year' = rep(2014, 100))
+grid_pkegg_avg2$pred <- predict(pk_egg_gam2, newdata = grid_pkegg_avg2)
+grid_pkegg_avg2$se <- predict(pk_egg_gam2, newdata = grid_pkegg_avg2, se = T)[[2]]
+grid_pkegg_avg2$pred_up <- grid_pkegg_avg2$pred + 1.96 * grid_pkegg_avg2$se
+grid_pkegg_avg2$pred_lw <- grid_pkegg_avg2$pred - 1.96 * grid_pkegg_avg2$se
+
+# Plot
+windows(width = 12, height = 3.5)
+par(mfrow = c(1, 3), mai = c(0.7, 0.6, 0.4, 0.4))
+map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
+
 # Plot MSE as stacked bars, including year variability and SST variability
 barplot(matrix(c(ratio_pk_geography,
                  var_ratio_pk_space,
@@ -1138,7 +1184,7 @@ barplot(matrix(c(ratio_pk_geography,
                nrow = 2),
         ylab = 'Delta MSE (%)',
         names.arg = c('Variable distribution', 'Variable phenologies'),
-        ylim = c(0, 50),
+        ylim = c(-30, 10),
         main = 'Delta MSE',
         cex.lab = 1.4,
         cex.main = 1.5,
@@ -1148,28 +1194,16 @@ barplot(matrix(c(ratio_pk_geography,
         beside = T,
         col = c('azure4', 'azure3'))
 box()
-legend("topright",
+legend("bottomleft",
        legend = c('D-MSE|Year', 'D-MSE|SST'),
        bty = 'n',
        col = c('azure4', 'azure3'),
        pch = 15,
        pt.cex = 2.5,
        cex = 1.5)
-par(new = T,
-    mfrow = c(1, 3),
-    mai = c(0.7, 0.5, 1.75, 5.3),
-    mfg = c(1, 1))
-image.plot(legend.only = T,
-           col = tim.colors(100),
-           zlim = range(t(matrix(
-             grid.extent$pred,
-             nrow = length(latd),
-             ncol = length(lond),
-             byrow = T)), na.rm = T),
-           legend.width = 3,
-           legend.cex = 1.3)
 dev.copy(jpeg,
-         'pollok_base_MSE.jpg',
+         here('results/pollock_hindcast', 
+              'pollock_egg_MSE.jpg'),
          height = 3.5,
          width = 12,
          res = 200,
@@ -1178,8 +1212,8 @@ dev.off()
 
 # Plot VC GAMs
 # Spatial
-nlat = 40
-nlon = 60
+nlat = 80
+nlon = 120
 latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
 lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
 grid_vc_eggpk <- expand.grid(lond, latd)
@@ -1212,113 +1246,37 @@ grid_vc_eggpk$pos_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_pos
 grid_vc_eggpk$neg_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_neg
 max_slope <- max(grid_vc_eggpk$diff, na.rm = T)
 
-# Plot
-windows(width = 7, height = 9)
-par(mfrow = c(1, 1), mai = c(0.9, 1.4, 0.4, 0.1))
-image.plot(lond,
-           latd,
-           t(matrix(
-             grid_vc_eggpk$diff,
-             nrow = length(latd),
-             ncol = length(lond),
-             byrow = T)), 
-           col = tim.colors(100),
-           ylab = "",
-           xlab = "",
-           xlim = c(-176.5,-156.5),
-           ylim = c(52, 62),
-           main = 'Change in distribution',
-           cex = 1.2,
-           zlim = c(-1.4, 2.5),
-           legend.mar = 8)
-# contour(unique(bathy_dat$lon),
-#         sort(unique(bathy_dat$lat)),
-#         bathy_mat,
-#         levels = -c(50, 200),
-#         labcex = 0.4,
-#         col = 'black',
-#         add = T)
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-mtext('Egg density ln(n/10m2)', 4, line = 4.8, cex = 1.35)
-
 # Temporal
-grid.extent <-  data.frame('lon' = rep(-170, 100),
+grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                            'lat' = rep(57, 100),
                            'doy' = seq(min(pk_egg$doy), 
                                        max(pk_egg$doy), 
                                        length = 100),
-                           sst_may = rep(mean(subset.egg$sst_may), 100),
+                           sst_may = rep(mean(pk_egg$sst_may), 100),
                            'year' = rep(2014, 100))
-grid.extent$pred <- predict(gam.month.vc, newdata = grid.extent)
-grid.extent$se <- predict(gam.month.vc, newdata = grid.extent, se = T)[[2]]
-grid.extent$pred.up <- grid.extent$pred + 1.96 * grid.extent$se
-grid.extent$pred.lw <- grid.extent$pred - 1.96 * grid.extent$se
-####
-grid.extent$sst_may <- mean(subset.egg$sst_may) + 1
-grid.extent$pred2 <- predict(gam.month.vc, newdata = grid.extent)
-grid.extent$se2 <- predict(gam.month.vc, newdata = grid.extent, se = T)[[2]]
-grid.extent$pred2.up <- grid.extent$pred2 + 1.96 * grid.extent$se2
-grid.extent$pred2.lw <- grid.extent$pred2 - 1.96 * grid.extent$se2
+grid_vc_eggpk2$pred <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
+grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
+grid_vc_eggpk2$sst_may <- mean(pk_egg$sst_may) + 1
+grid_vc_eggpk2$pred2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred2_up <- grid_vc_eggpk2$pred2 + 1.96 * grid_vc_eggpk2$se2
+grid_vc_eggpk2$pred2_lw <- grid_vc_eggpk2$pred2 - 1.96 * grid_vc_eggpk2$se2
 
-plot(
-  grid.extent$doy,
-  grid.extent$pred,
-  main = '',
-  type = 'l',
-  ylim = range(
-    c(
-      grid.extent$pred.up,
-      grid.extent$pred2.up,
-      grid.extent$pred.lw,
-      grid.extent$pred2.lw
-    )
-  ),
-  xlim = c(60, 215),
-  col = 'blue',
-  lwd = 2,
-  xlab = 'Day of the year',
-  ylab = 'Egg density ln(n/10m2)',
-  cex.lab = 1.2,
-  cex.axis = 1.2,
-  cex.main = 1.2
-)
-polygon(
-  c(grid.extent$doy, rev(grid.extent$doy)),
-  c(grid.extent$pred.lw, rev(grid.extent$pred.up)),
-  col = alpha('blue', f = 0.2),
-  lty = 0
-)
-lines(grid.extent$doy,
-      grid.extent$pred2,
-      col = 'red',
-      lwd = 2)
-polygon(
-  c(grid.extent$doy, rev(grid.extent$doy)),
-  c(grid.extent$pred2.lw, rev(grid.extent$pred2.up)),
-  col = alpha('red', f = 0.2),
-  lty = 0
-)
-legend(
-  110,
-  4,
-  legend = c('Mean SST', '+ 1C'),
-  col = c('blue', 'red'),
-  lty = 1,
-  bty = 'n',
-  lwd = 2,
-  cex = 1.2
-)
-dev.copy(
-  jpeg,
-  'pollok_VCGAM.jpg',
-  height = 9,
-  width = 7,
-  res = 200,
-  units = 'in'
-)
+
+# Plot
+windows(width = 8, height = 3.5)
+par(mfrow = c(1, 2), 
+    mai = c(0.8, 0.9, 0.5, 0.5))
+map_vc(pk_egg, grid_vc_eggpk, grid_vc_eggpk2)
+dev.copy(jpeg,
+         here('results/pollock_hindcast',
+         'pollock_egg_vc.jpg'),
+         height = 3.5,
+         width = 8,
+         res = 200,
+         units = 'in')
 dev.off()
 
 #### Larvae ----
@@ -1524,6 +1482,8 @@ par(mfrow = c(1, 2),
 map_phenology(pk_larvae, grid_extent_larvaepk, grid_extent_larvaepk2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_base_larvae.jpg'), height = 3.5, width = 8, res = 200, units = 'in')
 dev.off()
+
+
 
 ### Flathead sole ----
 #### Eggs ----
