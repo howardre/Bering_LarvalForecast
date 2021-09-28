@@ -168,7 +168,7 @@ map_vc <- function(data, grid, grid2){
                                 side = 2, cex = 0.8))
   plot(grid2$doy,
        grid2$pred,
-       main = '',
+       main = 'Change in phenology',
        type = 'l',
        ylim = range(c(grid2$pred_up,
                       grid2$pred2_up,
@@ -179,7 +179,6 @@ map_vc <- function(data, grid, grid2){
        lwd = 2,
        xlab = 'Day of the year',
        ylab = 'Egg density ln(n/10m2)',
-       main = 'Change in Phenology'
        cex.lab = 1.1,
        cex.axis = 1.1,
        cex.main = 1.2)
