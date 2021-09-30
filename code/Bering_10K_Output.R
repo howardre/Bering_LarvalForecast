@@ -34,7 +34,7 @@ bathy_xlim = range(bathy_lon)
 bering_bathy[bering_bathy <= -1] <- NA
 
 # Bering 10K model output: avg bottom temp 2015-2019
-bering_model <- nc_open(here('data', 'B10K-K20_CORECFS_2015-2019_average_temp_bottom5m.nc'))
+bering_model <- nc_open(here('data/temperature_netcdf', 'B10K-K20_CORECFS_2015-2019_average_temp_surface5m.nc'))
 print(bering_model)
 
 lon <- ncvar_get(bering_model, varid = 'lon_rho')
@@ -69,7 +69,7 @@ nc_close(bering_model)
 # Get index for "month"
 year <- unique(substr(time1, 1, 4))
 month_year <- substr(time1, 1, 7)
-month <- "06"
+month <- "02"
 
 # Plot bottom temp in 'month'
 windows(width = 9, height = 10)
@@ -94,14 +94,14 @@ for (i in 1:length(year)) {
              xlim = c(-180,-155) + 360,
              ylim = c(54, 64),
              zlim = c(-2, 17.5))
-  map("world2",
+  maps::map("world2",
       fill = T,
       col = "grey",
       add = T)
   }
 
 dev.copy(jpeg,
-         'results/Bottom_temp_2015_2019.jpg',
+         'results/Surface_temp_2015_2019.jpg',
          height = 10,
          width = 9,
          res = 200,
@@ -200,7 +200,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-#Fit GAMs using observed and predicted bottom temp
+# Fit GAMs using observed and predicted bottom temp 
 #1. Observed BT
 gam_obs <- gam(log(cpue_noha) ~ factor(year) +
                  s(start_longitude, start_latitude) +
@@ -250,7 +250,7 @@ plot(gam_loess,
      res = T,
      main = "ROMS loess temperature")
 dev.copy(jpeg,
-         'results/GAM_Bottom_Temp.jpg',
+         'results/GAM_Surface_Temp.jpg',
          height = 8,
          width = 8,
          res = 200,
