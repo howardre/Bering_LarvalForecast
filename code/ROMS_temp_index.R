@@ -60,28 +60,20 @@ nc_close(bering_model_temp5)
 nc_close(bering_model_temp6)
 nc_close(bering_model_temp7)
 
-# Bering 10K model output: avg bottom temp 2015-2019
-bering_model <- nc_open(here('data/temperature_netcdf', 'B10K-K20_CORECFS_2015-2019_average_temp_surface5m.nc'))
-
-lon <- ncvar_get(bering_model, varid = 'lon_rho')
-lon1 <- ifelse(lon >= 180, lon -360, lon)
-lat <- ncvar_get(bering_model, varid = 'lat_rho')
-time <- ncvar_get(bering_model, varid = 'ocean_time')
-time1 <- as.Date(time / (60 * 60 * 24), origin = "1900-01-01 00:00:00")
-fillvalue_t <- ncatt_get(bering_model, 'temp', "_FillValue")
-temp <- ncvar_get(bering_model, varid = 'temp')
-temp[temp == fillvalue_t$value] <- NA
-
-nc_close(bering_model)
-
 ### Generate mean values by year from surface temps -----
-# Select out time period
-time_index <- time1 >= "2016-02-01" & time1 <= "2016-04-30"
-temp_array <- temp[, , time_index]
-
-# Select out box on the shelf
-temp_data <- as.data.frame(cbind(lon = as.vector(lon1), lat = as.vector(lat), temp = as.vector(temp_array)))
-temp_filtered <- location %>% filter(lon >= -170 & lon <= -165, lat >= 55 & lat <= 59)
+mean_extract <- function(data, start_date, end_date){
+  # Select out time period
+  time_index <- data[[3]] >= start_date & data[[3]] <= end_date
+  temp_array <- data[[4]][, , time_index]
+  
+  # Select out box on the shelf
+  temp_data <- as.data.frame(cbind(lon = as.vector(data[[1]]), 
+                                   lat = as.vector(data[[2]]), 
+                                   temp = as.vector(temp_array)))
+  temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 55 & lat <= 59)
+  mean <- mean(temp_filtered$temp, na.rm = T)
+  return(mean)
+  }
 
 # Create empty data frame
 roms_temps <- data.frame(year = as.numeric(c('1988', '1991', '1992', '1993',
@@ -93,11 +85,39 @@ roms_temps <- data.frame(year = as.numeric(c('1988', '1991', '1992', '1993',
                                              '2016')),
                          'mean' = as.numeric(NA))
 
+roms_temps[roms_temps$year == 1988, 'mean'] <- mean_extract(temp_output1, "1988-02-01", "1988-04-30") 
+roms_temps[roms_temps$year == 1991, 'mean'] <- mean_extract(temp_output2, "1991-02-01", "1991-04-30") 
+roms_temps[roms_temps$year == 1992, 'mean'] <- mean_extract(temp_output2, "1992-02-01", "1992-04-30") 
+roms_temps[roms_temps$year == 1993, 'mean'] <- mean_extract(temp_output2, "1993-02-01", "1993-04-30") 
+roms_temps[roms_temps$year == 1994, 'mean'] <- mean_extract(temp_output2, "1994-02-01", "1994-04-30") 
+roms_temps[roms_temps$year == 1995, 'mean'] <- mean_extract(temp_output3, "1995-02-01", "1995-04-30") 
+roms_temps[roms_temps$year == 1996, 'mean'] <- mean_extract(temp_output3, "1996-02-01", "1996-04-30") 
+roms_temps[roms_temps$year == 1998, 'mean'] <- mean_extract(temp_output3, "1998-02-01", "1998-04-30") 
+roms_temps[roms_temps$year == 1999, 'mean'] <- mean_extract(temp_output3, "1999-02-01", "1999-04-30")
+roms_temps[roms_temps$year == 2000, 'mean'] <- mean_extract(temp_output4, "2000-02-01", "2000-04-30")
+roms_temps[roms_temps$year == 2001, 'mean'] <- mean_extract(temp_output4, "2001-02-01", "2001-04-30") 
+roms_temps[roms_temps$year == 2002, 'mean'] <- mean_extract(temp_output4, "2002-02-01", "2002-04-30") 
+roms_temps[roms_temps$year == 2003, 'mean'] <- mean_extract(temp_output4, "2003-02-01", "2003-04-30") 
+roms_temps[roms_temps$year == 2004, 'mean'] <- mean_extract(temp_output4, "2004-02-01", "2004-04-30") 
+roms_temps[roms_temps$year == 2005, 'mean'] <- mean_extract(temp_output5, "2005-02-01", "2005-04-30") 
+roms_temps[roms_temps$year == 2006, 'mean'] <- mean_extract(temp_output5, "2006-02-01", "2006-04-30") 
+roms_temps[roms_temps$year == 2007, 'mean'] <- mean_extract(temp_output5, "2007-02-01", "2007-04-30")
+roms_temps[roms_temps$year == 2008, 'mean'] <- mean_extract(temp_output5, "2008-02-01", "2008-04-30") 
+roms_temps[roms_temps$year == 2009, 'mean'] <- mean_extract(temp_output5, "2009-02-01", "2009-04-30")
+roms_temps[roms_temps$year == 2010, 'mean'] <- mean_extract(temp_output6, "2010-02-01", "2010-04-30")
+roms_temps[roms_temps$year == 2011, 'mean'] <- mean_extract(temp_output6, "2011-02-01", "2011-04-30") 
+roms_temps[roms_temps$year == 2012, 'mean'] <- mean_extract(temp_output6, "2012-02-01", "2012-04-30") 
+roms_temps[roms_temps$year == 2013, 'mean'] <- mean_extract(temp_output6, "2013-02-01", "2013-04-30") 
+roms_temps[roms_temps$year == 2014, 'mean'] <- mean_extract(temp_output6, "2014-02-01", "2014-04-30") 
+roms_temps[roms_temps$year == 2015, 'mean'] <- mean_extract(temp_output7, "2015-02-01", "2015-04-30") 
+roms_temps[roms_temps$year == 2016, 'mean'] <- mean_extract(temp_output7, "2016-02-01", "2016-04-30") 
 
-# Check to make sure logical
-temp_filtered %>%
-  slice(1:10000) %>%
-ggplot(aes(x = lon, y = lat, color = temp)) +
-  geom_point(size = 5, alpha = 0.5) +
-  scale_color_viridis_b()
+saveRDS(roms_temps, file = here('data', 'roms_temps.rds'))
+
+# Check to make sure logical - use code in function to get the temp_filtered df
+# temp_filtered %>%
+#   slice(1:10000) %>%
+# ggplot(aes(x = lon, y = lat, color = temp)) +
+#   geom_point(size = 5, alpha = 0.5) +
+#   scale_color_viridis_b()
 
