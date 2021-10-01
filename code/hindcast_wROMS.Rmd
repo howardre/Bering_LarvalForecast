@@ -363,11 +363,12 @@ grid_pkegg_avg2$pred <- predict(pk_egg_base, newdata = grid_pkegg_avg2)
 grid_pkegg_avg2$se <- predict(pk_egg_base, newdata = grid_pkegg_avg2, se = T)[[2]]
 grid_pkegg_avg2$pred_up <- grid_pkegg_avg2$pred + 1.96 * grid_pkegg_avg2$se
 grid_pkegg_avg2$pred_lw <- grid_pkegg_avg2$pred - 1.96 * grid_pkegg_avg2$se
+```
 
+```{r}
 # Plot
-windows(width = 12, height = 3.5)
 par(mfrow = c(1, 3), mai = c(0.7, 0.6, 0.4, 0.4))
-map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
+map_phenology(pk_egg, grid_pkegg_avg, grid_pkegg_avg2)
 
 # Plot MSE as stacked bars, including year variability and SST variability
 barplot(matrix(c(ratio_pk_geography,
@@ -378,7 +379,7 @@ barplot(matrix(c(ratio_pk_geography,
                nrow = 2),
         ylab = 'Delta MSE (%)',
         names.arg = c('Variable distribution', 'Variable phenologies'),
-        ylim = c(0, 25),
+        ylim = c(0, 35),
         main = 'Delta MSE',
         cex.lab = 1.1,
         cex.main = 1.2,
@@ -402,8 +403,9 @@ dev.copy(jpeg,
          width = 12,
          res = 200,
          units = 'in')
-dev.off()
+```
 
+```{r}
 # Plot VC GAMs
 # Spatial
 nlat = 80
@@ -422,13 +424,13 @@ for (k in 1:nrow(grid_vc_eggpk)) {
 }
 grid_vc_eggpk$year <- 2014
 grid_vc_eggpk$doy <- median(pk_egg$doy)
-grid_vc_eggpk$sst_may <- mean(pk_egg$sst_may)
+grid_vc_eggpk$mean_temp <- mean(pk_egg$mean_temp)
 grid_vc_eggpk$pred <- predict(pk_egg_geography, newdata = grid_vc_eggpk)
 grid_vc_eggpk$se <- predict(pk_egg_geography, newdata = grid_vc_eggpk, se = T)[[2]]
 grid_vc_eggpk$pred_up <- grid_vc_eggpk$pred + 1.96 * grid_vc_eggpk$se
 grid_vc_eggpk$pred_lw <- grid_vc_eggpk$pred - 1.96 * grid_vc_eggpk$se
 grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
-grid_vc_eggpk$sst_may <- mean(pk_egg$sst_may) + 1
+grid_vc_eggpk$mean_temp <- mean(pk_egg$mean_temp) + 1
 grid_vc_eggpk$pred2 <- predict(pk_egg_space, newdata = grid_vc_eggpk)
 grid_vc_eggpk$se2 <- predict(pk_egg_space, newdata = grid_vc_eggpk, se = T)[[2]]
 grid_vc_eggpk$pred2_up <- grid_vc_eggpk$pred2 + 1.96 * grid_vc_eggpk$se2
@@ -446,21 +448,21 @@ grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                            'doy' = seq(min(pk_egg$doy), 
                                        max(pk_egg$doy), 
                                        length = 100),
-                           sst_may = rep(mean(pk_egg$sst_may), 100),
+                           mean_temp = rep(mean(pk_egg$mean_temp), 100),
                            'year' = rep(2014, 100))
 grid_vc_eggpk2$pred <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
 grid_vc_eggpk2$se <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
 grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
-grid_vc_eggpk2$sst_may <- mean(pk_egg$sst_may) + 1
+grid_vc_eggpk2$mean_temp <- mean(pk_egg$mean_temp) + 1
 grid_vc_eggpk2$pred2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
 grid_vc_eggpk2$se2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred2_up <- grid_vc_eggpk2$pred2 + 1.96 * grid_vc_eggpk2$se2
 grid_vc_eggpk2$pred2_lw <- grid_vc_eggpk2$pred2 - 1.96 * grid_vc_eggpk2$se2
+```
 
-
+```{r}
 # Plot
-windows(width = 8, height = 3.5)
 par(mfrow = c(1, 2), 
     mai = c(0.8, 0.9, 0.5, 0.5))
 map_vc(pk_egg, grid_vc_eggpk, grid_vc_eggpk2)
@@ -471,6 +473,5 @@ dev.copy(jpeg,
          width = 8,
          res = 200,
          units = 'in')
-dev.off()
 ```
 
