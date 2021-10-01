@@ -1195,7 +1195,7 @@ grid_pkegg_avg2$pred_lw <- grid_pkegg_avg2$pred - 1.96 * grid_pkegg_avg2$se
 # Plot
 windows(width = 12, height = 3.5)
 par(mfrow = c(1, 3), mai = c(0.7, 0.6, 0.4, 0.4))
-map_phenology(pk_egg, grid_extent_eggpk, grid_extent_eggpk2)
+map_phenology(pk_egg, grid_pkegg_avg, grid_pkegg_avg2)
 
 # Plot MSE as stacked bars, including year variability and SST variability
 barplot(matrix(c(ratio_pk_geography,
