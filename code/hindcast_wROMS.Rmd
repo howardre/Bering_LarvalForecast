@@ -7,8 +7,6 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-### Load libraries & functions ----
 library(marmap)
 library(maps)
 library(mapdata)
@@ -214,9 +212,12 @@ map_vc <- function(data, grid, grid2){
          cex = 0.8)
 }
 
-### Load fish data ----
+# Load fish data
 pk_egg <- readRDS(here('data', 'pk_egg.rds'))
 pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+
+# Load ROMS temperature means
+roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 ```
 
 Base model:
@@ -258,69 +259,76 @@ ratio_pk_geography <- (summary(pk_egg_base)$scale -
 ratio_pk_geography
 ```
 
-Create NCEP equivalent SST value from ROMS
+Add ROMS mean temperatures
 Use a representative area with averaged values from Feb - April for each year
 This can then be matched to the egg/larvae data for use in variable coefficient by SST 
 instead of year as above
+
+Phenology
 ```{r}
-# Add monthly temperature values from NCEP
-pk_egg$sst_may <- ncep_temp$may[match(pk_egg$year, ncep_temp$year)]
-range(pk_egg$sst_may)
+# Add monthly temperature values from ROMS
+pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
+range(pk_egg$mean_temp)
 
 # This will again use the presence GAM from the two stage models
 # create variable phenology model by adding doy*sst
 month_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                            s(doy) +
                            s(lon, lat) +
-                           s(doy, by = sst_may))
+                           s(doy, by = mean_temp))
 pk_egg_month <- gam(month_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month)
-# Deviance explained: 41.4%
-# R2 adj: 0.396
+# Deviance explained: 41%
+# R2 adj: 0.391
 
-windows()
 par(mfrow = c(1, 2))
 plot(pk_egg_month, select = 1, main = "DOY")
-plot(pk_egg_month, select = 3, main = "DOY by SST in May")
-dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_monthvc.jpg'), 
+plot(pk_egg_month, select = 3, main = "DOY by Mean ROMS SST")
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc.jpg'), 
          height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month)
+```
 
-# Use the original presence model from before
-var_ratio_pk_month <- (summary(pk_egg_base)$scale - summary(pk_egg_month)$scale) / 
-  summary(pk_egg_base)$scale
-var_ratio_pk_month # 0.02064972
-
+Geography
+```{r}
 # Create variable geography using space*sst
 space_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                            s(doy) +
                            s(lon, lat) +
-                           s(lon, lat, by = sst_may))
+                           s(lon, lat, by = mean_temp))
 pk_egg_space <- gam(space_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_space)
-# Deviance explained: 46.1%
+# Deviance explained: 45.4%
 # R2 adj.: 0.439
+# Not very different from model with observational data
 
-windows()
 par(mfrow = c(2, 2))
 plot(pk_egg_space, select = 1, main = "DOY")
 plot(pk_egg_space, select = 2, main = "Location")
-plot(pk_egg_space, select = 3, main = "Location by SST in May")
-dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_spacevc.jpg'), 
+plot(pk_egg_space, select = 3, main = "Location by Mean ROMS SST")
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
-dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_space)
+```
 
+
+VC GAM ratios
+```{r}
 # Use the original presence model from before
-var_ratio_pk_space <- (summary(pk_egg_base)$scale - summary(pk_egg_space)$scale) / 
-  summary(pk_egg_base)$scale
-var_ratio_pk_space # 0.09066846
+var_ratio_pk_month <- (summary(pk_egg_base)$scale - 
+                         summary(pk_egg_month)$scale) / summary(pk_egg_base)$scale
+var_ratio_pk_month 
 
+var_ratio_pk_space <- (summary(pk_egg_base)$scale - 
+                         summary(pk_egg_space)$scale) / summary(pk_egg_base)$scale
+var_ratio_pk_space
+```
+
+```{r}
 # Plot the results of the average geography and phenology and decrease of MSE
 nlat = 80
 nlon = 120
