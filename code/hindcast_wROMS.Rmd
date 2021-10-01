@@ -239,12 +239,16 @@ flex_phenology <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                         s(doy, by = factor(year)))
 pk_egg_phenology <- gam(flex_phenology, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_phenology)
+AIC(pk_egg_phenology)
+# AIC: 8708
 
 flex_geography <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
                         s(lon, lat, by = factor(year)) +
                         s(doy))
 pk_egg_geography <- gam(flex_geography, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_geography)
+AIC(pk_egg_geography)
+# AIC: 8390
 ```
 
 Ratio for comparison between base and flexible models
@@ -265,6 +269,7 @@ This can then be matched to the egg/larvae data for use in variable coefficient 
 instead of year as above
 
 Phenology
+Compare formulations with temp/salinity formulations
 ```{r}
 # Add monthly temperature values from ROMS
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
@@ -272,37 +277,120 @@ range(pk_egg$mean_temp)
 
 # This will again use the presence GAM from the two stage models
 # create variable phenology model by adding doy*sst
-month_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                           s(doy) +
-                           s(lon, lat) +
-                           s(doy, by = mean_temp))
-pk_egg_month <- gam(month_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-summary(pk_egg_month)
-# Deviance explained: 41%
-# R2 adj: 0.391
+pk_egg_month1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6),
+                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month1)
+AIC(pk_egg_month1)
+# Deviance explained: 45.2%
+# R2 adj: 0.433
+# AIC: 8688
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month1)
 
-par(mfrow = c(1, 2))
-plot(pk_egg_month, select = 1, main = "DOY")
-plot(pk_egg_month, select = 3, main = "DOY by Mean ROMS SST")
+
+pk_egg_month2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
+                       s(doy, by = mean_temp, k = 6),
+                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month2)
+AIC(pk_egg_month2)
+# Deviance explained: 45.9%
+# R2 adj: 0.439
+# AIC: 8673
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month2)
+
+
+pk_egg_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       roms_temperature * roms_salinity,
+                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month3)
+AIC(pk_egg_month3)
+# Deviance explained: 40.9%
+# R2 adj: 0.393
+# AIC: 8826
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month3)
+
+
+pk_egg_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       roms_temperature * roms_salinity +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6),
+                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month4)
+AIC(pk_egg_month4)
+# Deviance explained: 44.9%
+# R2 adj: 0.432
+# AIC: 8689
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month4)
+
+
+pk_egg_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       roms_temperature * roms_salinity +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
+                       s(doy, by = mean_temp, k = 6),
+                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_month5)
+AIC(pk_egg_month5)
+# Deviance explained: 45.2%
+# R2 adj: 0.434
+# AIC: 8683
+par(mfrow = c(2, 2))
+gam.check(pk_egg_month5)
+```
+
+Plot best model for phenology
+```{r}
+# Best model by AIC is model 2
+par(mfrow = c(2, 2))
+plot(pk_egg_month2, select = 1, main = "DOY")
+plot(pk_egg_month2, select = 3, main = "Temperature")
+plot(pk_egg_month2, select = 4, main = "Salinity")
+plot(pk_egg_month2, select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
+         height = 5, width = 10, units = 'in', res = 200)
 
 par(mfrow = c(2, 2))
-gam.check(pk_egg_month)
+gam.check(pk_egg_month2)
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid.jpg'), 
+         height = 5, width = 10, units = 'in', res = 200)
 ```
 
 Geography
+Compare formulations with temp/salinity smooth terms
 ```{r}
 # Create variable geography using space*sst
-space_formula <- formula(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                           s(doy) +
-                           s(lon, lat) +
-                           s(lon, lat, by = mean_temp))
-pk_egg_space <- gam(space_formula, data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-summary(pk_egg_space)
+
+pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_temperature, k = 6) +
+                       s(lon, lat, by = mean_temp, k = 6),
+                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_space2)
+AIC(pk_egg_space2)
 # Deviance explained: 45.4%
-# R2 adj.: 0.439
+# R2 adj.: 0.432
+# AIC: 8777
 # Not very different from model with observational data
+
 
 par(mfrow = c(2, 2))
 plot(pk_egg_space, select = 1, main = "DOY")
@@ -313,6 +401,8 @@ dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc.jpg'),
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_space)
+dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
 ```
 
 
@@ -320,7 +410,7 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_pk_month <- (summary(pk_egg_base)$scale - 
-                         summary(pk_egg_month)$scale) / summary(pk_egg_base)$scale
+                         summary(pk_egg_month2)$scale) / summary(pk_egg_base)$scale
 var_ratio_pk_month 
 
 var_ratio_pk_space <- (summary(pk_egg_base)$scale - 
@@ -328,6 +418,9 @@ var_ratio_pk_space <- (summary(pk_egg_base)$scale -
 var_ratio_pk_space
 ```
 
+Plot the results of the GAMs that vary by year
+This generates a three panel figure with a map, phenology curve, and MSE barplot
+Grids:
 ```{r}
 # Plot the results of the average geography and phenology and decrease of MSE
 nlat = 80
@@ -365,8 +458,9 @@ grid_pkegg_avg2$pred_up <- grid_pkegg_avg2$pred + 1.96 * grid_pkegg_avg2$se
 grid_pkegg_avg2$pred_lw <- grid_pkegg_avg2$pred - 1.96 * grid_pkegg_avg2$se
 ```
 
+Plots:
 ```{r}
-# Plot
+# Map & curve
 par(mfrow = c(1, 3), mai = c(0.7, 0.6, 0.4, 0.4))
 map_phenology(pk_egg, grid_pkegg_avg, grid_pkegg_avg2)
 
@@ -405,9 +499,9 @@ dev.copy(jpeg,
          units = 'in')
 ```
 
+Fill grids with output from SST VC GAMs
+Spatial grid
 ```{r}
-# Plot VC GAMs
-# Spatial
 nlat = 80
 nlon = 120
 latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
@@ -441,8 +535,10 @@ grid_vc_eggpk$sig_neg <- c(grid_vc_eggpk$pred2_up < grid_vc_eggpk$pred_lw)
 grid_vc_eggpk$pos_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_pos
 grid_vc_eggpk$neg_diff <- grid_vc_eggpk$diff * grid_vc_eggpk$sig_neg
 max_slope <- max(grid_vc_eggpk$diff, na.rm = T)
+```
 
-# Temporal
+Temporal grid
+```{r}
 grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                            'lat' = rep(57, 100),
                            'doy' = seq(min(pk_egg$doy), 
@@ -450,19 +546,20 @@ grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                                        length = 100),
                            mean_temp = rep(mean(pk_egg$mean_temp), 100),
                            'year' = rep(2014, 100))
-grid_vc_eggpk2$pred <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
-grid_vc_eggpk2$se <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred <- predict(pk_egg_month2, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se <- predict(pk_egg_month2, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
 grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
 grid_vc_eggpk2$mean_temp <- mean(pk_egg$mean_temp) + 1
-grid_vc_eggpk2$pred2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2)
-grid_vc_eggpk2$se2 <- predict(pk_egg_month, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred2 <- predict(pk_egg_month2, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se2 <- predict(pk_egg_month2, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred2_up <- grid_vc_eggpk2$pred2 + 1.96 * grid_vc_eggpk2$se2
 grid_vc_eggpk2$pred2_lw <- grid_vc_eggpk2$pred2 - 1.96 * grid_vc_eggpk2$se2
 ```
 
+Create two panel plot
+Map of distribution & phenology curves with +1 temperature change
 ```{r}
-# Plot
 par(mfrow = c(1, 2), 
     mai = c(0.8, 0.9, 0.5, 0.5))
 map_vc(pk_egg, grid_vc_eggpk, grid_vc_eggpk2)
@@ -474,4 +571,3 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 ```
-
