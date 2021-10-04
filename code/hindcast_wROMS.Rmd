@@ -285,9 +285,9 @@ pk_egg_month1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                      data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month1)
 AIC(pk_egg_month1)
-# Deviance explained: 45.2%
-# R2 adj: 0.433
-# AIC: 8688
+# Deviance explained: 44.8%
+# R2 adj: 0.431
+# AIC: 8691
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month1)
 
@@ -301,9 +301,9 @@ pk_egg_month2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month2)
 AIC(pk_egg_month2)
-# Deviance explained: 45.9%
-# R2 adj: 0.439
-# AIC: 8673
+# Deviance explained: 45.1%
+# R2 adj: 0.433
+# AIC: 8685
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month2)
 
@@ -359,47 +359,35 @@ Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pk_egg_month2, select = 1, main = "DOY")
-plot(pk_egg_month2, select = 3, main = "Temperature")
-plot(pk_egg_month2, select = 4, main = "Salinity")
-plot(pk_egg_month2, select = 5, main = "DOY by Mean ROMS SST")
+plot(pk_egg_month5, select = 1, main = "DOY")
+plot(pk_egg_month5, select = 3, main = "Temperature")
+plot(pk_egg_month5, select = 4, main = "Salinity")
+plot(pk_egg_month5, select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200)
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pk_egg_month2)
+gam.check(pk_egg_month5)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200)
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
 ```
 
 Geography
 Compare formulations with temp/salinity smooth terms
 ```{r}
 # Create variable geography using space*sst
+# Compare to the first three phenology models for model selection
 pk_egg_space1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                       s(doy, k = 8) +
-                       s(lon, lat) +
-                       s(roms_temperature, k = 6) +
-                       s(roms_salinity, k = 6),
-                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-summary(pk_egg_space1)
-AIC(pk_egg_space1)
-# Deviance explained: 44.8%
-# R2 adj.: 0.431
-# AIC: 8691
-par(mfrow = c(2, 2))
-gam.check(pk_egg_space1)
-
-
-pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6) +
                        s(lon, lat, by = mean_temp, k = 6),
                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-summary(pk_egg_space2)
-AIC(pk_egg_space2)
+summary(pk_egg_space1)
+AIC(pk_egg_space1)
 # Deviance explained: 45.3%
 # R2 adj.: 0.435
 # AIC: 8679
@@ -407,7 +395,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_space2)
 
 
-pk_egg_space3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        roms_temperature * roms_salinity +
@@ -415,13 +403,13 @@ pk_egg_space3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(roms_salinity, k = 6) +
                        s(lon, lat, by = mean_temp, k = 6),
                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
-summary(pk_egg_space3)
-AIC(pk_egg_space3)
+summary(pk_egg_space2)
+AIC(pk_egg_space2)
 # Deviance explained: 45.4%
 # R2 adj.: 0.435
 # AIC: 8678
 par(mfrow = c(2, 2))
-gam.check(pk_egg_space3)
+gam.check(pk_egg_space2)
 ```
 
 Plot best model for geography
@@ -433,11 +421,13 @@ plot(pk_egg_space2, select = 4, main = "Salinity")
 plot(pk_egg_space2, select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
+dev.off()
 
 par(mfrow = c(2, 2))
 gam.check(pk_egg_space2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
+dev.off()
 ```
 
 
@@ -585,13 +575,13 @@ grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                            'year' = rep(2014, 100),
                            'roms_temperature' = rep(mean(pk_egg$roms_temperature, na.rm = T), 100),
                            'roms_salinity' = rep(mean(pk_egg$roms_salinity, na.rm = T), 100))
-grid_vc_eggpk2$pred <- predict(pk_egg_month2, newdata = grid_vc_eggpk2)
-grid_vc_eggpk2$se <- predict(pk_egg_month2, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred <- predict(pk_egg_month5, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se <- predict(pk_egg_month5, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
 grid_vc_eggpk2$pred_lw <- grid_vc_eggpk2$pred - 1.96 * grid_vc_eggpk2$se
 grid_vc_eggpk2$mean_temp <- mean(pk_egg$mean_temp) + 1
-grid_vc_eggpk2$pred2 <- predict(pk_egg_month2, newdata = grid_vc_eggpk2)
-grid_vc_eggpk2$se2 <- predict(pk_egg_month2, newdata = grid_vc_eggpk2, se = T)[[2]]
+grid_vc_eggpk2$pred2 <- predict(pk_egg_month5, newdata = grid_vc_eggpk2)
+grid_vc_eggpk2$se2 <- predict(pk_egg_month5, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred2_up <- grid_vc_eggpk2$pred2 + 1.96 * grid_vc_eggpk2$se2
 grid_vc_eggpk2$pred2_lw <- grid_vc_eggpk2$pred2 - 1.96 * grid_vc_eggpk2$se2
 ```
@@ -609,4 +599,5 @@ dev.copy(jpeg,
          width = 8,
          res = 200,
          units = 'in')
+dev.off()
 ```
