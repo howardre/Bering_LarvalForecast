@@ -9,8 +9,7 @@ library(tidyverse)
 library(lubridate)
 library(date)
 library(lattice)
-library(tidync)
-source(here('code/functions', 'distance_function.R'))
+library(ggplot2)
 
 ### Bering 10K model output ----
 # Using avg surface temperatures & salinity
@@ -121,3 +120,18 @@ saveRDS(roms_temps, file = here('data', 'roms_temps.rds'))
 #   geom_point(size = 5, alpha = 0.5) +
 #   scale_color_viridis_b()
 
+# Plot the mean temps over year
+ggplot(data = roms_temps) +
+  geom_point(aes(x = year, y = mean), color = "aquamarine4", size = 3) +
+  labs(title = "Mean ROMS Surface Temperature",
+       y = "Temperature (C)",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 18),
+        axis.text = element_text(size = 15),
+        plot.title = element_text(size = 24),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, here('results', 'mean_roms_temps.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
