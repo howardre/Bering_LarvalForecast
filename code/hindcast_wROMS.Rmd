@@ -376,31 +376,66 @@ Geography
 Compare formulations with temp/salinity smooth terms
 ```{r}
 # Create variable geography using space*sst
+pk_egg_space1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6),
+                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_space1)
+AIC(pk_egg_space1)
+# Deviance explained: 44.8%
+# R2 adj.: 0.431
+# AIC: 8691
+par(mfrow = c(2, 2))
+gam.check(pk_egg_space1)
+
 
 pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
-                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
                        s(lon, lat, by = mean_temp, k = 6),
                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_space2)
 AIC(pk_egg_space2)
-# Deviance explained: 45.4%
-# R2 adj.: 0.432
-# AIC: 8777
-# Not very different from model with observational data
-
-
+# Deviance explained: 45.3%
+# R2 adj.: 0.435
+# AIC: 8679
 par(mfrow = c(2, 2))
-plot(pk_egg_space, select = 1, main = "DOY")
-plot(pk_egg_space, select = 2, main = "Location")
-plot(pk_egg_space, select = 3, main = "Location by Mean ROMS SST")
+gam.check(pk_egg_space2)
+
+
+pk_egg_space3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       roms_temperature * roms_salinity +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
+                       s(lon, lat, by = mean_temp, k = 6),
+                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+summary(pk_egg_space3)
+AIC(pk_egg_space3)
+# Deviance explained: 45.4%
+# R2 adj.: 0.435
+# AIC: 8678
+par(mfrow = c(2, 2))
+gam.check(pk_egg_space3)
+```
+
+Plot best model for geography
+```{r}
+par(mfrow = c(2, 2))
+plot(pk_egg_space2, select = 1, main = "DOY")
+plot(pk_egg_space2, select = 3, main = "Temperature")
+plot(pk_egg_space2, select = 4, main = "Salinity")
+plot(pk_egg_space2, select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 
 par(mfrow = c(2, 2))
-gam.check(pk_egg_space)
+gam.check(pk_egg_space2)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 ```
@@ -414,7 +449,7 @@ var_ratio_pk_month <- (summary(pk_egg_base)$scale -
 var_ratio_pk_month 
 
 var_ratio_pk_space <- (summary(pk_egg_base)$scale - 
-                         summary(pk_egg_space)$scale) / summary(pk_egg_base)$scale
+                         summary(pk_egg_space2)$scale) / summary(pk_egg_base)$scale
 var_ratio_pk_space
 ```
 
@@ -519,14 +554,16 @@ for (k in 1:nrow(grid_vc_eggpk)) {
 grid_vc_eggpk$year <- 2014
 grid_vc_eggpk$doy <- median(pk_egg$doy)
 grid_vc_eggpk$mean_temp <- mean(pk_egg$mean_temp)
+grid_vc_eggpk$roms_temperature <- mean(pk_egg$roms_temperature, na.rm = T)
+grid_vc_eggpk$roms_salinity <- mean(pk_egg$roms_salinity, na.rm = T)
 grid_vc_eggpk$pred <- predict(pk_egg_geography, newdata = grid_vc_eggpk)
 grid_vc_eggpk$se <- predict(pk_egg_geography, newdata = grid_vc_eggpk, se = T)[[2]]
 grid_vc_eggpk$pred_up <- grid_vc_eggpk$pred + 1.96 * grid_vc_eggpk$se
 grid_vc_eggpk$pred_lw <- grid_vc_eggpk$pred - 1.96 * grid_vc_eggpk$se
 grid_vc_eggpk$pred[grid_vc_eggpk$dist > 30000] <- NA
 grid_vc_eggpk$mean_temp <- mean(pk_egg$mean_temp) + 1
-grid_vc_eggpk$pred2 <- predict(pk_egg_space, newdata = grid_vc_eggpk)
-grid_vc_eggpk$se2 <- predict(pk_egg_space, newdata = grid_vc_eggpk, se = T)[[2]]
+grid_vc_eggpk$pred2 <- predict(pk_egg_space2, newdata = grid_vc_eggpk)
+grid_vc_eggpk$se2 <- predict(pk_egg_space2, newdata = grid_vc_eggpk, se = T)[[2]]
 grid_vc_eggpk$pred2_up <- grid_vc_eggpk$pred2 + 1.96 * grid_vc_eggpk$se2
 grid_vc_eggpk$pred2_lw <- grid_vc_eggpk$pred2 - 1.96 * grid_vc_eggpk$se2
 grid_vc_eggpk$diff <- grid_vc_eggpk$pred2 - grid_vc_eggpk$pred
@@ -545,7 +582,9 @@ grid_vc_eggpk2 <-  data.frame('lon' = rep(-170, 100),
                                        max(pk_egg$doy), 
                                        length = 100),
                            mean_temp = rep(mean(pk_egg$mean_temp), 100),
-                           'year' = rep(2014, 100))
+                           'year' = rep(2014, 100),
+                           'roms_temperature' = rep(mean(pk_egg$roms_temperature, na.rm = T), 100),
+                           'roms_salinity' = rep(mean(pk_egg$roms_salinity, na.rm = T), 100))
 grid_vc_eggpk2$pred <- predict(pk_egg_month2, newdata = grid_vc_eggpk2)
 grid_vc_eggpk2$se <- predict(pk_egg_month2, newdata = grid_vc_eggpk2, se = T)[[2]]
 grid_vc_eggpk2$pred_up <- grid_vc_eggpk2$pred + 1.96 * grid_vc_eggpk2$se
