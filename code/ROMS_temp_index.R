@@ -69,7 +69,7 @@ mean_extract <- function(data, start_date, end_date){
   temp_data <- as.data.frame(cbind(lon = as.vector(data[[1]]), 
                                    lat = as.vector(data[[2]]), 
                                    temp = as.vector(temp_array)))
-  temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 55 & lat <= 59)
+  temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 56 & lat <= 58)
   mean <- mean(temp_filtered$temp, na.rm = T)
   return(mean)
   }
