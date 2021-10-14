@@ -313,7 +313,7 @@ gam.check(pk_egg_month2)
 pk_egg_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity,
+                       s(roms_temperature, roms_salinity),
                      data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month3)
 AIC(pk_egg_month3)
@@ -327,7 +327,7 @@ gam.check(pk_egg_month3)
 pk_egg_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6),
                      data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
@@ -343,7 +343,7 @@ gam.check(pk_egg_month4)
 pk_egg_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6) +
                        s(doy, by = mean_temp, k = 6),
@@ -399,7 +399,7 @@ gam.check(pk_egg_space1)
 pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6) +
                        s(lon, lat, by = mean_temp, k = 6),
@@ -713,7 +713,7 @@ gam.check(pk_larvae_month2)
 pk_larvae_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity,
+                       s(roms_temperature, roms_salinity),
                      data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
 summary(pk_larvae_month3)
 AIC(pk_larvae_month3)
@@ -727,7 +727,7 @@ gam.check(pk_larvae_month3)
 pk_larvae_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6),
                      data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
@@ -743,7 +743,7 @@ gam.check(pk_larvae_month4)
 pk_larvae_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6) +
                        s(doy, by = mean_temp, k = 6),
@@ -800,7 +800,7 @@ gam.check(pk_larvae_space1)
 pk_larvae_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
-                       roms_temperature * roms_salinity +
+                       s(roms_temperature, roms_salinity) +
                        s(roms_temperature, k = 6) +
                        s(roms_salinity, k = 6) +
                        s(lon, lat, by = mean_temp, k = 6),
@@ -1100,7 +1100,7 @@ gam.check(pk_egg_month2_t)
 pk_egg_month3_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                          s(doy, k = 8) +
                          s(lon, lat) +
-                         roms_temperature * roms_salinity,
+                         s(roms_temperature, roms_salinity),
                        data = pk_egg,
                        family = tw(link = 'log'),
                        method = 'REML')
@@ -1115,7 +1115,7 @@ gam.check(pk_egg_month3_t)
 pk_egg_month4_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                          s(doy, k = 8) +
                          s(lon, lat) +
-                         roms_temperature * roms_salinity +
+                         s(roms_temperature, roms_salinity) +
                          s(roms_temperature, k = 6) +
                          s(roms_salinity, k = 6),
                        data = pk_egg,
@@ -1132,7 +1132,7 @@ gam.check(pk_egg_month4_t)
 pk_egg_month5_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                          s(doy, k = 8) +
                          s(lon, lat) +
-                         roms_temperature * roms_salinity +
+                         s(roms_temperature, roms_salinity) +
                          s(roms_temperature, k = 6) +
                          s(roms_salinity, k = 6) +
                          s(doy, by = mean_temp, k = 6),
@@ -1487,7 +1487,7 @@ gam.check(pk_larvae_month2_t)
 pk_larvae_month3_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                          s(doy, k = 8) +
                          s(lon, lat) +
-                         roms_temperature * roms_salinity,
+                         s(roms_temperature, roms_salinity),
                        data = pk_larvae,
                        family = tw(link = 'log'),
                        method = 'REML')
@@ -1502,7 +1502,7 @@ gam.check(pk_larvae_month3_t)
 pk_larvae_month4_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                          s(doy, k = 8) +
                          s(lon, lat) +
-                         roms_temperature * roms_salinity +
+                         s(roms_temperature, roms_salinity) +
                          s(roms_temperature, k = 6) +
                          s(roms_salinity, k = 6),
                        data = pk_larvae,
