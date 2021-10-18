@@ -318,8 +318,8 @@ pk_egg_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
 summary(pk_egg_month3)
 AIC(pk_egg_month3)
 # Deviance explained: 40.9%
-# R2 adj: 0.393
-# AIC: 8826
+# R2 adj: 0.435
+# AIC: 8688
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month3)
 
@@ -333,9 +333,9 @@ pk_egg_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                      data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month4)
 AIC(pk_egg_month4)
-# Deviance explained: 44.9%
-# R2 adj: 0.432
-# AIC: 8689
+# Deviance explained: 45.9%
+# R2 adj: 0.438
+# AIC: 8676
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month4)
 
@@ -350,9 +350,9 @@ pk_egg_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                      data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_month5)
 AIC(pk_egg_month5)
-# Deviance explained: 45.2%
-# R2 adj: 0.434
-# AIC: 8683
+# Deviance explained: 46.2%
+# R2 adj: 0.441
+# AIC: 8670
 par(mfrow = c(2, 2))
 gam.check(pk_egg_month5)
 ```
@@ -406,9 +406,9 @@ pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
                     data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_space2)
 AIC(pk_egg_space2)
-# Deviance explained: 45.4%
-# R2 adj.: 0.435
-# AIC: 8678
+# Deviance explained: 46.3%
+# R2 adj.: 0.442
+# AIC: 8666
 par(mfrow = c(2, 2))
 gam.check(pk_egg_space2)
 ```
