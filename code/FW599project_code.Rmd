@@ -19,6 +19,8 @@ library(ggplot2)
 library(raster)
 library(rgdal)
 library(viridis)
+library(dismo)
+library(gbm)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 source(here('code/functions', 'distance_function.R'))
 
@@ -210,7 +212,6 @@ map_vc <- function(data, grid, grid2){
     col = alpha('#E69F00', 0.2),
     lty = 0)
 }
-
 ```
 
 Tweedie GAM Base Model
@@ -805,4 +806,49 @@ map_vc(pk_larvae, grid_vc_larvaepk_t, grid_vc_larvaepk2_t)
          bty = 'n',
          lwd = 2,
          cex = 0.6)
+```
+
+
+### Boosted Regression Trees
+Reference: [Example code](https://rspatial.org/raster/sdm/9_sdm_brt.html)
+
+## Eggs
+```{r}
+pk_egg <- as.data.frame(pk_egg)
+pk_egg$presence <- 1 * (pk_egg$count > 0)
+pk_egg <- na.omit(pk_egg)
+
+npoints = nrow(pk_egg) / 2
+set.seed(1993)
+points = sample_n(pk_egg, npoints, sp = TRUE)
+lat_lons = pk_egg[c('lat', 'lon')]
+pkegg_train_data = pk_egg[1:(npoints / 2), ]
+pkegg_test_data = pk_egg[(npoints / 2 + 1):npoints, ]
+```
+
+```{r}
+brt_egg1 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(6, 10, 11),
+                     gbm.y = 13,
+                     family = 'bernoulli',
+                     tree.complexity = 5,
+                     learning.rate = 0.01,
+                     bag.fraction = 0.5)
+
+length(brt_egg1$fitted)
+summary(brt_egg1)
+```
+
+Reduce the learning rate, too few trees above
+```{r}
+brt_egg2 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(6, 10, 11),
+                     gbm.y = 13,
+                     family = 'bernoulli',
+                     tree.complexity = 5,
+                     learning.rate = 0.001,
+                     bag.fraction = 0.5)
+
+length(brt_egg2$fitted)
+summary(brt_egg2)
 ```
