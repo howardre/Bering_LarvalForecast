@@ -1806,13 +1806,13 @@ fhs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                     method = 'REML')
 summary(fhs_egg_base_t)
 
-fhs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
-                    data = fhs_egg,
+                    data = fhs_larvae,
                     family = tw(link = 'log'),
                     method = 'REML')
-summary(fhs_egg_base_t)
+summary(fhs_larvae_base_t)
 ```
 
 ## Eggs
