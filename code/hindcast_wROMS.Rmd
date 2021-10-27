@@ -34,6 +34,10 @@ akp_larvae <- readRDS(here('data', 'akp_larvae.rds'))
 
 # Load ROMS temperature means
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
+
+
+fhs_egg <- filter(fhs_egg, lat >= 52 & lat <= 62,
+                  lon >= -176.5 & lon <= -156.5)
 ```
 
 In-script functions for maps and data
@@ -43,26 +47,102 @@ contour_col <- rgb(0, 0, 255, max = 255, alpha = 0, names = "white")
 jet.colors <- colorRampPalette(rev(c("#b2182b", "#d6604d", "#f4a582", "#fddbc7",
                                  "#f7f7f7", "#d1e5f0", "#92c5de", "#4393c3", "#2166ac")))
 
+# Select gam
+gam_selection <- function(data, roms_temps){
+  data <- filter(data, lat >= 52 & lat <= 62,
+                  lon >= -176.5 & lon <= -156.5)
+  data$mean_temp <- roms_temps$mean[match(data$year, roms_temps$year)]
+  gam_base <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                    s(doy, k = 8) +
+                    s(lon, lat) +
+                    s(roms_temperature, k = 6) +
+                    s(roms_salinity, k = 6),
+                  data = data,
+                  family = tw(link = 'log'),
+                  method = 'REML')
+  gam_vc_phen <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
+                       s(doy, by = mean_temp, k = 6),
+                     data = data,
+                     family = tw(link = 'log'),
+                     method = 'REML')
+  gam_interaction <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                           s(doy, k = 8) +
+                           s(lon, lat) +
+                           s(roms_temperature, roms_salinity),
+                         data = data,
+                         family = tw(link = 'log'),
+                         method = 'REML')
+  gam_interaction2 <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                            s(doy, k = 8) +
+                            s(lon, lat) +
+                            s(roms_temperature, roms_salinity) +
+                            s(roms_temperature, k = 6) +
+                            s(roms_salinity, k = 6),
+                          data = data,
+                          family = tw(link = 'log'),
+                          method = 'REML')
+  gam_vc_phen2 <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                        s(doy, k = 8) +
+                        s(lon, lat) +
+                        s(roms_temperature, roms_salinity) +
+                        s(roms_temperature) +
+                        s(roms_salinity, k = 4) +
+                        s(doy, by = mean_temp, k = 6),
+                      data = data,
+                      family = tw(link = 'log'),
+                      method = 'REML')
+  gam_vc_geog <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                       s(doy, k = 8) +
+                       s(lon, lat) +
+                       s(roms_temperature, k = 6) +
+                       s(roms_salinity, k = 6) +
+                       s(lon, lat, by = mean_temp, k = 6),
+                     data = data,
+                     family = tw(link = 'log'),
+                     method = 'REML')
+  gam_vc_geog2 <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                        s(doy, k = 8) +
+                        s(lon, lat) +
+                        s(roms_temperature, roms_salinity) +
+                        s(roms_temperature, k = 6) +
+                        s(roms_salinity, k = 6) +
+                        s(lon, lat, by = mean_temp, k = 6),
+                      data = data,
+                      family = tw(link = 'log'),
+                      method = 'REML')
+  gam_list <- list(gam_base, gam_interaction, gam_interaction2, gam_vc_phen, 
+                   gam_vc_phen2, gam_vc_geog, gam_vc_geog2)
+  best_gam <- gam_list[[which.min(sapply(1:length(gam_list),
+                                         function(x) min(gam_list[[x]]$aic)))]]
+  return_list <- list(gam_list, best_gam)
+}
+
 # Function to make maps
-map_phenology <- function(data, grid, grid2){
+map_phenology <- function(data, grids, ratio_base_geog,
+                          vc_ratio_space, ratio_base_pheno,
+                          vc_ratio_time){
   nlat = 80
   nlon = 120
-  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
-  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  latd = seq(min(grids[[1]]$lat), max(grids[[1]]$lat), length.out = nlat)
+  lond = seq(min(grids[[1]]$lon), max(grids[[1]]$lon), length.out = nlon)
   my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
                                 "#AFABCB", "#DAD9E5", "#F9F9F9",
                                 "#FFDAB7", "#FFB377","#E18811",
                                 "#AC6000", "#743700"))
   color_levels = 100
-  max_absolute_value = max(abs(c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)))) 
+  max_absolute_value = max(abs(c(min(grids[[1]]$pred, na.rm = T), max(grids[[1]]$pred, na.rm = T)))) 
   color_sequence = seq(-max_absolute_value, max_absolute_value, 
                        length.out = color_levels + 1)
-  n_in_class = hist(grid$pred, breaks = color_sequence, plot = F)$counts > 0
+  n_in_class = hist(grids[[1]]$pred, breaks = color_sequence, plot = F)$counts > 0
   col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
   breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
   image(lond,
         latd,
-        t(matrix(grid$pred,
+        t(matrix(grids[[1]]$pred,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -75,7 +155,7 @@ map_phenology <- function(data, grid, grid2){
   par(new = TRUE)
   image(lond,
         latd,
-        t(matrix(grid$pred,
+        t(matrix(grids[[1]]$pred,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -111,11 +191,11 @@ map_phenology <- function(data, grid, grid2){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(min(grid$pred, na.rm = T), max(grid$pred, na.rm = T)),
+             zlim = c(min(grids[[1]]$pred, na.rm = T), max(grids[[1]]$pred, na.rm = T)),
              legend.args = list("Predicted \n Change",
                                 side = 2, cex = 0.7))
-  plot(grid2$doy,
-       grid2$pred,
+  plot(grids[[2]]$doy,
+       grids[[2]]$pred,
        main = 'Phenology',
        type = 'l',
        ylab = 'Egg density ln(n/10m2)',
@@ -123,43 +203,59 @@ map_phenology <- function(data, grid, grid2){
        cex.lab = 1.1,
        cex.axis = 1.1,
        cex.main = 1.2,
-       xlim = c(min(grid2$doy, na.rm = T), max(grid2$doy, na.rm = T)),
-       ylim = range(c(grid2$pred_up, grid2$pred_lw)),
+       xlim = c(min(grids[[2]]$doy, na.rm = T), max(grids[[2]]$doy, na.rm = T)),
+       ylim = range(c(grids[[2]]$pred_up, grids[[2]]$pred_lw)),
        col = 'blue',
        lwd = 2)
-  polygon(c(grid2$doy, rev(grid2$doy)),
-          c(grid2$pred_lw, rev(grid2$pred_up)),
+  polygon(c(grids[[2]]$doy, rev(grids[[2]]$doy)),
+          c(grids[[2]]$pred_lw, rev(grids[[2]]$pred_up)),
           col = alpha('gray', 0.6),
           lty = 0)
+  barplot(matrix(c(ratio_base_geog,
+                   vc_ratio_space,
+                   ratio_base_pheno,
+                   vc_ratio_time) *  100,
+                 ncol = 2,
+                 nrow = 2),
+        ylab = 'Delta MSE (%)',
+        names.arg = c('Variable distribution', 'Variable phenologies'),
+        ylim = c(0, 60),
+        main = 'Delta MSE',
+        cex.lab = 1.1,
+        cex.main = 1.2,
+        cex.axis = 1.1,
+        cex.names = 1.1,
+        space = c(0, 1),
+        beside = T,
+        col = c('azure4', 'azure3'))
+  box()
+  legend("topright",
+       legend = c('D-MSE|Year', 'D-MSE|SST'),
+       bty = 'n',
+       col = c('azure4', 'azure3'),
+       pch = 15,
+       pt.cex = 2.5,
+       cex = 1.1)
 }
 
-map_vc <- function(data, gam, grid, grid2, title){
+map_vc <- function(data, gam, grids, title){
   nlat = 80
   nlon = 120
   latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
   lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
-  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
-                                "#AFABCB", "#DAD9E5", "#F9F9F9",
-                                "#FFDAB7", "#FFB377","#E18811",
-                                "#AC6000", "#743700"))
-  color_levels = 100
-  max_absolute_value = max(abs(c(min(grid$diff, na.rm = T), max(grid$diff, na.rm = T)))) 
-  color_sequence = seq(-max_absolute_value, max_absolute_value, 
-                       length.out = color_levels + 1)
-  n_in_class = hist(grid$diff, breaks = color_sequence, plot = F)$counts > 0
-  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
-  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
-  image(lond,
-        latd,
-        t(matrix(grid$diff,
-                 nrow = length(latd),
-                 ncol = length(lond),
-                 byrow = T)),
+     myvis_gam(gam,
+          view = c('lon', 'lat'),
+          too.far = 0.04,
+          plot.type = 'contour',
+          contour.col = contour_col,
+          color = "jet" ,
+          type = 'response',
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        axes = FALSE,
-        xlab = "",
-        ylab = "")
+          xlab = "",
+          ylab = "",
+          main = "",
+          axes = FALSE)
   rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
   par(new = TRUE)
   myvis_gam(gam,
@@ -178,24 +274,37 @@ map_vc <- function(data, gam, grid, grid2, title){
           cex.main = 1.5,
           cex.lab = 1.5,
           cex.axis = 1.5)
-  image.plot(legend.only = T,
-             col = jet.colors(100),
-             legend.shrink = 0.2,
-             smallplot = c(.73, .76, .22, .36),
-             legend.cex = 0.7,
-             axis.args = list(cex.axis = 0.9),
-             legend.width = 0.8,
-             legend.mar = 6,
-             zlim = c(min(grid$diff, na.rm = T), max(grid$diff, na.rm = T)),
-             legend.args = list("Occurrence",
-                                side = 2, cex = 0.8))
   maps::map('worldHires',
             add = T,
             col = 'wheat4',
             fill = T)
-  image(lond,
-        latd,
-        t(matrix(grid$diff,
+  image.plot(legend.only = T,
+             col = jet.colors(100),
+             legend.shrink = 0.2,
+             smallplot = c(.72, .75, .24, .38),
+             legend.cex = 0.7,
+             axis.args = list(cex.axis = 0.9),
+             legend.width = 0.8,
+             legend.mar = 6,
+             zlim = c(min(gam$fitted.values), 
+                          max(gam$fitted.values)),
+             legend.args = list("Occurrence",
+                                side = 2, cex = 0.8))
+  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
+                                "#AFABCB", "#DAD9E5", "#F9F9F9",
+                                "#FFDAB7", "#FFB377","#E18811",
+                                "#AC6000", "#743700"))
+  color_levels = 100
+  max_absolute_value = max(abs(c(min(grids[[1]]$diff, na.rm = T), 
+                                 max(grids[[1]]$diff, na.rm = T)))) 
+  color_sequence = seq(-max_absolute_value, max_absolute_value, 
+                       length.out = color_levels + 1)
+  n_in_class = hist(grids[[1]]$diff, breaks = color_sequence, plot = F)$counts > 0
+  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
+     image(lond,
+         latd,
+         t(matrix(grids[[1]]$diff,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -208,7 +317,7 @@ map_vc <- function(data, gam, grid, grid2, title){
   par(new = TRUE)
   image(lond,
         latd,
-        t(matrix(grid$diff,
+        t(matrix(grids[[1]]$diff,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -234,18 +343,19 @@ map_vc <- function(data, gam, grid, grid2, title){
              axis.args = list(cex.axis = 0.9),
              legend.width = 0.8,
              legend.mar = 6,
-             zlim = c(min(grid$diff, na.rm = T), max(grid$diff, na.rm = T)),
+             zlim = c(min(grids[[1]]$diff, na.rm = T), 
+                      max(grids[[1]]$diff, na.rm = T)),
              legend.args = list("Predicted \n Change",
                                 side = 2, cex = 0.8))
-  plot(grid2$doy,
-       grid2$pred,
+   plot(grids[[2]]$doy,
+       grids[[2]]$pred,
        main = 'Change in phenology',
        type = 'l',
-       ylim = range(c(grid2$pred_up,
-                      grid2$pred2_up,
-                      grid2$pred_lw,
-                      grid2$pred2_lw)),
-       xlim = c(min(grid2$doy), max(grid2$doy)),
+       ylim = range(c(grids[[2]]$pred_up,
+                      grids[[2]]$pred2_up,
+                      grids[[2]]$pred_lw,
+                      grids[[2]]$pred2_lw)),
+       xlim = c(min(grids[[2]]$doy), max(grids[[2]]$doy)),
        col = '#000000',
        lwd = 2,
        xlab = 'Day of the year',
@@ -253,20 +363,115 @@ map_vc <- function(data, gam, grid, grid2, title){
        cex.lab = 1.5,
        cex.axis = 1.5,
        cex.main = 1.5)
-  polygon(c(grid2$doy, rev(grid2$doy)),
-          c(grid2$pred_lw, rev(grid2$pred_up)),
+  polygon(c(grids[[2]]$doy, rev(grids[[2]]$doy)),
+          c(grids[[2]]$pred_lw, rev(grids[[2]]$pred_up)),
           col = alpha('#000000', 0.2), 
           lty = 0)
-  lines(grid2$doy,
-        grid2$pred2,
+  lines(grids[[2]]$doy,
+        grids[[2]]$pred2,
         col = '#E69F00',
         lwd = 2)
-  polygon(c(grid2$doy, rev(grid2$doy)),
-    c(grid2$pred2_lw, rev(grid2$pred2_up)),
+  polygon(c(grids[[2]]$doy, rev(grids[[2]]$doy)),
+    c(grids[[2]]$pred2_lw, rev(grids[[2]]$pred2_up)),
     col = alpha('#E69F00', 0.2),
     lty = 0)
 }
 
+# Plot the results of the average geography and phenology and decrease of MSE
+threepanel_base_mse <- function(data, base_model) {
+  nlat = 80
+  nlon = 120
+  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
+  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
+  grid <- expand.grid(lond, latd)
+  names(grid) <- c('lon', 'lat')
+  
+  # Geography grid
+  grid$dist <- NA
+  for (k in 1:nrow(grid)) {
+    dist <-
+      distance_function(grid$lat[k],
+                        grid$lon[k],
+                        data$lat,
+                        data$lon)
+    grid$dist[k] <- min(dist)
+  }
+  grid$year <- 2014
+  grid$doy <- median(data$doy)
+  grid$pred <- predict(base_model, newdata = grid)
+  grid$pred[grid$dist > 30000] <- NA
+  
+  # Phenology grid
+  grid2 <-  data.frame('lon' = rep(-170, 100),
+                                   'lat' = rep(57, 100),
+                                   'doy' = seq(min(data$doy),
+                                               max(data$doy),
+                                               length = 100),
+                                   'year' = rep(2014, 100))
+  grid2$pred <- predict(base_model, newdata = grid2)
+  grid2$se <- predict(base_model, newdata = grid2, se = T)[[2]]
+  grid2$pred_up <- grid2$pred + 1.96 * grid2$se
+  grid2$pred_lw <- grid2$pred - 1.96 * grid2$se
+  return(list(grid, grid2))
+}
+
+vc_grids <- function(data, gam_list){
+  nlat = 80
+  nlon = 120
+  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
+  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
+  spatial_grid <- expand.grid(lond, latd)
+  names(spatial_grid) <- c('lon', 'lat')
+  spatial_grid$dist <- NA
+  for (k in 1:nrow(spatial_grid)) {
+    dist <-  distance_function(spatial_grid$lat[k],
+                               spatial_grid$lon[k],
+                               data$lat,
+                               data$lon)
+    spatial_grid$dist[k] <- min(dist)
+  }
+  spatial_grid$year <- 2014
+  spatial_grid$doy <- median(data$doy)
+  spatial_grid$mean_temp <- mean(data$mean_temp)
+  spatial_grid$roms_temperature <- mean(data$roms_temperature, na.rm = T)
+  spatial_grid$roms_salinity <- mean(data$roms_salinity, na.rm = T)
+  spatial_grid$pred <- predict(gam_list[[1]][[7]], newdata = spatial_grid)
+  spatial_grid$se <- predict(gam_list[[1]][[7]], newdata = spatial_grid, se = T)[[2]]
+  spatial_grid$pred_up <- spatial_grid$pred + 1.96 * spatial_grid$se
+  spatial_grid$pred_lw <- spatial_grid$pred - 1.96 * spatial_grid$se
+  spatial_grid$pred[spatial_grid$dist > 30000] <- NA
+  spatial_grid$mean_temp <- mean(data$mean_temp) + 1
+  spatial_grid$pred2 <- predict(gam_list[[1]][[7]], newdata = spatial_grid)
+  spatial_grid$se2 <- predict(gam_list[[1]][[7]], newdata = spatial_grid, se = T)[[2]]
+  spatial_grid$pred2_up <- spatial_grid$pred2 + 1.96 * spatial_grid$se2
+  spatial_grid$pred2_lw <- spatial_grid$pred2 - 1.96 * spatial_grid$se2
+  spatial_grid$diff <- spatial_grid$pred2 - spatial_grid$pred
+  spatial_grid$sig_pos <- c(spatial_grid$pred2_lw > spatial_grid$pred_up)
+  spatial_grid$sig_neg <- c(spatial_grid$pred2_up < spatial_grid$pred_lw)
+  spatial_grid$pos_diff <- spatial_grid$diff * spatial_grid$sig_pos
+  spatial_grid$neg_diff <- spatial_grid$diff * spatial_grid$sig_neg
+  max_slope <- max(spatial_grid$diff, na.rm = T)
+  
+  phenology_grid <-  data.frame('lon' = rep(-170, 100),
+                                'lat' = rep(57, 100),
+                                'doy' = seq(min(data$doy),
+                                            max(data$doy),
+                                            length = 100),
+                                mean_temp = rep(mean(data$mean_temp), 100),
+                                'year' = rep(2014, 100),
+                                'roms_temperature' = rep(mean(data$roms_temperature, na.rm = T), 100),
+                                'roms_salinity' = rep(mean(data$roms_salinity, na.rm = T), 100))
+  phenology_grid$pred <- predict(gam_list[[1]][[5]], newdata = phenology_grid)
+  phenology_grid$se <- predict(gam_list[[1]][[5]], newdata = phenology_grid, se = T)[[2]]
+  phenology_grid$pred_up <- phenology_grid$pred + 1.96 * phenology_grid$se
+  phenology_grid$pred_lw <- phenology_grid$pred - 1.96 * phenology_grid$se
+  phenology_grid$mean_temp <- mean(data$mean_temp) + 1
+  phenology_grid$pred2 <- predict(gam_list[[1]][[5]], newdata = phenology_grid)
+  phenology_grid$se2 <- predict(gam_list[[1]][[5]], newdata = phenology_grid, se = T)[[2]]
+  phenology_grid$pred2_up <- phenology_grid$pred2 + 1.96 * phenology_grid$se2
+  phenology_grid$pred2_lw <- phenology_grid$pred2 - 1.96 * phenology_grid$se2
+  return(list(spatial_grid, phenology_grid))
+}
 ```
 
 Base models: Currently using only presence in a Gaussian GAM, may switch to Tweedie With Gaussian, multiplication by binomial GAM required (two-stage)
@@ -643,10 +848,10 @@ grid_vc_eggpk2$pred2_lw <- grid_vc_eggpk2$pred2 - 1.96 * grid_vc_eggpk2$se2
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5),
+par(mfrow = c(1, 3), 
+    mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_egg, grid_vc_eggpk, grid_vc_eggpk2)
+map_vc(pk_egg, pk_egg_space2, grid_vc_eggpk, grid_vc_eggpk2, "Spatial GAM Hindcast")
   legend(130,
          11,
          legend = c('Mean SST', '+ 1C'),
@@ -657,7 +862,7 @@ map_vc(pk_egg, grid_vc_eggpk, grid_vc_eggpk2)
          cex = 0.6)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
-         'pollock_egg_vc.jpg'),
+         'pollock_egg_best.jpg'),
          height = 3.5,
          width = 8,
          res = 200,
@@ -1113,168 +1318,51 @@ ratio_pkegg_geography_t #0.310
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
 
-Phenology Compare formulations with temp/salinity formulations
+Determine best GAM from 7 formulations (see function)
 ```{r}
-# Add monthly temperature values from ROMS
-pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
-range(pk_egg$mean_temp)
-
-# This will again use the presence GAM from the two stage models
-# create variable phenology model by adding doy*sst
-pk_egg_month1_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6), 
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_month1_t)
-AIC(pk_egg_month1_t)
-# Deviance explained: 59.2%
-# AIC: 33984
-par(mfrow = c(2, 2))
-gam.check(pk_egg_month1_t)
-
-
-pk_egg_month2_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6) +
-                         s(doy, by = mean_temp, k = 6),
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_month2_t)
-AIC(pk_egg_month2_t)
-# Deviance explained: 59.3%
-# AIC: 33978
-par(mfrow = c(2, 2))
-gam.check(pk_egg_month2_t)
-
-
-pk_egg_month3_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity),
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_month3_t)
-AIC(pk_egg_month3_t)
-# Deviance explained: 59.8%
-# AIC: 33958
-par(mfrow = c(2, 2))
-gam.check(pk_egg_month3_t)
-
-
-pk_egg_month4_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6),
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_month4_t)
-AIC(pk_egg_month4_t)
-# Deviance explained: 60%
-# AIC: 33938
-par(mfrow = c(2, 2))
-gam.check(pk_egg_month4_t)
-
-
-pk_egg_month5_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity) +
-                         s(roms_temperature) +
-                         s(roms_salinity, k = 4) +
-                         s(doy, by = mean_temp, k = 6),
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_month5_t)
-AIC(pk_egg_month5_t)
-# Deviance explained: 60.1%
-# AIC: 33936
-par(mfrow = c(2, 2))
-gam.check(pk_egg_month5_t)
+pkegg_gams_t <- gam_selection(pk_egg, roms_temps)
+AIC(pkegg_gams_t[[1]][[1]])
+AIC(pkegg_gams_t[[1]][[2]])
+AIC(pkegg_gams_t[[1]][[3]])
+AIC(pkegg_gams_t[[1]][[4]])
+AIC(pkegg_gams_t[[1]][[5]])
+AIC(pkegg_gams_t[[1]][[6]])
+AIC(pkegg_gams_t[[1]][[7]])
+summary(pkegg_gams_t[[2]])
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pk_egg_month5_t, select = 1, main = "DOY")
-plot(pk_egg_month5_t, select = 4, main = "Temperature")
-plot(pk_egg_month5_t, select = 5, main = "Salinity")
-plot(pk_egg_month5_t, select = 6, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[5]], select = 1, main = "DOY")
+plot(pkegg_gams_t[[1]][[5]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[5]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pk_egg_month5_t)
+gam.check(pkegg_gams_t[[1]][[5]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
-Geography Compare formulations with temp/salinity smooth terms
-```{r}
-# Create variable geography using space*sst
-# Compare to the first three phenology models for model selection
-pk_egg_space1_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6) +
-                         s(lon, lat, by = mean_temp, k = 6),
-                       data = pk_egg,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_egg_space1_t)
-AIC(pk_egg_space1_t)
-# Deviance explained: 60.1%
-# AIC: 33911
-par(mfrow = c(2, 2))
-gam.check(pk_egg_space1_t)
-
-
-pk_egg_space2_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(doy, k = 8) +
-                       s(lon, lat) +
-                       s(roms_temperature, roms_salinity) +
-                       s(roms_temperature, k = 6) +
-                       s(roms_salinity, k = 6) +
-                       s(lon, lat, by = mean_temp, k = 6),
-                     data = pk_egg,
-                     family = tw(link = 'log'),
-                     method = 'REML')
-summary(pk_egg_space2_t)
-AIC(pk_egg_space2_t)
-# Deviance explained: 60.1%
-# AIC: 33886
-par(mfrow = c(2, 2))
-gam.check(pk_egg_space2_t)
-```
-
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pk_egg_space2_t, select = 1, main = "DOY")
-plot(pk_egg_space2_t, select = 4, main = "Temperature")
-plot(pk_egg_space2_t, select = 5, main = "Salinity")
-plot(pk_egg_space2_t, select = 6, main = "Location by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[7]], select = 1, main = "DOY")
+plot(pkegg_gams_t[[1]][[7]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[7]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pk_egg_space2_t)
+gam.check(pkegg_gams_t[[1]][[7]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1294,40 +1382,7 @@ var_ratio_pkegg_space_t
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
 ```{r}
-# Plot the results of the average geography and phenology and decrease of MSE
-nlat = 80
-nlon = 120
-latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
-lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
-grid_pkegg_avg_t <- expand.grid(lond, latd)
-names(grid_pkegg_avg_t) <- c('lon', 'lat')
-
-# Geography grid
-grid_pkegg_avg_t$dist <- NA
-for (k in 1:nrow(grid_pkegg_avg_t)) {
-  dist <-
-    distance_function(grid_pkegg_avg_t$lat[k],
-                      grid_pkegg_avg_t$lon[k],
-                      pk_egg$lat,
-                      pk_egg$lon)
-  grid_pkegg_avg_t$dist[k] <- min(dist)
-}
-grid_pkegg_avg_t$year <- 2014
-grid_pkegg_avg_t$doy <- median(pk_egg$doy)
-grid_pkegg_avg_t$pred <- predict(pk_egg_base_t, newdata = grid_pkegg_avg_t)
-grid_pkegg_avg_t$pred[grid_pkegg_avg_t$dist > 30000] <- NA
-
-# Phenology grid
-grid_pkegg_avg_t2 <-  data.frame('lon' = rep(-170, 100),
-                                'lat' = rep(57, 100),
-                                'doy' = seq(min(pk_egg$doy), 
-                                            max(pk_egg$doy), 
-                                            length = 100),
-                                'year' = rep(2014, 100))
-grid_pkegg_avg_t2$pred <- predict(pk_egg_base_t, newdata = grid_pkegg_avg_t2)
-grid_pkegg_avg_t2$se <- predict(pk_egg_base_t, newdata = grid_pkegg_avg_t2, se = T)[[2]]
-grid_pkegg_avg_t2$pred_up <- grid_pkegg_avg_t2$pred + 1.96 * grid_pkegg_avg_t2$se
-grid_pkegg_avg_t2$pred_lw <- grid_pkegg_avg_t2$pred - 1.96 * grid_pkegg_avg_t2$se
+pkegg_grids <- threepanel_base_mse(pk_egg, pk_egg_base_t)
 ```
 
 Plots:
@@ -1336,34 +1391,10 @@ Plots:
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_phenology(pk_egg, grid_pkegg_avg_t, grid_pkegg_avg_t2)
-
-# Plot MSE as stacked bars, including year variability and SST variability
-barplot(matrix(c(ratio_pkegg_geography_t,
+map_phenology(pk_egg, pkegg_grids, ratio_pkegg_geography_t,
                  var_ratio_pkegg_space_t,
                  ratio_pkegg_phenology_t,
-                 var_ratio_pkegg_month_t) * 100, 
-               ncol = 2,
-               nrow = 2),
-        ylab = 'Delta MSE (%)',
-        names.arg = c('Variable distribution', 'Variable phenologies'),
-        ylim = c(0, 35),
-        main = 'Delta MSE',
-        cex.lab = 1.1,
-        cex.main = 1.2,
-        cex.axis = 1.1,
-        cex.names = 1.1,
-        space = c(0, 1),
-        beside = T,
-        col = c('azure4', 'azure3'))
-box()
-legend("topright",
-       legend = c('D-MSE|Year', 'D-MSE|SST'),
-       bty = 'n',
-       col = c('azure4', 'azure3'),
-       pch = 15,
-       pt.cex = 2.5,
-       cex = 1.1)
+                 var_ratio_pkegg_month_t)
 dev.copy(jpeg,
          here('results/pollock_hindcast', 
               'pollock_egg_MSE_t.jpg'),
@@ -1373,86 +1404,31 @@ dev.copy(jpeg,
          units = 'in')
 ```
 
-Fill grids with output from SST VC GAMs Spatial grid
+Fill grids with output from SST VC GAMs
 ```{r}
-nlat = 80
-nlon = 120
-latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
-lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
-grid_vc_eggpk_t <- expand.grid(lond, latd)
-names(grid_vc_eggpk_t) <- c('lon', 'lat')
-grid_vc_eggpk_t$dist <- NA
-for (k in 1:nrow(grid_vc_eggpk_t)) {
-  dist <-  distance_function(grid_vc_eggpk_t$lat[k],
-                             grid_vc_eggpk_t$lon[k],
-                             pk_egg$lat,
-                             pk_egg$lon)
-  grid_vc_eggpk_t$dist[k] <- min(dist)
-}
-grid_vc_eggpk_t$year <- 2014
-grid_vc_eggpk_t$doy <- median(pk_egg$doy)
-grid_vc_eggpk_t$mean_temp <- mean(pk_egg$mean_temp)
-grid_vc_eggpk_t$roms_temperature <- mean(pk_egg$roms_temperature, na.rm = T)
-grid_vc_eggpk_t$roms_salinity <- mean(pk_egg$roms_salinity, na.rm = T)
-grid_vc_eggpk_t$pred <- predict(pk_egg_space2_t, newdata = grid_vc_eggpk_t)
-grid_vc_eggpk_t$se <- predict(pk_egg_space2_t, newdata = grid_vc_eggpk_t, se = T)[[2]]
-grid_vc_eggpk_t$pred_up <- grid_vc_eggpk_t$pred + 1.96 * grid_vc_eggpk_t$se
-grid_vc_eggpk_t$pred_lw <- grid_vc_eggpk_t$pred - 1.96 * grid_vc_eggpk_t$se
-grid_vc_eggpk_t$pred[grid_vc_eggpk_t$dist > 30000] <- NA
-grid_vc_eggpk_t$mean_temp <- mean(pk_egg$mean_temp) + 1
-grid_vc_eggpk_t$pred2 <- predict(pk_egg_space2_t, newdata = grid_vc_eggpk_t)
-grid_vc_eggpk_t$se2 <- predict(pk_egg_space2_t, newdata = grid_vc_eggpk_t, se = T)[[2]]
-grid_vc_eggpk_t$pred2_up <- grid_vc_eggpk_t$pred2 + 1.96 * grid_vc_eggpk_t$se2
-grid_vc_eggpk_t$pred2_lw <- grid_vc_eggpk_t$pred2 - 1.96 * grid_vc_eggpk_t$se2
-grid_vc_eggpk_t$diff <- grid_vc_eggpk_t$pred2 - grid_vc_eggpk_t$pred
-grid_vc_eggpk_t$sig_pos <- c(grid_vc_eggpk_t$pred2_lw > grid_vc_eggpk_t$pred_up)
-grid_vc_eggpk_t$sig_neg <- c(grid_vc_eggpk_t$pred2_up < grid_vc_eggpk_t$pred_lw)
-grid_vc_eggpk_t$pos_diff <- grid_vc_eggpk_t$diff * grid_vc_eggpk_t$sig_pos
-grid_vc_eggpk_t$neg_diff <- grid_vc_eggpk_t$diff * grid_vc_eggpk_t$sig_neg
-max_slope <- max(grid_vc_eggpk_t$diff, na.rm = T)
-```
 
-Temporal grid
-```{r}
-grid_vc_eggpk2_t <-  data.frame('lon' = rep(-170, 100),
-                           'lat' = rep(57, 100),
-                           'doy' = seq(min(pk_egg$doy), 
-                                       max(pk_egg$doy), 
-                                       length = 100),
-                           mean_temp = rep(mean(pk_egg$mean_temp), 100),
-                           'year' = rep(2014, 100),
-                           'roms_temperature' = rep(mean(pk_egg$roms_temperature, na.rm = T), 100),
-                           'roms_salinity' = rep(mean(pk_egg$roms_salinity, na.rm = T), 100))
-grid_vc_eggpk2_t$pred <- predict(pk_egg_month5_t, newdata = grid_vc_eggpk2_t)
-grid_vc_eggpk2_t$se <- predict(pk_egg_month5_t, newdata = grid_vc_eggpk2_t, se = T)[[2]]
-grid_vc_eggpk2_t$pred_up <- grid_vc_eggpk2_t$pred + 1.96 * grid_vc_eggpk2_t$se
-grid_vc_eggpk2_t$pred_lw <- grid_vc_eggpk2_t$pred - 1.96 * grid_vc_eggpk2_t$se
-grid_vc_eggpk2_t$mean_temp <- mean(pk_egg$mean_temp) + 1
-grid_vc_eggpk2_t$pred2 <- predict(pk_egg_month5_t, newdata = grid_vc_eggpk2_t)
-grid_vc_eggpk2_t$se2 <- predict(pk_egg_month5_t, newdata = grid_vc_eggpk2_t, se = T)[[2]]
-grid_vc_eggpk2_t$pred2_up <- grid_vc_eggpk2_t$pred2 + 1.96 * grid_vc_eggpk2_t$se2
-grid_vc_eggpk2_t$pred2_lw <- grid_vc_eggpk2_t$pred2 - 1.96 * grid_vc_eggpk2_t$se2
+pkegg_vcgrids <- vc_grids(pk_egg, pkegg_gams_t)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5),
+par(mfrow = c(1, 3), 
+    mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_egg, grid_vc_eggpk_t, grid_vc_eggpk2_t)
-  legend(140,
-         11,
+map_vc(pk_egg, pkegg_gams[[1]][[5]], pkegg_vcgrids, "Spatial GAM hindcast")
+legend(140,
+       11,
          legend = c('Mean SST', '+ 1C'),
-         col = c('#000000', '#E69F00'),
+       col = c('#000000', '#E69F00'),
          lty = 1,
          bty = 'n',
          lwd = 2,
-         cex = 0.6)
+         cex = 1.2)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
          'pollock_egg_vc_t.jpg'),
          height = 3.5,
-         width = 8,
+         width = 10,
          res = 200,
          units = 'in')
 dev.off()
@@ -1498,170 +1474,51 @@ ratio_pklarvae_geography_t <- (summary(pk_larvae_base_t)$scale -
 ratio_pklarvae_geography_t # 0.426
 ```
 
-Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
-
-Phenology Compare formulations with temp/salinity formulations
+Determine best GAM from 7 formulations (see function)
 ```{r}
-# Add monthly temperature values from ROMS
-pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
-range(pk_larvae$mean_temp)
-
-# This will again use the presence GAM from the two stage models
-# create variable phenology model by adding doy*sst
-pk_larvae_month1_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6), 
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_month1_t)
-AIC(pk_larvae_month1_t)
-# Deviance explained: 59.4%
-# AIC: 32821
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_month1_t)
-
-
-pk_larvae_month2_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6) +
-                         s(doy, by = mean_temp, k = 6),
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_month2_t)
-AIC(pk_larvae_month2_t)
-# Deviance explained: 59.8%
-# AIC: 32794
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_month2_t)
-
-
-pk_larvae_month3_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity),
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_month3_t)
-AIC(pk_larvae_month3_t)
-# Deviance explained: 61.8%
-# AIC: 32627
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_month3_t)
-
-
-pk_larvae_month4_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6),
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_month4_t)
-AIC(pk_larvae_month4_t)
-# Deviance explained: 62.1%
-# AIC: 32606
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_month4_t)
-
-
-pk_larvae_month5_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, roms_salinity) +
-                         s(roms_temperature) +
-                         s(roms_salinity, k = 6) +
-                         s(doy, by = mean_temp, k = 6),
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_month5_t)
-AIC(pk_larvae_month5_t)
-# Deviance explained: 62.4%
-# AIC: 32584
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_month5_t)
+pklarvae_gams_t <- gam_selection(pk_larvae, roms_temps)
+AIC(pklarvae_gams_t[[1]][[1]])
+AIC(pklarvae_gams_t[[1]][[2]])
+AIC(pklarvae_gams_t[[1]][[3]])
+AIC(pklarvae_gams_t[[1]][[4]])
+AIC(pklarvae_gams_t[[1]][[5]])
+AIC(pklarvae_gams_t[[1]][[6]])
+AIC(pklarvae_gams_t[[1]][[7]])
+summary(pklarvae_gams_t[[2]])
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pk_larvae_month5_t, select = 1, main = "DOY")
-plot(pk_larvae_month5_t, select = 4, main = "Temperature")
-plot(pk_larvae_month5_t, select = 5, main = "Salinity")
-plot(pk_larvae_month5_t, select = 6, main = "DOY by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[5]], select = 1, main = "DOY")
+plot(pklarvae_gams_t[[1]][[5]], select = 4, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[5]], select = 5, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pk_larvae_month5_t)
+gam.check(pklarvae_gams_t[[1]][[5]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
-Geography Compare formulations with temp/salinity smooth terms
-```{r}
-# Create variable geography using space*sst
-# Compare to the first three phenology models for model selection
-pk_larvae_space1_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                         s(doy, k = 8) +
-                         s(lon, lat) +
-                         s(roms_temperature, k = 6) +
-                         s(roms_salinity, k = 6) +
-                         s(lon, lat, by = mean_temp, k = 6),
-                       data = pk_larvae,
-                       family = tw(link = 'log'),
-                       method = 'REML')
-summary(pk_larvae_space1_t)
-AIC(pk_larvae_space1_t)
-# Deviance explained: 60.6%
-# AIC: 32717
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_space1_t)
-
-
-pk_larvae_space2_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(doy, k = 8) +
-                       s(lon, lat) +
-                       s(roms_temperature, roms_salinity) +
-                       s(roms_temperature) +
-                       s(roms_salinity, k = 6) +
-                       s(lon, lat, by = mean_temp, k = 6),
-                     data = pk_larvae,
-                     family = tw(link = 'log'),
-                     method = 'REML')
-summary(pk_larvae_space2_t)
-AIC(pk_larvae_space2_t)
-# Deviance explained: 63.1%
-# AIC: 32509
-par(mfrow = c(2, 2))
-gam.check(pk_larvae_space2_t)
-```
-
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pk_larvae_space2_t, select = 1, main = "DOY")
-plot(pk_larvae_space2_t, select = 4, main = "Temperature")
-plot(pk_larvae_space2_t, select = 5, main = "Salinity")
-plot(pk_larvae_space2_t, select = 6, main = "Location by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[7]], select = 1, main = "DOY")
+plot(pklarvae_gams_t[[1]][[7]], select = 4, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[7]], select = 5, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pk_larvae_space2_t)
+gam.check(pklarvae_gams_t[[1]][[7]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1681,40 +1538,7 @@ var_ratio_pklarvae_space_t
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
 ```{r}
-# Plot the results of the average geography and phenology and decrease of MSE
-nlat = 80
-nlon = 120
-latd = seq(min(pk_larvae$lat), max(pk_larvae$lat), length.out = nlat)
-lond = seq(min(pk_larvae$lon), max(pk_larvae$lon), length.out = nlon)
-grid_pklarvae_avg_t <- expand.grid(lond, latd)
-names(grid_pklarvae_avg_t) <- c('lon', 'lat')
-
-# Geography grid
-grid_pklarvae_avg_t$dist <- NA
-for (k in 1:nrow(grid_pklarvae_avg_t)) {
-  dist <-
-    distance_function(grid_pklarvae_avg_t$lat[k],
-                      grid_pklarvae_avg_t$lon[k],
-                      pk_larvae$lat,
-                      pk_larvae$lon)
-  grid_pklarvae_avg_t$dist[k] <- min(dist)
-}
-grid_pklarvae_avg_t$year <- 2014
-grid_pklarvae_avg_t$doy <- median(pk_larvae$doy)
-grid_pklarvae_avg_t$pred <- predict(pk_larvae_base_t, newdata = grid_pklarvae_avg_t)
-grid_pklarvae_avg_t$pred[grid_pklarvae_avg_t$dist > 30000] <- NA
-
-# Phenology grid
-grid_pklarvae_avg_t2 <-  data.frame('lon' = rep(-170, 100),
-                                'lat' = rep(57, 100),
-                                'doy' = seq(min(pk_larvae$doy), 
-                                            max(pk_larvae$doy), 
-                                            length = 100),
-                                'year' = rep(2014, 100))
-grid_pklarvae_avg_t2$pred <- predict(pk_larvae_base_t, newdata = grid_pklarvae_avg_t2)
-grid_pklarvae_avg_t2$se <- predict(pk_larvae_base_t, newdata = grid_pklarvae_avg_t2, se = T)[[2]]
-grid_pklarvae_avg_t2$pred_up <- grid_pklarvae_avg_t2$pred + 1.96 * grid_pklarvae_avg_t2$se
-grid_pklarvae_avg_t2$pred_lw <- grid_pklarvae_avg_t2$pred - 1.96 * grid_pklarvae_avg_t2$se
+pklarvae_grids <- threepanel_base_mse(pk_larvae, pk_larvae_base_t)
 ```
 
 Plots:
@@ -1723,34 +1547,10 @@ Plots:
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_phenology(pk_larvae, grid_pklarvae_avg_t, grid_pklarvae_avg_t2)
-
-# Plot MSE as stacked bars, including year variability and SST variability
-barplot(matrix(c(ratio_pklarvae_geography_t,
+map_phenology(pk_larvae, pklarvae_grids, ratio_pklarvae_geography_t,
                  var_ratio_pklarvae_space_t,
                  ratio_pklarvae_phenology_t,
-                 var_ratio_pklarvae_month_t) * 100, 
-               ncol = 2,
-               nrow = 2),
-        ylab = 'Delta MSE (%)',
-        names.arg = c('Variable distribution', 'Variable phenologies'),
-        ylim = c(0, 50),
-        main = 'Delta MSE',
-        cex.lab = 1.1,
-        cex.main = 1.2,
-        cex.axis = 1.1,
-        cex.names = 1.1,
-        space = c(0, 1),
-        beside = T,
-        col = c('azure4', 'azure3'))
-box()
-legend("topright",
-       legend = c('D-MSE|Year', 'D-MSE|SST'),
-       bty = 'n',
-       col = c('azure4', 'azure3'),
-       pch = 15,
-       pt.cex = 2.5,
-       cex = 1.1)
+                 var_ratio_pklarvae_month_t)
 dev.copy(jpeg,
          here('results/pollock_hindcast', 
               'pollock_larvae_MSE_t.jpg'),
@@ -1760,86 +1560,31 @@ dev.copy(jpeg,
          units = 'in')
 ```
 
-Fill grids with output from SST VC GAMs Spatial grid
+Fill grids with output from SST VC GAMs
 ```{r}
-nlat = 80
-nlon = 120
-latd = seq(min(pk_larvae$lat), max(pk_larvae$lat), length.out = nlat)
-lond = seq(min(pk_larvae$lon), max(pk_larvae$lon), length.out = nlon)
-grid_vc_larvaepk_t <- expand.grid(lond, latd)
-names(grid_vc_larvaepk_t) <- c('lon', 'lat')
-grid_vc_larvaepk_t$dist <- NA
-for (k in 1:nrow(grid_vc_larvaepk_t)) {
-  dist <-  distance_function(grid_vc_larvaepk_t$lat[k],
-                             grid_vc_larvaepk_t$lon[k],
-                             pk_larvae$lat,
-                             pk_larvae$lon)
-  grid_vc_larvaepk_t$dist[k] <- min(dist)
-}
-grid_vc_larvaepk_t$year <- 2014
-grid_vc_larvaepk_t$doy <- median(pk_larvae$doy)
-grid_vc_larvaepk_t$mean_temp <- mean(pk_larvae$mean_temp)
-grid_vc_larvaepk_t$roms_temperature <- mean(pk_larvae$roms_temperature, na.rm = T)
-grid_vc_larvaepk_t$roms_salinity <- mean(pk_larvae$roms_salinity, na.rm = T)
-grid_vc_larvaepk_t$pred <- predict(pk_larvae_space2_t, newdata = grid_vc_larvaepk_t)
-grid_vc_larvaepk_t$se <- predict(pk_larvae_space2_t, newdata = grid_vc_larvaepk_t, se = T)[[2]]
-grid_vc_larvaepk_t$pred_up <- grid_vc_larvaepk_t$pred + 1.96 * grid_vc_larvaepk_t$se
-grid_vc_larvaepk_t$pred_lw <- grid_vc_larvaepk_t$pred - 1.96 * grid_vc_larvaepk_t$se
-grid_vc_larvaepk_t$pred[grid_vc_larvaepk_t$dist > 30000] <- NA
-grid_vc_larvaepk_t$mean_temp <- mean(pk_larvae$mean_temp) + 1
-grid_vc_larvaepk_t$pred2 <- predict(pk_larvae_space2_t, newdata = grid_vc_larvaepk_t)
-grid_vc_larvaepk_t$se2 <- predict(pk_larvae_space2_t, newdata = grid_vc_larvaepk_t, se = T)[[2]]
-grid_vc_larvaepk_t$pred2_up <- grid_vc_larvaepk_t$pred2 + 1.96 * grid_vc_larvaepk_t$se2
-grid_vc_larvaepk_t$pred2_lw <- grid_vc_larvaepk_t$pred2 - 1.96 * grid_vc_larvaepk_t$se2
-grid_vc_larvaepk_t$diff <- grid_vc_larvaepk_t$pred2 - grid_vc_larvaepk_t$pred
-grid_vc_larvaepk_t$sig_pos <- c(grid_vc_larvaepk_t$pred2_lw > grid_vc_larvaepk_t$pred_up)
-grid_vc_larvaepk_t$sig_neg <- c(grid_vc_larvaepk_t$pred2_up < grid_vc_larvaepk_t$pred_lw)
-grid_vc_larvaepk_t$pos_diff <- grid_vc_larvaepk_t$diff * grid_vc_larvaepk_t$sig_pos
-grid_vc_larvaepk_t$neg_diff <- grid_vc_larvaepk_t$diff * grid_vc_larvaepk_t$sig_neg
-max_slope <- max(grid_vc_larvaepk_t$diff, na.rm = T)
-```
 
-Temporal grid
-```{r}
-grid_vc_larvaepk2_t <-  data.frame('lon' = rep(-170, 100),
-                           'lat' = rep(57, 100),
-                           'doy' = seq(min(pk_larvae$doy), 
-                                       max(pk_larvae$doy), 
-                                       length = 100),
-                           mean_temp = rep(mean(pk_larvae$mean_temp), 100),
-                           'year' = rep(2014, 100),
-                           'roms_temperature' = rep(mean(pk_larvae$roms_temperature, na.rm = T), 100),
-                           'roms_salinity' = rep(mean(pk_larvae$roms_salinity, na.rm = T), 100))
-grid_vc_larvaepk2_t$pred <- predict(pk_larvae_month5_t, newdata = grid_vc_larvaepk2_t)
-grid_vc_larvaepk2_t$se <- predict(pk_larvae_month5_t, newdata = grid_vc_larvaepk2_t, se = T)[[2]]
-grid_vc_larvaepk2_t$pred_up <- grid_vc_larvaepk2_t$pred + 1.96 * grid_vc_larvaepk2_t$se
-grid_vc_larvaepk2_t$pred_lw <- grid_vc_larvaepk2_t$pred - 1.96 * grid_vc_larvaepk2_t$se
-grid_vc_larvaepk2_t$mean_temp <- mean(pk_larvae$mean_temp) + 1
-grid_vc_larvaepk2_t$pred2 <- predict(pk_larvae_month5_t, newdata = grid_vc_larvaepk2_t)
-grid_vc_larvaepk2_t$se2 <- predict(pk_larvae_month5_t, newdata = grid_vc_larvaepk2_t, se = T)[[2]]
-grid_vc_larvaepk2_t$pred2_up <- grid_vc_larvaepk2_t$pred2 + 1.96 * grid_vc_larvaepk2_t$se2
-grid_vc_larvaepk2_t$pred2_lw <- grid_vc_larvaepk2_t$pred2 - 1.96 * grid_vc_larvaepk2_t$se2
+pklarvae_vcgrids <- vc_grids(pk_larvae, pklarvae_gams_t)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5),
+par(mfrow = c(1, 3), 
+    mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_larvae, grid_vc_larvaepk_t, grid_vc_larvaepk2_t)
-  legend(140,
-         11,
+map_vc(pk_larvae, pklarvae_gams[[1]][[5]], pklarvae_vcgrids, "Spatial GAM hindcast")
+legend(140,
+       11,
          legend = c('Mean SST', '+ 1C'),
-         col = c('#000000', '#E69F00'),
+       col = c('#000000', '#E69F00'),
          lty = 1,
          bty = 'n',
          lwd = 2,
-         cex = 0.6)
+         cex = 1.2)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
          'pollock_larvae_vc_t.jpg'),
          height = 3.5,
-         width = 8,
+         width = 10,
          res = 200,
          units = 'in')
 dev.off()
@@ -2229,30 +1974,7 @@ grid_vc_eggfhs2_t$pred2_up <- grid_vc_eggfhs2_t$pred2 + 1.96 * grid_vc_eggfhs2_t
 grid_vc_eggfhs2_t$pred2_lw <- grid_vc_eggfhs2_t$pred2 - 1.96 * grid_vc_eggfhs2_t$se2
 ```
 
-Create two panel plot Map of distribution & phenology curves with +1 temperature change
-```{r}
-par(mfrow = c(1, 2), 
-    mai = c(0.8, 0.9, 0.5, 0.5),
-    family = "serif")
-map_vc(fhs_egg, grid_vc_eggfhs_t, grid_vc_eggfhs2_t)
-  legend(140,
-         0.5,
-         legend = c('Mean SST', '+ 1C'),
-         col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 0.6)
-dev.copy(jpeg,
-         here('results/flathead_hindcast',
-         'flathead_egg_vc_t.jpg'),
-         height = 3.5,
-         width = 8,
-         res = 200,
-         units = 'in')
-dev.off()
-```
-
+Create three panel plot map of distribution & phenology curves with +1 temperature change
 Make map with the best gam (spatial or temporal)
 ```{r}
 par(mfrow = c(1, 3), 
