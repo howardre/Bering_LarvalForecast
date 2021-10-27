@@ -68,6 +68,7 @@ akp_larvae$mean_temp <- roms_temps$mean[match(akp_larvae$year, roms_temps$year)]
 
 ```
 
+#### Setup
 In-script functions for maps and data
 ```{r}
 # Colors
@@ -481,8 +482,8 @@ vc_grids <- function(data, gam_list){
   
   phenology_grid <-  data.frame('lon' = rep(-170, 100),
                                 'lat' = rep(57, 100),
-                                'doy' = seq(min(data$doy),
-                                            max(data$doy),
+                                'doy' = seq(min(data$doy, na.rm = T),
+                                            max(data$doy, na.rm = T),
                                             length = 100),
                                 mean_temp = rep(mean(data$mean_temp, na.rm = T), 100),
                                 'year' = rep(2014, 100),
@@ -1443,8 +1444,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc(pk_egg, pkegg_gams_t[[1]][[5]], pkegg_vcgrids_t, "Spatial GAM hindcast")
-legend(140,
-       11,
+legend(50,
+       6,
          legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
          lty = 1,
@@ -1598,8 +1599,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc(pk_larvae, pklarvae_gams_t[[1]][[5]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
-legend(140,
-       11,
+legend(50,
+       2,
          legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
          lty = 1,
@@ -1778,7 +1779,7 @@ par(mfrow = c(1, 3),
     family = "serif")
 map_vc(fhs_egg, fhsegg_gams_t[[1]][[5]], fhsegg_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
-       11,
+       0,
          legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
          lty = 1,
@@ -1829,11 +1830,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhslarvae_phenology_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_phenology_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_phenology_t # 0.119
+ratio_fhslarvae_phenology_t # 
 
 ratio_fhslarvae_geography_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_geography_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_geography_t # 0.426
+ratio_fhslarvae_geography_t # 
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1935,8 +1936,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc(fhs_larvae, fhslarvae_gams_t[[1]][[5]], fhslarvae_vcgrids_t, "Spatial GAM hindcast")
-legend(140,
-       11,
+legend(45,
+       0.75,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -1988,7 +1989,7 @@ yfs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                         method = 'REML')
 summary(yfs_egg_phenology_t)
 AIC(yfs_egg_phenology_t)
-# AIC: 9907
+# AIC: 
 
 yfs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                           s(lon, lat) +
@@ -1999,7 +2000,7 @@ yfs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                         method = 'REML')
 summary(yfs_egg_geography_t)
 AIC(yfs_egg_geography_t)
-# AIC: 8939
+# AIC: 
 ```
 
 Ratio for comparison between base and flexible models 
@@ -2114,8 +2115,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc(yfs_egg, yfsegg_gams_t[[1]][[5]], yfsegg_vcgrids_t, "Spatial GAM hindcast")
-legend(140,
-       11,
+legend(40,
+       2,
          legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
          lty = 1,
@@ -2273,7 +2274,7 @@ par(mfrow = c(1, 3),
     family = "serif")
 map_vc(yfs_larvae, yfslarvae_gams_t[[1]][[5]], yfslarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
-       11,
+       21,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -2358,14 +2359,14 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akpegg_gams_t <- gam_selection(akp_egg, roms_temps)
-AIC(akpegg_gams_t[[1]][[1]]) # 
-AIC(akpegg_gams_t[[1]][[2]]) # 
-AIC(akpegg_gams_t[[1]][[3]]) # 
-AIC(akpegg_gams_t[[1]][[4]]) # 
-AIC(akpegg_gams_t[[1]][[5]]) #
-AIC(akpegg_gams_t[[1]][[6]]) # 
-AIC(akpegg_gams_t[[1]][[7]]) # 
-summary(akpegg_gams_t[[2]]) # best model is spatial VC
+AIC(akpegg_gams_t[[1]][[1]]) # 14191
+AIC(akpegg_gams_t[[1]][[2]]) # 14104
+AIC(akpegg_gams_t[[1]][[3]]) # 14101
+AIC(akpegg_gams_t[[1]][[4]]) # 14140
+AIC(akpegg_gams_t[[1]][[5]]) # 14031
+AIC(akpegg_gams_t[[1]][[6]]) # 14143
+AIC(akpegg_gams_t[[1]][[7]]) # 14065
+summary(akpegg_gams_t[[2]]) # best model is temporal VC
 ```
 
 Plot best model for phenology
@@ -2410,11 +2411,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akpegg_month_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[5]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_month_t #
+var_ratio_akpegg_month_t # 0.122
 
 var_ratio_akpegg_space_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[7]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_space_t #
+var_ratio_akpegg_space_t # 0.111
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -2452,8 +2453,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc(akp_egg, akpegg_gams_t[[1]][[5]], akpegg_vcgrids_t, "Spatial GAM hindcast")
-legend(140,
-       11,
+legend(120,
+       5,
          legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
          lty = 1,
@@ -2516,14 +2517,14 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akplarvae_gams_t <- gam_selection(akp_larvae, roms_temps)
-AIC(akplarvae_gams_t[[1]][[1]]) #
-AIC(akplarvae_gams_t[[1]][[2]]) #
-AIC(akplarvae_gams_t[[1]][[3]]) #
-AIC(akplarvae_gams_t[[1]][[4]]) #
-AIC(akplarvae_gams_t[[1]][[5]]) #
-AIC(akplarvae_gams_t[[1]][[6]]) #
-AIC(akplarvae_gams_t[[1]][[7]]) #
-summary(akplarvae_gams_t[[2]]) # best is spatial VC
+AIC(akplarvae_gams_t[[1]][[1]]) # 6031
+AIC(akplarvae_gams_t[[1]][[2]]) # 5996
+AIC(akplarvae_gams_t[[1]][[3]]) # 5997
+AIC(akplarvae_gams_t[[1]][[4]]) # 5915
+AIC(akplarvae_gams_t[[1]][[5]]) # 5889
+AIC(akplarvae_gams_t[[1]][[6]]) # 5922
+AIC(akplarvae_gams_t[[1]][[7]]) # 5901
+summary(akplarvae_gams_t[[2]]) # best is phenology VC
 ```
 
 Plot best model for phenology
@@ -2568,11 +2569,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akplarvae_month_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[5]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_month_t #
+var_ratio_akplarvae_month_t # 0.169
 
 var_ratio_akplarvae_space_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[7]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_space_t #
+var_ratio_akplarvae_space_t # 0.166
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -2611,7 +2612,7 @@ par(mfrow = c(1, 3),
     family = "serif")
 map_vc(akp_larvae, akplarvae_gams_t[[1]][[5]], akplarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
-       11,
+       8,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
