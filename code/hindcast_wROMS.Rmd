@@ -1309,24 +1309,24 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-pk_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = pk_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+pk_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                            s(doy) +
+                            s(lon, lat) +
+                            s(doy, by = factor(year)),
+                          data = pk_egg,
+                          family = tw(link = 'log'),
+                          method =  'REML')
 summary(pk_egg_phenology_t)
 AIC(pk_egg_phenology_t)
 # AIC: 33996
 
 pk_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = pk_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                            s(lon, lat) +
+                            s(lon, lat, by = factor(year)) +
+                            s(doy),
+                          data = pk_egg,
+                          family = tw(link = 'log'),
+                          method = 'REML')
 summary(pk_egg_geography_t)
 AIC(pk_egg_geography_t)
 # AIC: 33177
@@ -1446,12 +1446,12 @@ par(mfrow = c(1, 3),
 map_vc(pk_egg, pkegg_gams_t[[1]][[5]], pkegg_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        6,
-         legend = c('Mean SST', '+ 1C'),
+       legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 1.2)
+       lty = 1,
+       bty = 'n',
+       lwd = 2,
+       cex = 1.2)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
          'pollock_egg_vc_t.jpg'),
@@ -1467,24 +1467,24 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-pk_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = pk_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+pk_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                               s(doy) +
+                               s(lon, lat) +
+                               s(doy, by = factor(year)),
+                             data = pk_larvae,
+                             family = tw(link = 'log'),
+                             method = 'REML')
 summary(pk_larvae_phenology_t)
 AIC(pk_larvae_phenology_t)
 # AIC: 32891
 
 pk_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = pk_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                               s(lon, lat) +
+                               s(lon, lat, by = factor(year)) +
+                               s(doy),
+                             data = pk_larvae,
+                             family = tw(link = 'log'),
+                             method = 'REML')
 summary(pk_larvae_geography_t)
 AIC(pk_larvae_geography_t)
 # AIC: 31370
@@ -1601,12 +1601,12 @@ par(mfrow = c(1, 3),
 map_vc(pk_larvae, pklarvae_gams_t[[1]][[5]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        2,
-         legend = c('Mean SST', '+ 1C'),
+       legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 1.2)
+       lty = 1,
+       bty = 'n',
+       lwd = 2,
+       cex = 1.2)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
          'pollock_larvae_vc_t.jpg'),
@@ -1621,19 +1621,19 @@ dev.off()
 ### Tweedie
 ```{r}
 fhs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = fhs_egg,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                        s(lon, lat) +
+                        s(doy),
+                      data = fhs_egg,
+                      family = tw(link = 'log'),
+                      method = 'REML')
 summary(fhs_egg_base_t)
 
 fhs_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = fhs_larvae,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                           s(lon, lat) +
+                           s(doy),
+                         data = fhs_larvae,
+                         family = tw(link = 'log'),
+                         method = 'REML')
 summary(fhs_larvae_base_t)
 ```
 
@@ -1643,24 +1643,24 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-fhs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = fhs_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+fhs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                             s(doy) +
+                             s(lon, lat) +
+                             s(doy, by = factor(year)),
+                           data = fhs_egg,
+                           family = tw(link = 'log'),
+                           method = 'REML')
 summary(fhs_egg_phenology_t)
 AIC(fhs_egg_phenology_t)
 # AIC: 9907
 
 fhs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = fhs_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                             s(lon, lat) +
+                             s(lon, lat, by = factor(year)) +
+                             s(doy),
+                           data = fhs_egg,
+                           family = tw(link = 'log'),
+                           method =  'REML')
 summary(fhs_egg_geography_t)
 AIC(fhs_egg_geography_t)
 # AIC: 8939
@@ -1780,12 +1780,12 @@ par(mfrow = c(1, 3),
 map_vc(fhs_egg, fhsegg_gams_t[[1]][[5]], fhsegg_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
        0,
-         legend = c('Mean SST', '+ 1C'),
+       legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 1.2)
+       lty = 1,
+       bty = 'n',
+       lwd = 2,
+       cex = 1.2)
 dev.copy(jpeg,
          here('results/flathead_hindcast',
          'flathead_egg_vc_t.jpg'),
@@ -1802,27 +1802,27 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-fhs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = fhs_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+fhs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                                s(doy) +
+                                s(lon, lat) +
+                                s(doy, by = factor(year)),
+                              data = fhs_larvae,
+                              family = tw(link = 'log'),
+                              method = 'REML')
 summary(fhs_larvae_phenology_t)
 AIC(fhs_larvae_phenology_t)
-# AIC: 32891
+# AIC: 22747
 
 fhs_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = fhs_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                                s(lon, lat) +
+                                s(lon, lat, by = factor(year)) +
+                                s(doy),
+                              data = fhs_larvae,
+                              family = tw(link = 'log'),
+                              method = 'REML')
 summary(fhs_larvae_geography_t)
 AIC(fhs_larvae_geography_t)
-# AIC: 31370
+# AIC: 21956
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1830,11 +1830,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhslarvae_phenology_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_phenology_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_phenology_t # 
+ratio_fhslarvae_phenology_t # 0.121
 
 ratio_fhslarvae_geography_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_geography_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_geography_t # 
+ratio_fhslarvae_geography_t # 0.271
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1958,19 +1958,19 @@ dev.off()
 ### Tweedie
 ```{r}
 yfs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = yfs_egg,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                        s(lon, lat) +
+                        s(doy),
+                      data = yfs_egg,
+                      family = tw(link = 'log'),
+                      method = 'REML')
 summary(yfs_egg_base_t)
 
 yfs_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = yfs_larvae,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                           s(lon, lat) +
+                           s(doy),
+                         data = yfs_larvae,
+                         family = tw(link = 'log'),
+                         method = 'REML')
 summary(yfs_larvae_base_t)
 ```
 
@@ -1980,27 +1980,27 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-yfs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = yfs_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+yfs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                             s(doy) +
+                             s(lon, lat) +
+                             s(doy, by = factor(year)),
+                           data = yfs_egg,
+                           family = tw(link = 'log'),
+                           method = 'REML')
 summary(yfs_egg_phenology_t)
 AIC(yfs_egg_phenology_t)
-# AIC: 
+# AIC: 1586
 
 yfs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = yfs_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                             s(lon, lat) +
+                             s(lon, lat, by = factor(year)) +
+                             s(doy),
+                           data = yfs_egg,
+                           family = tw(link = 'log'),
+                           method =  'REML')
 summary(yfs_egg_geography_t)
 AIC(yfs_egg_geography_t)
-# AIC: 
+# AIC: 997
 ```
 
 Ratio for comparison between base and flexible models 
@@ -2008,11 +2008,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_yfsegg_phenology_t <- (summary(yfs_egg_base_t)$scale - 
                       summary(yfs_egg_phenology_t)$scale) / summary(yfs_egg_base_t)$scale
-ratio_yfsegg_phenology_t #
+ratio_yfsegg_phenology_t # 0.250
 
 ratio_yfsegg_geography_t <- (summary(yfs_egg_base_t)$scale - 
                       summary(yfs_egg_geography_t)$scale) / summary(yfs_egg_base_t)$scale
-ratio_yfsegg_geography_t #
+ratio_yfsegg_geography_t #0.620
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -2117,12 +2117,12 @@ par(mfrow = c(1, 3),
 map_vc(yfs_egg, yfsegg_gams_t[[1]][[5]], yfsegg_vcgrids_t, "Spatial GAM hindcast")
 legend(40,
        2,
-         legend = c('Mean SST', '+ 1C'),
+       legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 1.2)
+       lty = 1,
+       bty = 'n',
+       lwd = 2,
+       cex = 1.2)
 dev.copy(jpeg,
          here('results/yellowfin_hindcast',
          'yellowfin_egg_vc_t.jpg'),
@@ -2139,27 +2139,27 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-yfs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = yfs_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+yfs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                                s(doy) +
+                                s(lon, lat) +
+                                s(doy, by = factor(year)),
+                              data = yfs_larvae,
+                              family = tw(link = 'log'),
+                              method =  'REML')
 summary(yfs_larvae_phenology_t)
 AIC(yfs_larvae_phenology_t)
-# AIC: 32891
+# AIC: 8269
 
 yfs_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = yfs_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                                s(lon, lat) +
+                                s(lon, lat, by = factor(year)) +
+                                s(doy),
+                              data = yfs_larvae,
+                              family = tw(link = 'log'),
+                              method = 'REML')
 summary(yfs_larvae_geography_t)
 AIC(yfs_larvae_geography_t)
-# AIC: 31370
+# AIC: 7970
 ```
 
 Ratio for comparison between base and flexible models 
@@ -2167,11 +2167,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_yfslarvae_phenology_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_phenology_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_phenology_t #
+ratio_yfslarvae_phenology_t # 0.166
 
 ratio_yfslarvae_geography_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_geography_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_geography_t #
+ratio_yfslarvae_geography_t # 0.371
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -2296,19 +2296,19 @@ dev.off()
 ### Tweedie
 ```{r}
 akp_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = akp_egg,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                        s(lon, lat) +
+                        s(doy),
+                      data = akp_egg,
+                      family = tw(link = 'log'),
+                      method =  'REML')
 summary(akp_egg_base_t)
 
 akp_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                       s(lon, lat) + 
-                       s(doy),
-                    data = akp_larvae,
-                    family = tw(link = 'log'),
-                    method = 'REML')
+                           s(lon, lat) +
+                           s(doy),
+                         data = akp_larvae,
+                         family = tw(link = 'log'),
+                         method = 'REML')
 summary(akp_larvae_base_t)
 ```
 
@@ -2318,27 +2318,27 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-akp_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = akp_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+akp_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                             s(doy) +
+                             s(lon, lat) +
+                             s(doy, by = factor(year)),
+                           data = akp_egg,
+                           family = tw(link = 'log'),
+                           method =  'REML')
 summary(akp_egg_phenology_t)
 AIC(akp_egg_phenology_t)
-# AIC: 9907
+# AIC: 13892
 
 akp_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = akp_egg,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                             s(lon, lat) +
+                             s(lon, lat, by = factor(year)) +
+                             s(doy),
+                           data = akp_egg,
+                           family = tw(link = 'log'),
+                           method =  'REML')
 summary(akp_egg_geography_t)
 AIC(akp_egg_geography_t)
-# AIC: 8939
+# AIC: 13005
 ```
 
 Ratio for comparison between base and flexible models 
@@ -2346,11 +2346,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akpegg_phenology_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_phenology_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_phenology_t #
+ratio_akpegg_phenology_t # 0.195
 
 ratio_akpegg_geography_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_geography_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_geography_t #
+ratio_akpegg_geography_t # 0.443
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -2455,12 +2455,12 @@ par(mfrow = c(1, 3),
 map_vc(akp_egg, akpegg_gams_t[[1]][[5]], akpegg_vcgrids_t, "Spatial GAM hindcast")
 legend(120,
        5,
-         legend = c('Mean SST', '+ 1C'),
+       legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
-         lty = 1,
-         bty = 'n',
-         lwd = 2,
-         cex = 1.2)
+       lty = 1,
+       bty = 'n',
+       lwd = 2,
+       cex = 1.2)
 dev.copy(jpeg,
          here('results/plaice_hindcast',
          'plaice_egg_vc_t.jpg'),
@@ -2477,27 +2477,27 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-akp_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) + 
-                          s(doy) +
-                          s(lon, lat) + 
-                          s(doy, by = factor(year)), 
-                        data = akp_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+akp_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+                                s(doy) +
+                                s(lon, lat) +
+                                s(doy, by = factor(year)),
+                              data = akp_larvae,
+                              family = tw(link = 'log'),
+                              method = 'REML')
 summary(akp_larvae_phenology_t)
 AIC(akp_larvae_phenology_t)
-# AIC: 32891
+# AIC: 6035
 
 akp_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
-                          s(lon, lat) +
-                          s(lon, lat, by = factor(year)) +
-                          s(doy), 
-                        data = akp_larvae,
-                        family = tw(link = 'log'),
-                        method = 'REML')
+                                s(lon, lat) +
+                                s(lon, lat, by = factor(year)) +
+                                s(doy),
+                              data = akp_larvae,
+                              family = tw(link = 'log'),
+                              method = 'REML')
 summary(akp_larvae_geography_t)
 AIC(akp_larvae_geography_t)
-# AIC: 31370
+# AIC: 5071
 ```
 
 Ratio for comparison between base and flexible models 
@@ -2505,11 +2505,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akplarvae_phenology_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_phenology_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_phenology_t #
+ratio_akplarvae_phenology_t # 0.132
 
 ratio_akplarvae_geography_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_geography_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_geography_t #
+ratio_akplarvae_geography_t # 0.554
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
