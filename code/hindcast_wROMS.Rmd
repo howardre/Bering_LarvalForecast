@@ -26,7 +26,10 @@ source(here('code/functions', 'map_vc.R'))
 source(here('code/functions', 'map_phenology.R'))
 source(here('code/functions', 'threepanel_base_mse.R'))
 source(here('code/functions', 'vc_grids.R'))
+source(here('code/functions', 'plot_variable.R'))
+```
 
+```{r}
 # Load ROMS temperature means
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
@@ -73,9 +76,12 @@ akp_larvae$mean_temp <- roms_temps$mean[match(akp_larvae$year, roms_temps$year)]
 
 # Colors
 contour_col <- rgb(0, 0, 255, max = 255, alpha = 0, names = "white")
-jet.colors <- colorRampPalette(rev(c("#b2182b", "#d6604d", "#f4a582", "#fddbc7",
-                                 "#f7f7f7", "#d1e5f0", "#92c5de", "#4393c3", "#2166ac")))
 
+jet.colors = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                    "#F5D363", "#EFBA55", "#EAA352",
+                                    "#E68C51", "#E0754F", "#D75C4D",
+                                    "#BB4A48", "#994240", "#763931", 
+                                    "#542D20", "#352311", "#191900")))
 ```
 
 Base models: Currently using only presence in a Gaussian GAM, may switch to Tweedie With Gaussian, multiplication by binomial GAM required (two-stage)
@@ -926,29 +932,26 @@ Determine best GAM from 7 formulations (see function)
 ```{r}
 pkegg_gams_t <- gam_selection(pk_egg, roms_temps)
 AIC(pkegg_gams_t[[1]][[1]]) #33639
-AIC(pkegg_gams_t[[1]][[2]]) #33608
-AIC(pkegg_gams_t[[1]][[3]]) #33595
-AIC(pkegg_gams_t[[1]][[4]]) #33634
-AIC(pkegg_gams_t[[1]][[5]]) #33605
-AIC(pkegg_gams_t[[1]][[6]]) #33570
-AIC(pkegg_gams_t[[1]][[7]]) #33546
-summary(pkegg_gams_t[[2]]) # best model is spatial VC
+AIC(pkegg_gams_t[[1]][[2]]) #33634
+AIC(pkegg_gams_t[[1]][[3]]) #33570
+summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]])
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(pkegg_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(pkegg_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(pkegg_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(pkegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(pkegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t[[1]][[5]])
+gam.check(pkegg_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -957,16 +960,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(pkegg_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(pkegg_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(pkegg_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(pkegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(pkegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t[[1]][[7]])
+gam.check(pkegg_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -976,12 +979,12 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t[[1]][[5]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.0494
+                         summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
+var_ratio_pkegg_month_t #0.0418
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t[[1]][[7]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.0627
+                         summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
+var_ratio_pkegg_space_t #0.0562
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1010,7 +1013,6 @@ dev.copy(jpeg,
 
 Fill grids with output from SST VC GAMs
 ```{r}
-
 pkegg_vcgrids_t <- vc_grids(pk_egg, pkegg_gams_t)
 ```
 
@@ -1019,7 +1021,7 @@ Create two panel plot Map of distribution & phenology curves with +1 temperature
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_egg, pkegg_gams_t[[1]][[5]], pkegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        6,
        legend = c('Mean SST', '+ 1C'),
@@ -1082,29 +1084,26 @@ Determine best GAM from 7 formulations (see function)
 ```{r}
 pklarvae_gams_t <- gam_selection(pk_larvae, roms_temps)
 AIC(pklarvae_gams_t[[1]][[1]]) #32702
-AIC(pklarvae_gams_t[[1]][[2]]) #32501
-AIC(pklarvae_gams_t[[1]][[3]]) #32484
-AIC(pklarvae_gams_t[[1]][[4]]) #32677
-AIC(pklarvae_gams_t[[1]][[5]]) #32470
-AIC(pklarvae_gams_t[[1]][[6]]) #32605
-AIC(pklarvae_gams_t[[1]][[7]]) #32395
-summary(pklarvae_gams_t[[2]])
+AIC(pklarvae_gams_t[[1]][[2]]) #32677
+AIC(pklarvae_gams_t[[1]][[3]]) #32605
+summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #96.6
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pklarvae_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(pklarvae_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(pklarvae_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(pklarvae_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(pklarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pklarvae_gams_t[[1]][[5]])
+gam.check(pklarvae_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1113,16 +1112,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pklarvae_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(pklarvae_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(pklarvae_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(pklarvae_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(pklarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pklarvae_gams_t[[1]][[7]])
+gam.check(pklarvae_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1132,12 +1131,12 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_pklarvae_month_t <- (summary(pk_larvae_base_t)$scale - 
-                         summary(pklarvae_gams_t[[1]][[5]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_month_t #0.126
+                         summary(pklarvae_gams_t[[1]][[2]])$scale) / summary(pk_larvae_base_t)$scale
+var_ratio_pklarvae_month_t #0.0808
 
 var_ratio_pklarvae_space_t <- (summary(pk_larvae_base_t)$scale - 
-                         summary(pklarvae_gams_t[[1]][[7]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_space_t #0.141
+                         summary(pklarvae_gams_t[[1]][[3]])$scale) / summary(pk_larvae_base_t)$scale
+var_ratio_pklarvae_space_t #0.0960
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1174,7 +1173,7 @@ Create two panel plot Map of distribution & phenology curves with +1 temperature
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_larvae, pklarvae_gams_t[[1]][[5]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc(pk_larvae, pklarvae_gams_t[[2]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        2,
        legend = c('Mean SST', '+ 1C'),
@@ -1261,29 +1260,26 @@ Determine best GAM from 7 formulations (see function)
 ```{r}
 fhsegg_gams_t <- gam_selection(fhs_egg, roms_temps)
 AIC(fhsegg_gams_t[[1]][[1]]) # 10090
-AIC(fhsegg_gams_t[[1]][[2]]) # 10009
-AIC(fhsegg_gams_t[[1]][[3]]) # 10011
-AIC(fhsegg_gams_t[[1]][[4]]) # 10053
-AIC(fhsegg_gams_t[[1]][[5]]) # 9984
-AIC(fhsegg_gams_t[[1]][[6]]) # 10046
-AIC(fhsegg_gams_t[[1]][[7]]) # 9980
-summary(fhsegg_gams_t[[2]]) # best model is spatial VC
+AIC(fhsegg_gams_t[[1]][[2]]) # 10053
+AIC(fhsegg_gams_t[[1]][[3]]) # 10046
+summary(fhsegg_gams_t[[2]]) # best model is spatial VC, remove salinity
+AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) #43.5
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(fhsegg_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(fhsegg_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(fhsegg_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(fhsegg_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(fhsegg_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(fhsegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(fhsegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(fhsegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(fhsegg_gams_t[[1]][[5]])
+gam.check(fhsegg_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1292,16 +1288,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(fhsegg_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(fhsegg_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(fhsegg_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(fhsegg_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(fhsegg_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(fhsegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(fhsegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(fhsegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(fhsegg_gams_t[[1]][[7]])
+gam.check(fhsegg_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1311,12 +1307,12 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_fhsegg_month_t <- (summary(fhs_egg_base_t)$scale - 
-                         summary(fhsegg_gams_t[[1]][[5]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_month_t #0.0954
+                         summary(fhsegg_gams_t[[1]][[2]])$scale) / summary(fhs_egg_base_t)$scale
+var_ratio_fhsegg_month_t #0.0592
 
 var_ratio_fhsegg_space_t <- (summary(fhs_egg_base_t)$scale - 
-                         summary(fhsegg_gams_t[[1]][[7]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_space_t #0.0978
+                         summary(fhsegg_gams_t[[1]][[3]])$scale) / summary(fhs_egg_base_t)$scale
+var_ratio_fhsegg_space_t #0.0614
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1353,7 +1349,7 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(fhs_egg, fhsegg_gams_t[[1]][[5]], fhsegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(fhs_egg, fhsegg_gams_t[[2]], fhsegg_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
        0,
        legend = c('Mean SST', '+ 1C'),
@@ -1418,30 +1414,27 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 fhslarvae_gams_t <- gam_selection(fhs_larvae, roms_temps)
-AIC(fhslarvae_gams_t[[1]][[1]])
-AIC(fhslarvae_gams_t[[1]][[2]])
-AIC(fhslarvae_gams_t[[1]][[3]])
-AIC(fhslarvae_gams_t[[1]][[4]])
-AIC(fhslarvae_gams_t[[1]][[5]])
-AIC(fhslarvae_gams_t[[1]][[6]])
-AIC(fhslarvae_gams_t[[1]][[7]])
-summary(fhslarvae_gams_t[[2]])
+AIC(fhslarvae_gams_t[[1]][[1]]) #22870
+AIC(fhslarvae_gams_t[[1]][[2]]) #21869
+AIC(fhslarvae_gams_t[[1]][[3]]) #21874
+summary(fhslarvae_gams_t[[2]]) # best model is doy VC, keep all smooth terms
+AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) #1001.6
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(fhslarvae_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(fhslarvae_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(fhslarvae_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(fhslarvae_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(fhslarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(fhslarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(fhslarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(fhslarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(fhslarvae_gams_t[[1]][[5]])
+gam.check(fhslarvae_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1450,16 +1443,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(fhslarvae_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(fhslarvae_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(fhslarvae_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(fhslarvae_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(fhslarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(fhslarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(fhslarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(fhslarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(fhslarvae_gams_t[[1]][[7]])
+gam.check(fhslarvae_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1469,11 +1462,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_fhslarvae_month_t <- (summary(fhs_larvae_base_t)$scale - 
-                         summary(fhslarvae_gams_t[[1]][[5]])$scale) / summary(fhs_larvae_base_t)$scale
+                         summary(fhslarvae_gams_t[[1]][[2]])$scale) / summary(fhs_larvae_base_t)$scale
 var_ratio_fhslarvae_month_t #0.0701
 
 var_ratio_fhslarvae_space_t <- (summary(fhs_larvae_base_t)$scale - 
-                         summary(fhslarvae_gams_t[[1]][[7]])$scale) / summary(fhs_larvae_base_t)$scale
+                         summary(fhslarvae_gams_t[[1]][[3]])$scale) / summary(fhs_larvae_base_t)$scale
 var_ratio_fhslarvae_space_t #0.0725
 ```
 
@@ -1511,9 +1504,9 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(fhs_larvae, fhslarvae_gams_t[[1]][[5]], fhslarvae_vcgrids_t, "Spatial GAM hindcast")
-legend(45,
-       0.75,
+map_vc(fhs_larvae, fhslarvae_gams_t[[2]], fhslarvae_vcgrids_t, "Spatial GAM hindcast")
+legend(40,
+       0.5,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -1600,27 +1593,24 @@ yfsegg_gams_t <- gam_selection(yfs_egg, roms_temps)
 AIC(yfsegg_gams_t[[1]][[1]]) # 1830
 AIC(yfsegg_gams_t[[1]][[2]]) # 1774
 AIC(yfsegg_gams_t[[1]][[3]]) # 1774
-AIC(yfsegg_gams_t[[1]][[4]]) # 1825
-AIC(yfsegg_gams_t[[1]][[5]]) # 1776
-AIC(yfsegg_gams_t[[1]][[6]]) # 1831
-AIC(yfsegg_gams_t[[1]][[7]]) # 1767
-summary(yfsegg_gams_t[[2]]) # best model is spatial VC
+summary(yfsegg_gams_t[[2]]) # best model is base model, use VC spatial, no environmental smooth terms significant
+AIC(yfsegg_gams_t[[1]][[1]]) - AIC(yfsegg_gams_t[[2]]) #-1.1
 ```
 
 Plot best model for phenology
 ```{r}
-# Best model by AIC is model 2
+# Best model by AIC is model 1
 par(mfrow = c(2, 2))
-plot(yfsegg_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(yfsegg_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(yfsegg_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(yfsegg_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(yfsegg_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(yfsegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(yfsegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(yfsegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(yfsegg_gams_t[[1]][[5]])
+gam.check(yfsegg_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1629,16 +1619,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(yfsegg_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(yfsegg_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(yfsegg_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(yfsegg_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(yfsegg_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(yfsegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(yfsegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(yfsegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(yfsegg_gams_t[[1]][[7]])
+gam.check(yfsegg_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1648,12 +1638,12 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_yfsegg_month_t <- (summary(yfs_egg_base_t)$scale - 
-                         summary(yfsegg_gams_t[[1]][[5]])$scale) / summary(yfs_egg_base_t)$scale
-var_ratio_yfsegg_month_t #0.0373
+                         summary(yfsegg_gams_t[[1]][[2]])$scale) / summary(yfs_egg_base_t)$scale
+var_ratio_yfsegg_month_t #-0.0322
 
 var_ratio_yfsegg_space_t <- (summary(yfs_egg_base_t)$scale - 
-                         summary(yfsegg_gams_t[[1]][[7]])$scale) / summary(yfs_egg_base_t)$scale
-var_ratio_yfsegg_space_t #0.0506
+                         summary(yfsegg_gams_t[[1]][[3]])$scale) / summary(yfs_egg_base_t)$scale
+var_ratio_yfsegg_space_t #-0.0282
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1690,7 +1680,7 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(yfs_egg, yfsegg_gams_t[[1]][[5]], yfsegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(yfs_egg, yfsegg_gams_t[[1]][[2]], yfsegg_vcgrids_t, "Spatial GAM hindcast")
 legend(40,
        2,
        legend = c('Mean SST', '+ 1C'),
@@ -1755,30 +1745,27 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 yfslarvae_gams_t <- gam_selection(yfs_larvae, roms_temps)
-AIC(yfslarvae_gams_t[[1]][[1]]) #8511
-AIC(yfslarvae_gams_t[[1]][[2]]) #8453
-AIC(yfslarvae_gams_t[[1]][[3]]) #8457
-AIC(yfslarvae_gams_t[[1]][[4]]) #8459
-AIC(yfslarvae_gams_t[[1]][[5]]) #8404
-AIC(yfslarvae_gams_t[[1]][[6]]) #8395
-AIC(yfslarvae_gams_t[[1]][[7]]) #8370
-summary(yfslarvae_gams_t[[2]]) # best is spatial VC
+AIC(yfslarvae_gams_t[[1]][[1]]) # 8511
+AIC(yfslarvae_gams_t[[1]][[2]]) # 8459
+AIC(yfslarvae_gams_t[[1]][[3]]) # 8395
+summary(yfslarvae_gams_t[[2]]) # best is spatial VC, keep all smooth terms
+AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 115.9
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(yfslarvae_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(yfslarvae_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(yfslarvae_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(yfslarvae_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(yfslarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(yfslarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(yfslarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(yfslarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(yfslarvae_gams_t[[1]][[5]])
+gam.check(yfslarvae_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1787,16 +1774,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(yfslarvae_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(yfslarvae_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(yfslarvae_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(yfslarvae_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(yfslarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(yfslarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(yfslarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(yfslarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(yfslarvae_gams_t[[1]][[7]])
+gam.check(yfslarvae_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1806,11 +1793,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_yfslarvae_month_t <- (summary(yfs_larvae_base_t)$scale - 
-                         summary(yfslarvae_gams_t[[1]][[5]])$scale) / summary(yfs_larvae_base_t)$scale
+                         summary(yfslarvae_gams_t[[1]][[2]])$scale) / summary(yfs_larvae_base_t)$scale
 var_ratio_yfslarvae_month_t #0.078
 
 var_ratio_yfslarvae_space_t <- (summary(yfs_larvae_base_t)$scale - 
-                         summary(yfslarvae_gams_t[[1]][[7]])$scale) / summary(yfs_larvae_base_t)$scale
+                         summary(yfslarvae_gams_t[[1]][[3]])$scale) / summary(yfs_larvae_base_t)$scale
 var_ratio_yfslarvae_space_t #0.956
 ```
 
@@ -1848,7 +1835,7 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(yfs_larvae, yfslarvae_gams_t[[1]][[5]], yfslarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc(yfs_larvae, yfslarvae_gams_t[[2]], yfslarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
        21,
        legend = c('Mean SST', '+ 1C'),
@@ -1936,29 +1923,26 @@ Determine best GAM from 7 formulations (see function)
 ```{r}
 akpegg_gams_t <- gam_selection(akp_egg, roms_temps)
 AIC(akpegg_gams_t[[1]][[1]]) # 14191
-AIC(akpegg_gams_t[[1]][[2]]) # 14104
-AIC(akpegg_gams_t[[1]][[3]]) # 14101
-AIC(akpegg_gams_t[[1]][[4]]) # 14140
-AIC(akpegg_gams_t[[1]][[5]]) # 14031
-AIC(akpegg_gams_t[[1]][[6]]) # 14143
-AIC(akpegg_gams_t[[1]][[7]]) # 14065
-summary(akpegg_gams_t[[2]]) # best model is temporal VC
+AIC(akpegg_gams_t[[1]][[2]]) # 14140
+AIC(akpegg_gams_t[[1]][[3]]) # 14143
+summary(akpegg_gams_t[[2]]) # best model is temporal VC, keep all terms
+AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #50.3
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(akpegg_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(akpegg_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(akpegg_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(akpegg_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(akpegg_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(akpegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(akpegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(akpegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(akpegg_gams_t[[1]][[5]])
+gam.check(akpegg_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1967,16 +1951,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(akpegg_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(akpegg_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(akpegg_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(akpegg_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(akpegg_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(akpegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(akpegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(akpegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(akpegg_gams_t[[1]][[7]])
+gam.check(akpegg_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1986,11 +1970,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_akpegg_month_t <- (summary(akp_egg_base_t)$scale - 
-                         summary(akpegg_gams_t[[1]][[5]])$scale) / summary(akp_egg_base_t)$scale
+                         summary(akpegg_gams_t[[1]][[2]])$scale) / summary(akp_egg_base_t)$scale
 var_ratio_akpegg_month_t # 0.122
 
 var_ratio_akpegg_space_t <- (summary(akp_egg_base_t)$scale - 
-                         summary(akpegg_gams_t[[1]][[7]])$scale) / summary(akp_egg_base_t)$scale
+                         summary(akpegg_gams_t[[1]][[3]])$scale) / summary(akp_egg_base_t)$scale
 var_ratio_akpegg_space_t # 0.111
 ```
 
@@ -2028,7 +2012,7 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(akp_egg, akpegg_gams_t[[1]][[5]], akpegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(akp_egg, akpegg_gams_t[[2]], akpegg_vcgrids_t, "Spatial GAM hindcast")
 legend(120,
        5,
        legend = c('Mean SST', '+ 1C'),
@@ -2094,29 +2078,26 @@ Determine best GAM from 7 formulations (see function)
 ```{r}
 akplarvae_gams_t <- gam_selection(akp_larvae, roms_temps)
 AIC(akplarvae_gams_t[[1]][[1]]) # 6031
-AIC(akplarvae_gams_t[[1]][[2]]) # 5996
-AIC(akplarvae_gams_t[[1]][[3]]) # 5997
-AIC(akplarvae_gams_t[[1]][[4]]) # 5915
-AIC(akplarvae_gams_t[[1]][[5]]) # 5889
-AIC(akplarvae_gams_t[[1]][[6]]) # 5922
-AIC(akplarvae_gams_t[[1]][[7]]) # 5901
+AIC(akplarvae_gams_t[[1]][[2]]) # 5915
+AIC(akplarvae_gams_t[[1]][[3]]) # 5922
 summary(akplarvae_gams_t[[2]]) # best is phenology VC
+AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) #115.7
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(akplarvae_gams_t[[1]][[5]], select = 1, main = "DOY")
-plot(akplarvae_gams_t[[1]][[5]], select = 4, main = "Temperature")
-plot(akplarvae_gams_t[[1]][[5]], select = 5, main = "Salinity")
-plot(akplarvae_gams_t[[1]][[5]], select = 6, main = "DOY by Mean ROMS SST")
+plot(akplarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
+plot(akplarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
+plot(akplarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
+plot(akplarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(akplarvae_gams_t[[1]][[5]])
+gam.check(akplarvae_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -2125,16 +2106,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(akplarvae_gams_t[[1]][[7]], select = 1, main = "DOY")
-plot(akplarvae_gams_t[[1]][[7]], select = 4, main = "Temperature")
-plot(akplarvae_gams_t[[1]][[7]], select = 5, main = "Salinity")
-plot(akplarvae_gams_t[[1]][[7]], select = 6, main = "Location by Mean ROMS SST")
+plot(akplarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(akplarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(akplarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
+plot(akplarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(akplarvae_gams_t[[1]][[7]])
+gam.check(akplarvae_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -2144,11 +2125,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_akplarvae_month_t <- (summary(akp_larvae_base_t)$scale - 
-                         summary(akplarvae_gams_t[[1]][[5]])$scale) / summary(akp_larvae_base_t)$scale
+                         summary(akplarvae_gams_t[[1]][[2]])$scale) / summary(akp_larvae_base_t)$scale
 var_ratio_akplarvae_month_t # 0.169
 
 var_ratio_akplarvae_space_t <- (summary(akp_larvae_base_t)$scale - 
-                         summary(akplarvae_gams_t[[1]][[7]])$scale) / summary(akp_larvae_base_t)$scale
+                         summary(akplarvae_gams_t[[1]][[3]])$scale) / summary(akp_larvae_base_t)$scale
 var_ratio_akplarvae_space_t # 0.166
 ```
 
@@ -2186,7 +2167,7 @@ Create three panel plot Map of distribution & phenology curves with +1 temperatu
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(akp_larvae, akplarvae_gams_t[[1]][[5]], akplarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc(akp_larvae, akplarvae_gams_t[[2]], akplarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(140,
        8,
        legend = c('Mean SST', '+ 1C'),
