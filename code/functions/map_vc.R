@@ -1,15 +1,15 @@
 map_vc <- function(data, gam, grids, title){
   nlat = 80
   nlon = 120
-  latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
-  lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
+  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   myvis_gam(gam,
             view = c('lon', 'lat'),
             too.far = 0.04,
             plot.type = 'contour',
             contour.col = contour_col,
-            color = "jet" ,
-            type = 'response',
+            color = "jet",
+            type = 'link',
             xlim = c(-176.5, -156.5),
             ylim = c(52, 62),
             xlab = "",
@@ -24,7 +24,7 @@ map_vc <- function(data, gam, grids, title){
             plot.type = 'contour',
             contour.col = contour_col,
             color = "jet" ,
-            type = 'response',
+            type = 'link',
             xlim = c(-176.5, -156.5),
             ylim = c(52, 62),
             family = "serif",
@@ -33,7 +33,8 @@ map_vc <- function(data, gam, grids, title){
             main = title,
             cex.main = 1.5,
             cex.lab = 1.5,
-            cex.axis = 1.5)
+            cex.axis = 1.5,
+            zlim = c(-2.5, 12.5))
   maps::map('worldHires',
             add = T,
             col = 'wheat4',
@@ -41,27 +42,15 @@ map_vc <- function(data, gam, grids, title){
   image.plot(legend.only = T,
              col = jet.colors(100),
              legend.shrink = 0.2,
-             smallplot = c(.72, .75, .24, .38),
+             smallplot = c(.75, .78, .24, .38),
              legend.cex = 0.7,
              axis.args = list(cex.axis = 0.9),
              legend.width = 0.8,
              legend.mar = 6,
-             zlim = c(min(gam$fitted.values), 
-                      max(gam$fitted.values)),
+             zlim = c(-2.5, 12.5),
              legend.args = list("Occurrence",
                                 side = 2, cex = 0.8))
-  my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",
-                                "#AFABCB", "#DAD9E5", "#F9F9F9",
-                                "#FFDAB7", "#FFB377","#E18811",
-                                "#AC6000", "#743700"))
-  color_levels = 100
-  max_absolute_value = max(abs(c(min(grids[[1]]$diff, na.rm = T), 
-                                 max(grids[[1]]$diff, na.rm = T)))) 
-  color_sequence = seq(-max_absolute_value, max_absolute_value, 
-                       length.out = color_levels + 1)
-  n_in_class = hist(grids[[1]]$diff, breaks = color_sequence, plot = F)$counts > 0
-  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
-  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
+  my_color <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
   image(lond,
         latd,
         t(matrix(grids[[1]]$diff,
@@ -81,12 +70,12 @@ map_vc <- function(data, gam, grids, title){
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
-        col = my_color(n = color_levels)[col_to_include],
-        breaks = color_sequence[breaks_to_include],
+        col = my_color(100),
         ylab = "Longitude",
         xlab = "Latitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
+        zlim = c(-5, 5),
         main = 'Change in distribution',
         cex.main = 1.5,
         cex.lab = 1.5,
@@ -96,15 +85,14 @@ map_vc <- function(data, gam, grids, title){
             col = "wheat4",
             add = T)
   image.plot(legend.only = T,
-             col = my_color(n = color_levels)[col_to_include],
+             col = my_color(100),
              legend.shrink = 0.2,
-             smallplot = c(.73, .76, .22, .36),
+             smallplot = c(.75, .78, .24, .38),
              legend.cex = 0.7,
              axis.args = list(cex.axis = 0.9),
              legend.width = 0.8,
              legend.mar = 6,
-             zlim = c(min(grids[[1]]$diff, na.rm = T), 
-                      max(grids[[1]]$diff, na.rm = T)),
+             zlim = c(-5, 5),
              legend.args = list("Predicted \n Change",
                                 side = 2, cex = 0.8))
   plot(grids[[2]]$doy,
