@@ -27,6 +27,7 @@ source(here('code/functions', 'map_phenology.R'))
 source(here('code/functions', 'threepanel_base_mse.R'))
 source(here('code/functions', 'vc_grids.R'))
 source(here('code/functions', 'plot_variable.R'))
+source(here('code/functions', 'location_plot.R'))
 ```
 
 ```{r}
@@ -2467,5 +2468,278 @@ plot_variable(akplarvae_gams_t,
               "Day of Year",
               " ",
               "n")
+dev.off()
+```
+
+#### GAM multipanel Figure
+```{r}
+#### GAM multipanel Figure
+
+tiff(here('results',
+          'hindcast_output.jpg'),
+     units = "in",
+     width = 65,
+     height = 90,
+     res = 300)
+par(mfrow = c(7, 5),
+    mar = c(11, 15, 5, 1.5) + 0.1,
+    oma = c(3, 35, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+plot_variable(pkegg_gams_t,
+              covariate = 1,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pkegg_gams_t,
+              covariate = 3,
+              bounds = c(-5.5, 7),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(pkegg_gams_t,
+              covariate = 4,
+              bounds = c(-5.5, 7),
+              "Salinity",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(pkegg_gams_t,
+              pk_egg)
+plot_variable(pklarvae_gams_t,
+              covariate = 1,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pklarvae_gams_t,
+              covariate = 3,
+              bounds = c(-5.5, 7),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(pklarvae_gams_t,
+              covariate = 4,
+              bounds = c(-5.5, 7),
+              "Salinity",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(pklarvae_gams_t,
+              pk_larvae)
+plot_variable(fhsegg_gams_t,
+              covariate = 1,
+              bounds = c(-5, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(fhsegg_gams_t,
+              covariate = 3,
+              bounds = c(-5, 3),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(fhsegg_gams_t,
+              covariate = 4,
+              bounds = c(-5, 3),
+              "Salinity",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(fhsegg_gams_t,
+              fhs_egg)
+plot_variable(fhslarvae_gams_t,
+              covariate = 1,
+              bounds = c(-5, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(fhslarvae_gams_t,
+              covariate = 3,
+              bounds = c(-5, 3),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(fhslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-5, 3),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(fhslarvae_gams_t,
+              covariate = 5,
+              bounds = c(-5, 3),
+              "Day of Year",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(akpegg_gams_t,
+              covariate = 1,
+              bounds = c(-7, 8),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(akpegg_gams_t,
+              covariate = 3,
+              bounds = c(-7, 8),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(akpegg_gams_t,
+              covariate = 4,
+              bounds = c(-7, 8),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(akpegg_gams_t,
+              covariate = 5,
+              bounds = c(-7, 8),
+              "Day of Year",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(akplarvae_gams_t,
+              covariate = 1,
+              bounds = c(-7, 8),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(akplarvae_gams_t,
+              covariate = 3,
+              bounds = c(-7, 8),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(akplarvae_gams_t,
+              covariate = 4,
+              bounds = c(-7, 8),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(akplarvae_gams_t,
+              covariate = 5,
+              bounds = c(-7, 8),
+              "Day of Year",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(yfslarvae_gams_t,
+              covariate = 1,
+              bounds = c(-20, 10),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(yfslarvae_gams_t,
+              covariate = 3,
+              bounds = c(-20, 10),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(yfslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-20, 10),
+              "Salinity",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(yfslarvae_gams_t,
+              yfs_larvae)
+mtext("Walleye Pollock", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.86)
+mtext("Flathead Sole", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.58)
+mtext("Alaska Plaice", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.29)
+mtext("Yellowfin Sole", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.08)
+mtext("Day of Year", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.11)
+mtext("Temperature", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.31)
+mtext("Salinity", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("Day of Year \n by Mean SST",
+      side = 3,
+      line = -1.8,
+      outer = TRUE,
+      cex = 7,
+      at = 0.71)
+mtext("Location",
+      side = 3,
+      line = 2,
+      outer = TRUE,
+      cex = 7,
+      at = 0.91)
+mtext("Eggs", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.93)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.79)
+mtext("Eggs", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.65)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.51)
+mtext("Eggs", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.36)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.22)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.08)
 dev.off()
 ```
