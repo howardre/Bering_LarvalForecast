@@ -254,10 +254,11 @@ table(yfs_larvae_clean$primary_net)
 # Latitude: all
 yfs_egg_trim <- trim_data(yfs_egg_clean)
 yfs_egg_trim <- filter(yfs_egg_trim,
+                       month > 7,
                        year != 1997, year != 2011)
 yfs_larvae_trim <- trim_data(yfs_larvae_clean)
 yfs_larvae_trim <- filter(yfs_larvae_trim,
-                          month > 6,
+                          month > 7,
                           year != 1997, year != 2011)
 
 # Inspect new data
@@ -271,7 +272,7 @@ table(yfs_subset_larvae$year)
 
 # Split egg and larvae data into separate datasets by date
 yfs_subset_egg1 <- filter(yfs_subset_egg, year < 1990)
-yfs_complete_larvae1 <- filter(yfs_subset_egg, year < 1990)
+yfs_complete_larvae1 <- filter(yfs_subset_larvae, year < 1990)
 yfs_subset_egg2 <- filter(yfs_subset_egg, year > 1989 & year < 1995)
 yfs_complete_larvae2 <- filter(yfs_subset_larvae, year > 1989 & year < 1995)
 yfs_subset_egg3 <- filter(yfs_subset_egg, year > 1994 & year < 2000)
@@ -363,7 +364,7 @@ table(akp_subset_larvae$year)
 
 # Split egg and larvae data into separate datasets by date
 akp_subset_egg1 <- filter(akp_subset_egg, year < 1990)
-akp_complete_larvae1 <- filter(akp_subset_egg, year < 1990)
+akp_complete_larvae1 <- filter(akp_subset_larvae, year < 1990)
 akp_subset_egg2 <- filter(akp_subset_egg, year > 1989 & year < 1995)
 akp_complete_larvae2 <- filter(akp_subset_larvae, year > 1989 & year < 1995)
 akp_subset_egg3 <- filter(akp_subset_egg, year > 1994 & year < 2000)
@@ -439,8 +440,8 @@ fhs_egg_trim <- filter(fhs_egg_trim,
                        month > 4, month < 10,
                        year != 1997, year != 2011)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
-fhs_egg_trim <- filter(fhs_egg_trim,
-                       month > 3, month < 8,
+fhs_larvae_trim <- filter(fhs_larvae_trim,
+                       month > 4, month < 8,
                        year != 1997, year != 2011)
 
 # Inspect new data
@@ -454,7 +455,7 @@ table(fhs_subset_larvae$year)
 
 # Split egg and larvae data into separate datasets by date
 fhs_subset_egg1 <- filter(fhs_subset_egg, year < 1990)
-fhs_complete_larvae1 <- filter(fhs_subset_egg, year < 1990)
+fhs_complete_larvae1 <- filter(fhs_subset_larvae, year < 1990)
 fhs_subset_egg2 <- filter(fhs_subset_egg, year > 1989 & year < 1995)
 fhs_complete_larvae2 <- filter(fhs_subset_larvae, year > 1989 & year < 1995)
 fhs_subset_egg3 <- filter(fhs_subset_egg, year > 1994 & year < 2000)
@@ -545,7 +546,7 @@ table(pk_subset_larvae$year)
 
 # Split egg and larvae data into separate datasets by date
 pk_subset_egg1 <- filter(pk_subset_egg, year < 1990)
-pk_complete_larvae1 <- filter(pk_subset_egg, year < 1990)
+pk_complete_larvae1 <- filter(pk_subset_larvae, year < 1990)
 pk_subset_egg2 <- filter(pk_subset_egg, year > 1989 & year < 1995)
 pk_complete_larvae2 <- filter(pk_subset_larvae, year > 1989 & year < 1995)
 pk_subset_egg3 <- filter(pk_subset_egg, year > 1994 & year < 2000)
