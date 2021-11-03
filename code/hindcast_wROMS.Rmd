@@ -1040,6 +1040,41 @@ dev.copy(jpeg,
 dev.off()
 ```
 
+```{r}
+tiff(here('results/pollock_hindcast/outputs',
+         'pollock_egg_output.jpg'),
+     units = "in",
+     width = 40,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 3),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(pkegg_gams_t,
+              covariate = 1,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pkegg_gams_t,
+              covariate = 3,
+              bounds = c(-5.5, 7),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(pkegg_gams_t,
+              covariate = 4,
+              bounds = c(-5.5, 7),
+              "Salinity",
+              " ",
+              "n")
+
+dev.off()
+```
+
+
 ## Larvae
 
 Models with flexible phenology or geography 
@@ -1189,6 +1224,40 @@ dev.copy(jpeg,
          width = 10,
          res = 200,
          units = 'in')
+dev.off()
+```
+
+```{r}
+tiff(here('results/pollock_hindcast/outputs',
+         'pollock_larvae_output.jpg'),
+     units = "in",
+     width = 40,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 3),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(pklarvae_gams_t,
+              covariate = 1,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pklarvae_gams_t,
+              covariate = 3,
+              bounds = c(-5.5, 7),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(pklarvae_gams_t,
+              covariate = 4,
+              bounds = c(-5.5, 7),
+              "Salinity",
+              " ",
+              "n")
+
 dev.off()
 ```
 
@@ -1368,6 +1437,39 @@ dev.copy(jpeg,
 dev.off()
 ```
 
+```{r}
+tiff(here('results/flathead_hindcast/outputs',
+         'flathead_egg_output.jpg'),
+     units = "in",
+     width = 40,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 3),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(fhsegg_gams_t,
+              covariate = 1,
+              bounds = c(-5, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(fhsegg_gams_t,
+              covariate = 3,
+              bounds = c(-5, 3),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(fhsegg_gams_t,
+              covariate = 4,
+              bounds = c(-5, 3),
+              "Salinity",
+              " ",
+              "n")
+
+dev.off()
+```
 
 ## Larvae
 
@@ -1520,6 +1622,45 @@ dev.copy(jpeg,
          width = 10,
          res = 200,
          units = 'in')
+dev.off()
+```
+
+```{r}
+tiff(here('results/flathead_hindcast/outputs',
+         'flathead_larvae_output.jpg'),
+     units = "in",
+     width = 52,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 4),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(fhslarvae_gams_t,
+              covariate = 1,
+              bounds = c(-5, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(fhslarvae_gams_t,
+              covariate = 3,
+              bounds = c(-5, 3),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(fhslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-5, 3),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(fhslarvae_gams_t,
+              covariate = 5,
+              bounds = c(-5, 3),
+              "Day of Year",
+              " ",
+              "n")
 dev.off()
 ```
 
@@ -1699,6 +1840,39 @@ dev.copy(jpeg,
 dev.off()
 ```
 
+```{r}
+tiff(here('results/yellowfin_hindcast/outputs',
+         'yellowfin_egg_output.jpg'),
+     units = "in",
+     width = 40,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 3),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(yfsegg_gams_t,
+              covariate = 1,
+              bounds = c(-20, 10),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(yfsegg_gams_t,
+              covariate = 3,
+              bounds = c(-20, 10),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(yfsegg_gams_t,
+              covariate = 4,
+              bounds = c(-20, 10),
+              "Salinity",
+              " ",
+              "n")
+
+dev.off()
+```
 
 ## Larvae
 
@@ -1854,6 +2028,39 @@ dev.copy(jpeg,
 dev.off()
 ```
 
+```{r}
+tiff(here('results/yellowfin_hindcast/outputs',
+         'yellowfin_larvae_output.jpg'),
+     units = "in",
+     width = 40,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 3),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(yfslarvae_gams_t,
+              covariate = 1,
+              bounds = c(-20, 10),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(yfslarvae_gams_t,
+              covariate = 3,
+              bounds = c(-20, 10),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(yfslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-20, 10),
+              "Salinity",
+              " ",
+              "n")
+
+dev.off()
+```
 
 #### Alaska Plaice
 ### Tweedie
@@ -1926,7 +2133,7 @@ AIC(akpegg_gams_t[[1]][[1]]) # 14191
 AIC(akpegg_gams_t[[1]][[2]]) # 14140
 AIC(akpegg_gams_t[[1]][[3]]) # 14143
 summary(akpegg_gams_t[[2]]) # best model is temporal VC, keep all terms
-AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #50.3
+AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #50.4
 ```
 
 Plot best model for phenology
@@ -2031,6 +2238,44 @@ dev.copy(jpeg,
 dev.off()
 ```
 
+```{r}
+tiff(here('results/plaice_hindcast/outputs',
+         'plaice_egg_output.jpg'),
+     units = "in",
+     width = 52,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 4),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(akpegg_gams_t,
+              covariate = 1,
+              bounds = c(-7, 8),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(akpegg_gams_t,
+              covariate = 3,
+              bounds = c(-7, 8),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(akpegg_gams_t,
+              covariate = 4,
+              bounds = c(-7, 8),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(akpegg_gams_t,
+              covariate = 5,
+              bounds = c(-7, 8),
+              "Day of Year",
+              " ",
+              "n")
+dev.off()
+```
 
 ## Larvae
 
@@ -2183,5 +2428,44 @@ dev.copy(jpeg,
          width = 10,
          res = 200,
          units = 'in')
+dev.off()
+```
+
+```{r}
+tiff(here('results/plaice_hindcast/outputs',
+         'plaice_larvae_output.jpg'),
+     units = "in",
+     width = 52,
+     height = 12,
+     res = 200)
+
+par(mfrow = c(1, 4),
+    mar = c(11, 15, .5, 0.6) + 0.1,
+    oma = c(3, 1, 1, 1),
+    mgp = c(9, 4, 0))
+plot_variable(akplarvae_gams_t,
+              covariate = 1,
+              bounds = c(-7, 8),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(akplarvae_gams_t,
+              covariate = 3,
+              bounds = c(-7, 8),
+              "Temperature",
+              " ",
+              "n")
+plot_variable(akplarvae_gams_t,
+              covariate = 4,
+              bounds = c(-7, 8),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(akplarvae_gams_t,
+              covariate = 5,
+              bounds = c(-7, 8),
+              "Day of Year",
+              " ",
+              "n")
 dev.off()
 ```
