@@ -3,6 +3,8 @@ title: "FW 599 Project"
 author: "Rebecca Howard"
 date: "10/18/2021"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -282,7 +284,7 @@ brt_egg1 <- gbm.step(data = pkegg_train_data,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.01,
-                     bag.fraction = 0.75)
+                     bag.fraction = 0.5)
 
 length(brt_egg1$fitted)
 summary(brt_egg1)
@@ -296,7 +298,7 @@ brt_egg2 <- gbm.step(data = pkegg_train_data,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.001,
-                     bag.fraction = 0.75)
+                     bag.fraction = 0.5)
 
 length(brt_egg2$fitted)
 summary(brt_egg2)
@@ -310,7 +312,7 @@ brt_egg3 <- gbm.step(data = pkegg_train_data,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.005,
-                     bag.fraction = 0.75)
+                     bag.fraction = 0.5)
 length(brt_egg3$fitted)
 summary(brt_egg3)
 ```
@@ -323,7 +325,7 @@ brt_egg4 <- gbm.step(data = pkegg_train_data,
                      family = 'gaussian',
                      tree.complexity = 1,
                      learning.rate = 0.005,
-                     bag.fraction = 0.75)
+                     bag.fraction = 0.5)
 length(brt_egg4$fitted)
 summary(brt_egg4)
 ```
@@ -365,46 +367,83 @@ length(brt_egg7$fitted)
 summary(brt_egg7)
 ```
 
+```{r}
+brt_egg8 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.75)
+length(brt_egg8$fitted)
+summary(brt_egg8)
+```
+
+```{r}
+brt_egg9 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.25)
+length(brt_egg9$fitted)
+summary(brt_egg9)
+```
+
+Attempt dropping variables
+```{r}
+pkegg_simp <- gbm.simplify(brt_egg7, n.drops = 5)
+summary(pkegg_simp)
+```
+
+Clear that two variables should be dropped
+```{r}
+pkegg_final <- gbm.step(pkegg_train_data,
+                       gbm.x = pkegg_simp$pred.list[[2]], 
+                       gbm.y = 21,
+                       tree.complexity = 10, 
+                       learning.rate = 0.005,
+                       bag.fraction = 0.5,
+                       family = "gaussian")
+summary(pkegg_final)
+```
+
 Plot the variables
 ```{r}
-gbm.plot(brt_egg5, 
-         n.plots = 3, 
-         plot.layout = c(1, 3), 
+gbm.plot(brt_egg3, 
+         n.plots = 7, 
+         plot.layout = c(3, 3), 
          write.title = F,
          smooth = T)
 ```
 
 Plot the fits
 ```{r}
-gbm.plot.fits(brt_egg5)
+gbm.plot.fits(brt_egg3)
 ```
 
 Find interactions
 ```{r}
-pkegg_int <- gbm.interactions(brt_egg5)
+pkegg_int <- gbm.interactions(brt_egg3)
 pkegg_int$interactions
 
-gbm.perspec(brt_egg5, 
-            1, 3, 
-            z.range = c(0, 8.26), 
-            theta = 70,
+gbm.perspec(brt_egg3, 
+            2, 3, 
+            z.range = c(0, 6.64), 
+            theta = 60,
             col = "light blue",
             cex.axis = 0.8,
             cex.lab = 1,
             ticktype = "detailed")
 ```
 
-```{r}
-brt_egg5$
-```
-
-
 
 
 When ready, use to predict on test data
 ```{r}
-preds <- predict.gbm(brt_egg5, pkegg_test_data,
-                     n.trees = brt_egg5$gbm.call$best.trees, 
+preds <- predict.gbm(pkegg_final, pkegg_test_data,
+                     n.trees = pkegg_final$gbm.call$best.trees, 
                      type = "response")
 summary(preds)
 ```
