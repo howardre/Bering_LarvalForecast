@@ -41,16 +41,98 @@ pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 ```
 
+Split into train and test (original)
+```{r}
+pk_egg <- as.data.frame(pk_egg)
+pk_egg$presence <- 1 * (pk_egg$count > 0)
+pk_egg <- na.omit(pk_egg)
+pk_egg$abundance <- log(pk_egg$larvalcatchper10m2 + 1)
+pk_egg$offset <- log(pk_egg$volume_filtered)
+
+npoints = nrow(pk_egg) / 2
+set.seed(1993)
+points = sample_n(pk_egg, npoints, sp = TRUE)
+lat_lons = pk_egg[c('lat', 'lon')]
+pkegg_train_data = pk_egg[1:(npoints / 2), ]
+pkegg_test_data = pk_egg[(npoints / 2 + 1):npoints, ]
+```
+
+Split into train and test (blockCV version)
+Eggs:
+```{r}
+pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
+pk_egg <- as.data.frame(pk_egg)
+pk_egg$presence <- 1 * (pk_egg$count > 0)
+pk_egg <- na.omit(pk_egg)
+pk_egg$abundance <- log(pk_egg$larvalcatchper10m2 + 1)
+pk_egg$offset <- log(pk_egg$volume_filtered)
+lat_lons = pk_egg[c('lat', 'lon')]
+
+pkegg_spatial <- st_as_sf(pk_egg, coords = c("lat", "lon"))
+pkegg_spatial
+
+nfolds <- 5
+
+pkegg_sb <- spatialBlock(speciesData = pkegg_spatial,
+                         species = "presence",
+                         rows = 5,
+                         cols = 6,
+                         k = nfolds,
+                         selection = "systematic",
+                         biomod2Format = T)
+
+pkegg_spatial <- cbind(fold <- pkegg_sb$foldID,
+                       pkegg_spatial)
+
+pk_egg <- st_drop_geometry(pkegg_spatial)
+pk_egg <- cbind(lat_lons, pk_egg)
+colnames(pk_egg)[3] <- "folds"
+
+pkegg_train_data <- pk_egg[pk_egg$folds == nfolds, ]
+pkegg_test_data <- pk_egg[pk_egg$folds != nfolds, ]
+```
+
+```{r}
+pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
+pk_larvae <- as.data.frame(pk_larvae)
+pk_larvae$presence <- 1 * (pk_larvae$count > 0)
+pk_larvae <- na.omit(pk_larvae)
+pk_larvae$abundance <- log(pk_larvae$larvalcatchper10m2 + 1)
+pk_larvae$offset <- log(pk_larvae$volume_filtered)
+lat_lons = pk_larvae[c('lat', 'lon')]
+
+pklarvae_spatial <- st_as_sf(pk_larvae, coords = c("lat", "lon"))
+pklarvae_spatial
+
+nfolds <- 5
+
+pklarvae_sb <- spatialBlock(speciesData = pklarvae_spatial,
+                         species = "presence",
+                         rows = 5,
+                         cols = 6,
+                         k = nfolds,
+                         selection = "systematic",
+                         biomod2Format = T)
+
+pklarvae_spatial <- cbind(fold <- pklarvae_sb$foldID,
+                       pklarvae_spatial)
+
+pk_larvae <- st_drop_geometry(pklarvae_spatial)
+pk_larvae <- cbind(lat_lons, pk_larvae)
+colnames(pk_larvae)[3] <- "folds"
+
+pklarvae_train_data <- pk_larvae[pk_larvae$folds == nfolds, ]
+pklarvae_test_data <- pk_larvae[pk_larvae$folds != nfolds, ]
+```
+
 ### Tweedie
 Base models
 ```{r}
-pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
-
 # Tweedie
 pk_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
-                    data = pk_egg,
+                    data = pkegg_train_data,
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(pk_egg_base_t)
@@ -58,7 +140,7 @@ summary(pk_egg_base_t)
 pk_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
-                    data = pk_larvae,
+                    data = pklarvae_train_data,
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(pk_larvae_base_t)
@@ -67,12 +149,12 @@ summary(pk_larvae_base_t)
 ## Eggs
 Determine best GAM from 7 formulations (see function)
 ```{r}
-pkegg_gams_t <- gam_selection(pk_egg, roms_temps)
-AIC(pkegg_gams_t[[1]][[1]]) #33639
-AIC(pkegg_gams_t[[1]][[2]]) #33634
-AIC(pkegg_gams_t[[1]][[3]]) #33570
+pkegg_gams_t <- gam_selection(pkegg_train_data, roms_temps)
+AIC(pkegg_gams_t[[1]][[1]]) #12733
+AIC(pkegg_gams_t[[1]][[2]]) #12734
+AIC(pkegg_gams_t[[1]][[3]]) #12715
 summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]])
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) #18.0
 ```
 
 Plot best model for phenology
@@ -108,7 +190,7 @@ gam.check(pkegg_gams_t[[1]][[3]])
 
 Fill grids with output from SST VC GAMs
 ```{r}
-pkegg_vcgrids_t <- vc_grids(pk_egg, pkegg_gams_t)
+pkegg_vcgrids_t <- vc_grids(pkegg_train_data, pkegg_gams_t)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
@@ -116,7 +198,7 @@ Create two panel plot Map of distribution & phenology curves with +1 temperature
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(pkegg_train_data, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        6,
        legend = c('Mean SST', '+ 1C'),
@@ -130,12 +212,12 @@ legend(50,
 ## Larvae
 Determine best GAM from 7 formulations (see function)
 ```{r}
-pklarvae_gams_t <- gam_selection(pk_larvae, roms_temps)
-AIC(pklarvae_gams_t[[1]][[1]]) #32523
-AIC(pklarvae_gams_t[[1]][[2]]) #32497
-AIC(pklarvae_gams_t[[1]][[3]]) #32421
+pklarvae_gams_t <- gam_selection(pklarvae_train_data, roms_temps)
+AIC(pklarvae_gams_t[[1]][[1]]) #11709
+AIC(pklarvae_gams_t[[1]][[2]]) #11663
+AIC(pklarvae_gams_t[[1]][[3]]) #11671
 summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #102.0
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #46.7
 ```
 
 Plot best model for phenology
@@ -168,7 +250,7 @@ gam.check(pklarvae_gams_t[[1]][[3]])
 
 Fill grids with output from SST VC GAMs
 ```{r}
-pklarvae_vcgrids_t <- vc_grids(pk_larvae, pklarvae_gams_t)
+pklarvae_vcgrids_t <- vc_grids(pklarvae_train_data, pklarvae_gams_t)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
@@ -176,7 +258,7 @@ Create two panel plot Map of distribution & phenology curves with +1 temperature
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_larvae, pklarvae_gams_t[[2]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc(pklarvae_train_data, pklarvae_gams_t[[2]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
 legend(50,
        2,
        legend = c('Mean SST', '+ 1C'),
@@ -193,54 +275,10 @@ legend(50,
 Reference: [Example code](https://rspatial.org/raster/sdm/9_sdm_brt.html)
 
 ## Eggs
-Split into train and test (original)
-```{r}
-pk_egg <- as.data.frame(pk_egg)
-pk_egg$presence <- 1 * (pk_egg$count > 0)
-pk_egg <- na.omit(pk_egg)
-pk_egg$abundance <- log(pk_egg$larvalcatchper10m2 + 1)
-pk_egg$offset <- log(pk_egg$volume_filtered)
-
-npoints = nrow(pk_egg) / 2
-set.seed(1993)
-points = sample_n(pk_egg, npoints, sp = TRUE)
-lat_lons = pk_egg[c('lat', 'lon')]
-pkegg_train_data = pk_egg[1:(npoints / 2), ]
-pkegg_test_data = pk_egg[(npoints / 2 + 1):npoints, ]
-```
-
-Split into train and test (blockCV version)
-```{r}
-lat_lons = pk_egg[c('lat', 'lon')]
-pkegg_spatial <- st_as_sf(pk_egg, coords = c("lat", "lon"))
-pkegg_spatial
-
-nfolds <- 5
-
-pkegg_sb <- spatialBlock(speciesData = pkegg_spatial,
-                         species = "presence",
-                         rows = 5,
-                         cols = 6,
-                         k = nfolds,
-                         selection = "systematic",
-                         biomod2Format = T)
-
-pkegg_spatial <- cbind(fold <- pkegg_sb$foldID,
-                       pkegg_spatial)
-
-pk_egg <- st_drop_geometry(pkegg_spatial)
-pk_egg <- cbind(lat_lons, pk_egg)
-colnames(pk_egg)[3] <- "folds"
-
-pkegg_train_data <- pk_egg[pk_egg$folds == nfolds, ]
-pkegg_test_data <- pk_egg[pk_egg$folds != nfolds, ]
-```
-
-
 ```{r}
 brt_egg1 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.01,
@@ -253,8 +291,8 @@ summary(brt_egg1)
 Reduce the learning rate, too few trees above
 ```{r}
 brt_egg2 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.001,
@@ -267,8 +305,8 @@ summary(brt_egg2)
 Slightly higher learning rate
 ```{r}
 brt_egg3 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
                      learning.rate = 0.005,
@@ -280,8 +318,8 @@ summary(brt_egg3)
 Tree complexity = 1
 ```{r}
 brt_egg4 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 1,
                      learning.rate = 0.005,
@@ -293,8 +331,8 @@ summary(brt_egg4)
 Tree complexity = 10 
 ```{r}
 brt_egg5 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
                      learning.rate = 0.001,
@@ -305,8 +343,8 @@ summary(brt_egg5)
 
 ```{r}
 brt_egg6 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
                      learning.rate = 0.01,
@@ -317,8 +355,8 @@ summary(brt_egg6)
 
 ```{r}
 brt_egg7 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11, 12),
-                     gbm.y = 15,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
                      learning.rate = 0.005,
