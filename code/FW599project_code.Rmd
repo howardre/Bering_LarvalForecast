@@ -46,18 +46,18 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 Split into train and test (original)
 ```{r}
-pk_egg <- as.data.frame(pk_egg)
-pk_egg$presence <- 1 * (pk_egg$count > 0)
-pk_egg <- na.omit(pk_egg)
-pk_egg$abundance <- log(pk_egg$larvalcatchper10m2 + 1)
-pk_egg$offset <- log(pk_egg$volume_filtered)
-
-npoints = nrow(pk_egg) / 2
-set.seed(1993)
-points = sample_n(pk_egg, npoints, sp = TRUE)
-lat_lons = pk_egg[c('lat', 'lon')]
-pkegg_train_data = pk_egg[1:(npoints / 2), ]
-pkegg_test_data = pk_egg[(npoints / 2 + 1):npoints, ]
+# pk_egg <- as.data.frame(pk_egg)
+# pk_egg$presence <- 1 * (pk_egg$count > 0)
+# pk_egg <- na.omit(pk_egg)
+# pk_egg$abundance <- log(pk_egg$larvalcatchper10m2 + 1)
+# pk_egg$offset <- log(pk_egg$volume_filtered)
+# 
+# npoints = nrow(pk_egg) / 2
+# set.seed(1993)
+# points = sample_n(pk_egg, npoints, sp = TRUE)
+# lat_lons = pk_egg[c('lat', 'lon')]
+# pkegg_train_data = pk_egg[1:(npoints / 2), ]
+# pkegg_test_data = pk_egg[(npoints / 2 + 1):npoints, ]
 ```
 
 Split into train and test (blockCV version)
@@ -274,9 +274,302 @@ legend(50,
 
 
 
-### Boosted Regression Trees
+### Boosted Regression Trees: Comparison Models
 Reference: [Example code](https://rspatial.org/raster/sdm/9_sdm_brt.html)
+```{r}
+brt_pkegg1 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.01,
+                     bag.fraction = 0.5)
 
+length(brt_pkegg1$fitted)
+summary(brt_pkegg1)
+```
+
+Reduce the learning rate, too few trees above
+```{r}
+brt_pkegg2 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.001,
+                     bag.fraction = 0.5)
+
+length(brt_pkegg2$fitted)
+summary(brt_pkegg2)
+```
+
+Slightly higher learning rate
+```{r}
+brt_pkegg3 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_pkegg3$fitted)
+summary(brt_pkegg3)
+```
+
+Tree complexity = 1
+```{r}
+brt_pkegg4 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 1,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_pkegg4$fitted)
+summary(brt_pkegg4)
+```
+
+Tree complexity = 10 
+```{r}
+brt_pkegg5 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.001,
+                     bag.fraction = 0.5)
+length(brt_pkegg5$fitted)
+summary(brt_pkegg5)
+```
+
+```{r}
+brt_pkegg6 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.01,
+                     bag.fraction = 0.5)
+length(brt_pkegg6$fitted)
+summary(brt_pkegg6)
+```
+
+```{r}
+brt_pkegg7 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_pkegg7$fitted)
+summary(brt_pkegg7)
+```
+
+```{r}
+brt_pkegg8 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.75)
+length(brt_pkegg8$fitted)
+summary(brt_pkegg8)
+```
+
+```{r}
+brt_pkegg9 <- gbm.step(data = pkegg_train_data,
+                     gbm.x = c(7, 11:12, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.25)
+length(brt_pkegg9$fitted)
+summary(brt_pkegg9)
+```
+
+Attempt dropping variables
+```{r}
+pkegg_simp <- gbm.simplify(brt_pkegg9, n.drops = 5)
+summary(pkegg_simp)
+```
+
+Clear that no variables should be dropped
+```{r}
+pkegg_final <- brt_pkegg9
+```
+
+Plot the variables
+```{r}
+gbm.plot(pkegg_final, 
+         n.plots = 4, 
+         plot.layout = c(2, 2), 
+         write.title = F,
+         smooth = T)
+```
+
+Plot the fits
+```{r}
+gbm.plot.fits(pkegg_final)
+```
+
+Find interactions
+```{r}
+pkegg_int <- gbm.interactions(pkegg_final)
+pkegg_int$interactions
+
+par(mfrow = c(1, 3))
+gbm.perspec(pkegg_final, 
+            2, 3, 
+            z.range = c(0, 7.89), 
+            theta = 60,
+            col = "light blue",
+            cex.axis = 0.8,
+            cex.lab = 1,
+            ticktype = "detailed")
+
+gbm.perspec(pkegg_final, 
+            1, 3, 
+            z.range = c(0, 8.33), 
+            theta = 60,
+            col = "light blue",
+            cex.axis = 0.8,
+            cex.lab = 1,
+            ticktype = "detailed")
+
+gbm.perspec(pkegg_final, 
+            1, 2, 
+            z.range = c(0, 8.23), 
+            theta = 60,
+            col = "light blue",
+            cex.axis = 0.8,
+            cex.lab = 1,
+            ticktype = "detailed")
+```
+
+
+When ready, use to predict on test data
+```{r}
+preds <- predict.gbm(pkegg_final, 
+                     pkegg_test_data,
+                     n.trees = pkegg_final$gbm.call$best.trees, 
+                     type = "response")
+summary(preds)
+
+calc.deviance(obs = pkegg_test_data$abundance,
+              pred = preds,
+              calc.mean = TRUE,
+              family = "gaussian")
+
+pkegg_test_data$pred <- predict.gbm(pkegg_final, 
+                                    pkegg_test_data,
+                                    n.trees = pkegg_final$gbm.call$best.trees,
+                                    type = "response")
+```
+
+Create a grid, add predictions to it
+```{r}
+nlat = 80
+nlon = 120
+latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+spatial_grid <- expand.grid(lond, latd)
+names(spatial_grid) <- c('lon', 'lat')
+
+# match nearest neighbor
+spatial_grid[, c(3, 4)] <- as.data.frame(RANN::nn2(pkegg_test_data[, c(2, 1)], spatial_grid[, c(1, 2)], k = 1))
+spatial_grid[, 5] <- pkegg_test_data[spatial_grid[, 3], 24]
+spatial_grid <- spatial_grid[-3]
+colnames(spatial_grid)[3] <- "pred"
+spatial_grid$dist <- NA
+  for (k in 1:nrow(spatial_grid)) {
+    dist <-  distance_function(spatial_grid$lat[k],
+                               spatial_grid$lon[k],
+                               pk_egg$lat,
+                               pk_egg$lon)
+    spatial_grid$dist[k] <- min(dist)
+  }
+spatial_grid$pred[spatial_grid$dist > 30000] <- NA
+```
+
+Plot final SD map
+```{r}
+nlat = 80
+nlon = 120
+latd = seq(min(spatial_grid$lat), max(spatial_grid$lat), length.out = nlat)
+lond = seq(min(spatial_grid$lon), max(spatial_grid$lon), length.out = nlon)
+my_color = colorRampPalette(
+  c("#1C0D51",
+    "#4C408E",
+    "#7E77B0",
+    "#AFABCB",
+    "#DAD9E5",
+    "#F9F9F9",
+    "#FFDAB7",
+    "#FFB377",
+    "#E18811",
+    "#AC6000",
+    "#743700"))
+color_levels = 100
+max_absolute_value = max(abs(c( min(spatial_grid$pred, na.rm = T),
+                                max(spatial_grid$pred, na.rm = T))))
+color_sequence = seq(-max_absolute_value, max_absolute_value,
+                     length.out = color_levels + 1)
+n_in_class = hist(spatial_grid$pred, breaks = color_sequence, plot = F)$counts > 0
+col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
+
+par(mfrow = c(1, 1),
+    family = "serif")
+image(lond,
+      latd,
+      t(matrix(
+        spatial_grid$pred,
+        nrow = length(latd),
+        ncol = length(lond),
+        byrow = T)),
+      xlim = c(-176.5,-156.5),
+      ylim = c(52, 62),
+      axes = FALSE,
+      xlab = "",
+      ylab = "")
+rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
+par(new = TRUE)
+image(lond,
+      latd,
+      t(matrix(spatial_grid$pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+               byrow = T)),
+      col = my_color(n = color_levels)[col_to_include],
+      breaks = color_sequence[breaks_to_include],
+      ylab = "Latitude",
+      xlab = "Longitude",
+      xlim = c(-176.5,-156.5),
+      ylim = c(52, 62),
+      main = "Distribution of Walleye Pollock Eggs (BRT)",
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis =  1.1)
+symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0],
+        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
+        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
+        inches = 0.1,
+        bg = alpha('grey', 0.2),
+        fg = alpha('black', 0.1),
+        add = T)
+points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0],
+       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0],
+       pch =  '')
+maps::map("worldHires",
+          fill = T,
+          col = "wheat4",
+          add = T)
+```
+
+### Boosted Regression Trees: Extra Terms
 ## Eggs
 ```{r}
 brt_egg1 <- gbm.step(data = pkegg_train_data,
@@ -438,7 +731,6 @@ gbm.perspec(brt_egg3,
             cex.lab = 1,
             ticktype = "detailed")
 ```
-
 
 
 When ready, use to predict on test data
