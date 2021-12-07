@@ -26,6 +26,7 @@ library(gbm)
 library(blockCV)
 library(sf)
 library(RANN)
+library(MASS)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 source(here('code/functions', 'distance_function.R'))
 source(here('code/functions', 'gam_selection.R'))
@@ -67,7 +68,7 @@ Split into train and test (original)
 Split into train and test (blockCV version)
 Eggs:
 ```{r}
-setseed(1993)
+set.seed(1993)
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
 pk_egg <- as.data.frame(pk_egg)
 pk_egg$presence <- 1 * (pk_egg$count > 0)
@@ -100,7 +101,7 @@ pkegg_test_data <- pk_egg[pk_egg$folds != nfolds, ]
 ```
 
 ```{r}
-setseed(1993)
+set.seed(1993)
 pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
 pk_larvae <- as.data.frame(pk_larvae)
 pk_larvae$presence <- 1 * (pk_larvae$count > 0)
@@ -160,18 +161,16 @@ pkegg_gams_t <- gam_selection(pkegg_train_data, roms_temps)
 AIC(pkegg_gams_t[[1]][[1]]) #12733
 AIC(pkegg_gams_t[[1]][[2]]) #12734
 AIC(pkegg_gams_t[[1]][[3]]) #12715
-summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) #18.0
+summary(pkegg_gams_t[[2]]) # best model is doy VC, retain all smooth terms
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 21.3
 ```
 
 Plot best model for phenology
 ```{r}
-# Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(pkegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(pkegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[3]], select = 1, main = "DOY")
+plot(pkegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
+plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
 ```
 
 Plot best model for geography
@@ -194,9 +193,17 @@ plot(pkegg_gams_t[[1]][[3]], select = 4, main = "SSS",
      lwd = 0.5, ylim = c(-5.5, 8))
 ```
 
-Fill grids with output from SST VC GAMs
+Fill grids with output from SST VC GAMs, performance metrics
 ```{r}
-pkegg_vcgrids_t <- vc_grids(pk_egg, pkegg_gams_t)
+pkegg_vcgrids_t <- vc_grids(pkegg_test_data, pkegg_gams_t)
+
+pkegg_test_data$pred <- predict(pkegg_gams_t[[1]][[3]], newdata = pkegg_test_data)
+rmse_egg_gam <- sqrt(mean((pkegg_test_data$abundance - pkegg_test_data$pred)^2))
+rmse_egg_gam # 2.89
+
+pkegg_test_data <- pkegg_test_data[-c(23)]
+
+summary(pkegg_gams_t[[1]][[3]]) # deviance explained: 61.4%
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
@@ -274,12 +281,12 @@ image.plot(legend.only = T,
 ## Larvae
 Determine best GAM from 7 formulations (see function)
 ```{r}
-pklarvae_gams_t <- gam_selection(pk_larvae, roms_temps)
+pklarvae_gams_t <- gam_selection(pklarvae_train_data, roms_temps)
 AIC(pklarvae_gams_t[[1]][[1]]) #11709
 AIC(pklarvae_gams_t[[1]][[2]]) #11663
 AIC(pklarvae_gams_t[[1]][[3]]) #11671
-summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #46.7
+summary(pklarvae_gams_t[[2]]) # best model is doy, retain all smooth terms
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) # 33.9
 ```
 
 Plot best model for phenology
@@ -301,11 +308,6 @@ plot(pklarvae_gams_t[[1]][[2]], select = 4, main = "SSS",
      ylab = "Species Abundance Anomalies", seWithMean = T, 
      scale = 0, cex.axis = 1.2, cex.lab = 1.2, family = "serif", 
      lwd = 0.5, ylim = c(-5.5, 2))
-plot(pklarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean Temperature",
-     shade = T, shade.col = "#eb8055b2", xlab = "Day of Year", 
-     ylab = "Species Abundance Anomalies", seWithMean = T, 
-     scale = 0, cex.axis = 1.2, cex.lab = 1.2, family = "serif", 
-     lwd = 0.5, ylim = c(-5.5, 2))
 ```
 
 Plot best model for geography
@@ -322,7 +324,15 @@ gam.check(pklarvae_gams_t[[1]][[3]])
 
 Fill grids with output from SST VC GAMs
 ```{r}
-pklarvae_vcgrids_t <- vc_grids(pk_larvae, pklarvae_gams_t)
+pklarvae_vcgrids_t <- vc_grids(pklarvae_test_data, pklarvae_gams_t)
+
+pklarvae_test_data$pred <- predict(pklarvae_gams_t[[2]], newdata = pklarvae_test_data)
+rmse_larvae_gam <- sqrt(mean((pklarvae_test_data$abundance - pklarvae_test_data$pred)^2))
+rmse_larvae_gam # 2.73
+
+pklarvae_test_data <- pklarvae_test_data[-c(23)]
+
+summary(pklarvae_gams_t[[2]]) # deviance explained: 59.6%
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
@@ -405,7 +415,7 @@ Reference: [Example code](https://rspatial.org/raster/sdm/9_sdm_brt.html)
 ## Eggs
 ```{r}
 brt_pkegg1 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -419,7 +429,7 @@ summary(brt_pkegg1)
 Reduce the learning rate, too few trees above
 ```{r}
 brt_pkegg2 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -433,7 +443,7 @@ summary(brt_pkegg2)
 Slightly higher learning rate
 ```{r}
 brt_pkegg3 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -446,7 +456,7 @@ summary(brt_pkegg3)
 Tree complexity = 1
 ```{r}
 brt_pkegg4 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 1,
@@ -459,7 +469,7 @@ summary(brt_pkegg4)
 Tree complexity = 10 
 ```{r}
 brt_pkegg5 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -471,7 +481,7 @@ summary(brt_pkegg5)
 
 ```{r}
 brt_pkegg6 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -483,7 +493,7 @@ summary(brt_pkegg6)
 
 ```{r}
 brt_pkegg7 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -491,11 +501,15 @@ brt_pkegg7 <- gbm.step(data = pkegg_train_data,
                      bag.fraction = 0.75)
 length(brt_pkegg7$fitted)
 summary(brt_pkegg7)
+
+dev_egg_brt <- (brt_pkegg7$self.statistics$mean.null - brt_pkegg7$cv.statistics$deviance.mean) /
+  brt_pkegg7$self.statistics$mean.null
+dev_egg_brt # 50% deviance explained
 ```
 
 ```{r}
 brt_pkegg8 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -525,8 +539,8 @@ gbm.plot(pkegg_final,
          write.title = F,
          smooth = T,
          common.scale = T,
-         cex.axis = 1.2, 
-         cex.lab = 1.2,
+         cex.axis = 1.7, 
+         cex.lab = 1.7,
          lwd = 1.5)
 ```
 
@@ -578,15 +592,20 @@ preds <- predict.gbm(pkegg_final,
                      type = "response")
 summary(preds)
 
+pkegg_test_data$pred <- predict(pkegg_final, 
+                     pkegg_test_data,
+                     n.trees = pkegg_final$gbm.call$best.trees, 
+                     type = "response")
+
+rmse_egg_gam <- sqrt(mean((pkegg_test_data$abundance - pkegg_test_data$pred)^2))
+rmse_egg_gam # 2.34
+
+pkegg_test_data <- pkegg_test_data[-c(23)]
+
 calc.deviance(obs = pkegg_test_data$abundance,
               pred = preds,
               calc.mean = TRUE,
               family = "gaussian")
-
-pkegg_test_data$pred <- predict.gbm(pkegg_final, 
-                                    pkegg_test_data,
-                                    n.trees = pkegg_final$gbm.call$best.trees,
-                                    type = "response")
 
 pk_egg$pred <- predict.gbm(pkegg_final, 
                            pk_egg,
@@ -703,7 +722,7 @@ image.plot(legend.only = T,
 ## Larvae
 ```{r}
 brt_pklarvae1 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -717,7 +736,7 @@ summary(brt_pklarvae1)
 Reduce the learning rate, too few trees above
 ```{r}
 brt_pklarvae2 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -731,7 +750,7 @@ summary(brt_pklarvae2)
 Slightly higher learning rate
 ```{r}
 brt_pklarvae3 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 5,
@@ -744,7 +763,7 @@ summary(brt_pklarvae3)
 Tree complexity = 1
 ```{r}
 brt_pklarvae4 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 1,
@@ -757,7 +776,7 @@ summary(brt_pklarvae4)
 Tree complexity = 10 
 ```{r}
 brt_pklarvae5 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -769,7 +788,7 @@ summary(brt_pklarvae5)
 
 ```{r}
 brt_pklarvae6 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -781,7 +800,7 @@ summary(brt_pklarvae6)
 
 ```{r}
 brt_pklarvae7 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -789,11 +808,15 @@ brt_pklarvae7 <- gbm.step(data = pklarvae_train_data,
                      bag.fraction = 0.75)
 length(brt_pklarvae7$fitted)
 summary(brt_pklarvae7)
+
+dev_larvae_brt <- (brt_pklarvae7$self.statistics$mean.null - brt_pklarvae7$cv.statistics$deviance.mean) /
+  brt_pklarvae7$self.statistics$mean.null
+dev_larvae_brt # 55.4% deviance explained
 ```
 
 ```{r}
 brt_pklarvae8 <- gbm.step(data = pklarvae_train_data,
-                     gbm.x = c(7, 11:12, 19),
+                     gbm.x = c(6, 7, 11:12, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -821,7 +844,10 @@ gbm.plot(pklarvae_final,
          n.plots = 4, 
          plot.layout = c(2, 2), 
          write.title = F,
-         smooth = T)
+         smooth = T,
+         cex.lab = 1.7,
+         cex.axis = 1.7,
+         lwd = 1.5)
 ```
 
 Plot the fits
@@ -872,15 +898,21 @@ preds <- predict.gbm(pklarvae_final,
                      type = "response")
 summary(preds)
 
+pklarvae_test_data$pred <- predict(pklarvae_final, 
+                     pklarvae_test_data,
+                     n.trees = pklarvae_final$gbm.call$best.trees, 
+                     type = "response")
+
+rmse_larvae_gam <- sqrt(mean((pklarvae_test_data$abundance - pklarvae_test_data$pred)^2))
+rmse_larvae_gam # 2.36
+
+
 calc.deviance(obs = pklarvae_test_data$abundance,
               pred = preds,
               calc.mean = TRUE,
               family = "gaussian")
 
-pklarvae_test_data$pred <- predict.gbm(pklarvae_final, 
-                                    pklarvae_test_data,
-                                    n.trees = pklarvae_final$gbm.call$best.trees,
-                                    type = "response")
+pklarvae_test_data <- pklarvae_test_data[-c(23)]
 
 pk_larvae$pred <- predict.gbm(pklarvae_final, 
                            pk_larvae,
@@ -962,7 +994,7 @@ image(lond,
       xlab = "Longitude",
       xlim = c(-176.5,-156.5),
       ylim = c(52, 62),
-      main = "Distribution of Walleye Pollock larvaes (BRT)",
+      main = "Distribution of Walleye Pollock Larvae (BRT)",
       cex.main = 1.5,
       cex.lab = 1.5,
       cex.axis = 1.5,)
@@ -1076,7 +1108,7 @@ summary(brt_egg6)
 
 ```{r}
 brt_egg7 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:17, 19),
+                     gbm.x = c(6, 7, 11:17, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -1088,7 +1120,7 @@ summary(brt_egg7)
 
 ```{r}
 brt_egg8 <- gbm.step(data = pkegg_train_data,
-                     gbm.x = c(7, 11:17, 19),
+                     gbm.x = c(6, 7, 11:17, 19),
                      gbm.y = 21,
                      family = 'gaussian',
                      tree.complexity = 10,
@@ -1096,6 +1128,10 @@ brt_egg8 <- gbm.step(data = pkegg_train_data,
                      bag.fraction = 0.75)
 length(brt_egg8$fitted)
 summary(brt_egg8)
+
+dev_egg_brt2 <- (brt_egg8$self.statistics$mean.null - brt_egg8$cv.statistics$deviance.mean) /
+  brt_egg8$self.statistics$mean.null
+dev_egg_brt2 # 50.4%
 ```
 
 ```{r}
@@ -1112,25 +1148,29 @@ summary(brt_egg9)
 
 Attempt dropping variables
 ```{r}
-pkegg_simp <- gbm.simplify(brt_egg7, n.drops = 5)
+pkegg_simp <- gbm.simplify(brt_egg8, n.drops = 4)
 summary(pkegg_simp)
 ```
 
 Clear that two variables should be dropped
 ```{r}
-pkegg_final <- gbm.step(pkegg_train_data,
-                       gbm.x = pkegg_simp$pred.list[[2]], 
+pkegg_final2 <- gbm.step(pkegg_train_data,
+                       gbm.x = pkegg_simp$pred.list[[1]], 
                        gbm.y = 21,
                        tree.complexity = 10, 
                        learning.rate = 0.005,
-                       bag.fraction = 0.5,
+                       bag.fraction = 0.75,
                        family = "gaussian")
-summary(pkegg_final)
+summary(pkegg_final2)
+
+dev_egg_brt2 <- (pkegg_final2$self.statistics$mean.null - pkegg_final2$cv.statistics$deviance.mean) /
+  pkegg_final2$self.statistics$mean.null
+dev_egg_brt2 # 50.4%
 ```
 
 Plot the variables
 ```{r}
-gbm.plot(brt_egg3, 
+gbm.plot(pkegg_final2, 
          n.plots = 7, 
          plot.layout = c(3, 3), 
          write.title = F,
@@ -1139,15 +1179,15 @@ gbm.plot(brt_egg3,
 
 Plot the fits
 ```{r}
-gbm.plot.fits(brt_egg3)
+gbm.plot.fits(pkegg_final2)
 ```
 
 Find interactions
 ```{r}
-pkegg_int <- gbm.interactions(brt_egg3)
+pkegg_int <- gbm.interactions(pkegg_final2)
 pkegg_int$interactions
 
-gbm.perspec(brt_egg3, 
+gbm.perspec(pkegg_final2, 
             2, 3, 
             z.range = c(0, 6.64), 
             theta = 60,
@@ -1160,118 +1200,270 @@ gbm.perspec(brt_egg3,
 
 When ready, use to predict on test data
 ```{r}
-preds <- predict.gbm(pkegg_final, 
+preds <- predict.gbm(pkegg_final2, 
                      pkegg_test_data,
-                     n.trees = pkegg_final$gbm.call$best.trees, 
+                     n.trees = pkegg_final2$gbm.call$best.trees, 
                      type = "response")
 summary(preds)
+
+pkegg_test_data$pred <- predict(pkegg_final2, 
+                     pkegg_test_data,
+                     n.trees = pkegg_final2$gbm.call$best.trees, 
+                     type = "response")
+
+rmse_egg_gam <- sqrt(mean((pkegg_test_data$abundance - pkegg_test_data$pred)^2))
+rmse_egg_gam # 2.41
 
 calc.deviance(obs = pkegg_test_data$abundance,
               pred = preds,
               calc.mean = TRUE,
               family = "gaussian")
 
-pkegg_test_data$pred <- predict.gbm(pkegg_final, 
-                                    pkegg_test_data,
-                                    n.trees = pkegg_final$gbm.call$best.trees,
-                                    type = "response")
+pkegg_test_data <- pkegg_test_data[-c(23)]
 ```
 
-Create a grid, add predictions to it
+## Larvae
 ```{r}
-nlat = 160
-nlon = 240
-latd = seq(min(data$lat), max(data$lat), length.out = nlat)
-lond = seq(min(data$lon), max(data$lon), length.out = nlon)
-spatial_grid <- expand.grid(lond, latd)
-names(spatial_grid) <- c('lon', 'lat')
+brt_larvae1 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.01,
+                     bag.fraction = 0.5)
 
-# match nearest neighbor
-spatial_grid[, c(3, 4)] <- as.data.frame(RANN::nn2(pkegg_test_data[, c(2, 1)], spatial_grid[, c(1, 2)], k = 1))
-spatial_grid[, 5] <- pkegg_test_data[spatial_grid[, 3], 24]
-spatial_grid <- spatial_grid[-c(3, 4)]
-colnames(spatial_grid)[3] <- "pred"
-
-spatial_grid$dist <- NA
-  for (k in 1:nrow(spatial_grid)) {
-    dist <-  distance_function(spatial_grid$lat[k],
-                               spatial_grid$lon[k],
-                               pk_egg$lat,
-                               pk_egg$lon)
-    spatial_grid$dist[k] <- min(dist)
-  }
-spatial_grid$pred[spatial_grid$dist > 30000] <- NA
+length(brt_larvae1$fitted)
+summary(brt_larvae1)
 ```
 
-Plot final SD map
+Reduce the learning rate, too few trees above
 ```{r}
-nlat = 80
-nlon = 120
-latd = seq(min(spatial_grid$lat), max(spatial_grid$lat), length.out = nlat)
-lond = seq(min(spatial_grid$lon), max(spatial_grid$lon), length.out = nlon)
-my_color = colorRampPalette(
-  c("#1C0D51",
-    "#4C408E",
-    "#7E77B0",
-    "#AFABCB",
-    "#DAD9E5",
-    "#F9F9F9",
-    "#FFDAB7",
-    "#FFB377",
-    "#E18811",
-    "#AC6000",
-    "#743700"))
-color_levels = 100
-max_absolute_value = max(abs(c( min(spatial_grid$pred, na.rm = T),
-                                max(spatial_grid$pred, na.rm = T))))
-color_sequence = seq(-max_absolute_value, max_absolute_value,
-                     length.out = color_levels + 1)
-n_in_class = hist(spatial_grid$pred, breaks = color_sequence, plot = F)$counts > 0
-col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
-breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
-image(lond,
-      latd,
-      t(matrix(
-        spatial_grid$pred,
-        nrow = length(latd),
-        ncol = length(lond),
-        byrow = T)),
-      xlim = c(-176.5,-156.5),
-      ylim = c(52, 62),
-      axes = FALSE,
-      xlab = "",
-      ylab = "")
-rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
-par(new = TRUE)
-image(lond,
-      latd,
-      t(matrix(spatial_grid$pred,
-                 nrow = length(latd),
-                 ncol = length(lond),
-               byrow = T)),
-      col = my_color(n = color_levels)[col_to_include],
-      breaks = color_sequence[breaks_to_include],
-      ylab = "Latitude",
-      xlab = "Longitude",
-      xlim = c(-176.5,-156.5),
-      ylim = c(52, 62),
-      main = "Distribution",
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis =  1.1)
-symbols(pk_egg$lon[pk_egg$larvalcatchper10m2 > 0],
-        pk_egg$lat[pk_egg$larvalcatchper10m2 > 0],
-        circles = log(pk_egg$larvalcatchper10m2 + 1)[pk_egg$larvalcatchper10m2 > 0],
-        inches = 0.1,
-        bg = alpha('black', 0.2),
-        fg = alpha('black', 0.1),
-        add = T)
-points(pk_egg$lon[pk_egg$larvalcatchper10m2 == 0],
-       pk_egg$lat[pk_egg$larvalcatchper10m2 == 0],
-       pch =  '')
-maps::map("worldHires",
-          fill = T,
-          col = "wheat4",
-          add = T)
+brt_larvae2 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.001,
+                     bag.fraction = 0.5)
+
+length(brt_larvae2$fitted)
+summary(brt_larvae2)
+```
+
+Slightly higher learning rate
+```{r}
+brt_larvae3 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 5,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_larvae3$fitted)
+summary(brt_larvae3)
+```
+
+Tree complexity = 1
+```{r}
+brt_larvae4 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 1,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_larvae4$fitted)
+summary(brt_larvae4)
+```
+
+Tree complexity = 10 
+```{r}
+brt_larvae5 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.001,
+                     bag.fraction = 0.5)
+length(brt_larvae5$fitted)
+summary(brt_larvae5)
+```
+
+```{r}
+brt_larvae6 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.01,
+                     bag.fraction = 0.5)
+length(brt_larvae6$fitted)
+summary(brt_larvae6)
+```
+
+```{r}
+brt_larvae7 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.5)
+length(brt_larvae7$fitted)
+summary(brt_larvae7)
+```
+
+```{r}
+brt_larvae8 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(6, 7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.75)
+length(brt_larvae8$fitted)
+summary(brt_larvae8)
+
+dev_larvae_brt2 <- (brt_larvae8$self.statistics$mean.null - brt_larvae8$cv.statistics$deviance.mean) /
+  brt_larvae8$self.statistics$mean.null
+dev_larvae_brt2 # 55.4%
+```
+
+```{r}
+brt_larvae9 <- gbm.step(data = pklarvae_train_data,
+                     gbm.x = c(7, 11:17, 19),
+                     gbm.y = 21,
+                     family = 'gaussian',
+                     tree.complexity = 10,
+                     learning.rate = 0.005,
+                     bag.fraction = 0.25)
+length(brt_larvae9$fitted)
+summary(brt_larvae9)
+```
+
+Attempt dropping variables
+```{r}
+pklarvae_simp <- gbm.simplify(brt_larvae8, n.drops = 4)
+summary(pklarvae_simp)
+```
+
+Clear that three variables should be dropped
+```{r}
+pklarvae_final2 <- gbm.step(pklarvae_train_data,
+                       gbm.x = pklarvae_simp$pred.list[[3]], 
+                       gbm.y = 21,
+                       tree.complexity = 10, 
+                       learning.rate = 0.005,
+                       bag.fraction = 0.75,
+                       family = "gaussian")
+summary(pklarvae_final2)
+
+dev_larvae_brt2 <- (pklarvae_final2$self.statistics$mean.null -
+                      pklarvae_final2$cv.statistics$deviance.mean) /
+  pklarvae_final2$self.statistics$mean.null
+dev_larvae_brt2 # 55.4%
+```
+
+Plot the variables
+```{r}
+gbm.plot(pklarvae_final2, 
+         n.plots = 7, 
+         plot.layout = c(3, 3), 
+         write.title = F,
+         smooth = T)
+```
+
+Plot the fits
+```{r}
+gbm.plot.fits(pklarvae_final2)
+```
+
+Find interactions
+```{r}
+pklarvae_int <- gbm.interactions(pklarvae_final2)
+pklarvae_int$interactions
+
+gbm.perspec(pklarvae_final2, 
+            2, 3, 
+            z.range = c(0, 6.64), 
+            theta = 60,
+            col = "light blue",
+            cex.axis = 0.8,
+            cex.lab = 1,
+            ticktype = "detailed")
+```
+
+
+When ready, use to predict on test data
+```{r}
+preds <- predict.gbm(pklarvae_final2, 
+                     pklarvae_test_data,
+                     n.trees = pklarvae_final2$gbm.call$best.trees, 
+                     type = "response")
+summary(preds)
+
+pklarvae_test_data$pred <- predict(pklarvae_final2, 
+                     pklarvae_test_data,
+                     n.trees = pklarvae_final2$gbm.call$best.trees, 
+                     type = "response")
+
+rmse_larvae_gam <- sqrt(mean((pklarvae_test_data$abundance - pklarvae_test_data$pred)^2))
+rmse_larvae_gam # 2.11
+
+calc.deviance(obs = pklarvae_test_data$abundance,
+              pred = preds,
+              calc.mean = TRUE,
+              family = "gaussian")
+
+pklarvae_test_data <- pklarvae_test_data[-c(23)]
+```
+
+### Introduction map
+```{r}
+BS_bathy <- getNOAA.bathy(lon1 = -176.5, lon2 = -156.5, 
+                           lat1 = 51, lat2 = 65.5, 
+                           resolution = 1)
+blues <- c("lightsteelblue4", "lightsteelblue3", "lightsteelblue2", "lightsteelblue1")
+greys <- c(grey(0.6), grey(0.93), grey(0.99))
+```
+
+```{r}
+windows(width = 17,
+        height = 14,)
+par(mfrow = c(1, 1),
+    family = 'serif',
+    mar = c(4, 5, 3, .2) + .15)
+plot.bathy(
+  BS_bathy,
+  image = T,
+  axes = T,
+  lwd = 0.03,
+  land = T,
+  n = 0,
+  bpal = list(c(0,
+                max(BS_bathy),
+                greys),
+              c(min(BS_bathy),
+                0,
+                blues)),
+  xlim = c(-176.5,-156.8),
+  ylim = c(51, 65.5),
+  ylab = "Latitude °N",
+  xlab = "Longitude °W",
+  main = "",
+  cex.lab = 2,
+  cex.main = 2.5,
+  cex.axis = 1.8)
+points(pk_egg$lon[pk_egg$presence == 0],
+       pk_egg$lat[pk_egg$presence == 0],
+       pch = 4,
+       col = 'red',
+       cex = 1.1)
+points(pk_egg$lon[pk_egg$presence == 1],
+       pk_egg$lat[pk_egg$presence == 1],
+       pch = 18,
+       col = 'black',
+       cex = 1)
+
 ```
 
