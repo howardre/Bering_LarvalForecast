@@ -256,7 +256,9 @@ nc_close(bering_model_PhS7)
 # nc_close(bering_model)
 
 ### Egg and larval data import ----
-# From Steve email (8/02/19): The files are for 60 cm bongo catches and include both net 1 and 2 in case net 1 was a fail. For the case where catches for both net 1 and 2 are included at the same station, I would suggest using net 1 because that is the net typically used for quantitative catch.
+# From Steve email (8/02/19): The files are for 60 cm bongo catches and include both net 1 and 2 
+# in case net 1 was a fail. For the case where catches for both net 1 and 2 are included at the 
+# same station, I would suggest using net 1 because that is the net typically used for quantitative catch.
 yfs_egg_raw <- read_csv(here('data/species_data', 'YFSole_Egg_Catch.csv'))
 yfs_larvae_raw <- read_csv(here('data/species_data', 'YFSole_Larvae_Catch.csv'))
 akp_egg_raw <- read_csv(here('data/species_data', 'BS_PlaiceEggCatch.csv'))

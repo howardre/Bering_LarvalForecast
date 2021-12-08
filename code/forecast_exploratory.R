@@ -4,7 +4,7 @@
 ### Libraries, functions, and data ----
 library(maps)
 library(maptools)
-library(marmap)
+library(mapdata)
 library(raster)
 library(ncdf4)
 library(spacetime)
@@ -18,21 +18,51 @@ library(RColorBrewer)
 library(mgcv)
 source(here('code/functions', 'distance_function.R'))
 
-# Using avg surface temperatures & salinity
-bering_model_temp <- nc_open(here('data/temperature_netcdf', 
-                                   'B10K-K20_CORECFS_2020-2024_average_temp_surface5m.nc'))
-bering_model_salt <- nc_open(here('data/salinity_netcdf', 
-                                   'B10K-K20_CORECFS_2020-2024_average_salt_surface5m.nc'))
+# Fish data
+# Load ROMS temperature means
+roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
-# fish data
-yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
-yfs_larvae <- readRDS(here('data', 'yfs_larvae.rds'))
-akp_egg <- readRDS(here('data', 'akp_egg.rds'))
-akp_larvae <- readRDS(here('data', 'akp_larvae.rds'))
-fhs_egg <- readRDS(here('data', 'fhs_egg.rds'))
-fhs_larvae <- readRDS(here('data', 'fhs_larvae.rds'))
-pk_egg <- readRDS(here('data', 'pk_egg.rds'))
-pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+# Load fish data
+pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
+                               lat >= 52 & lat <= 62,
+                               lon >= -176.5 & lon <= -156.5))
+pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
+
+pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds')),
+                                  lat >= 52 & lat <= 62,
+                                  lon >= -176.5 & lon <= -156.5))
+pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
+
+fhs_egg <- as.data.frame(filter(readRDS(here('data', 'fhs_egg.rds')),
+                                lat >= 52 & lat <= 62,
+                                lon >= -176.5 & lon <= -156.5))
+fhs_egg$mean_temp <- roms_temps$mean[match(fhs_egg$year, roms_temps$year)]
+
+fhs_larvae <- as.data.frame(filter(readRDS(here('data', 'fhs_larvae.rds')),
+                                   lat >= 52 & lat <= 62,
+                                   lon >= -176.5 & lon <= -156.5))
+fhs_larvae$mean_temp <- roms_temps$mean[match(fhs_larvae$year, roms_temps$year)]
+
+yfs_egg <- as.data.frame(filter(readRDS(here('data', 'yfs_egg.rds')),
+                                lat >= 52 & lat <= 62,
+                                lon >= -176.5 & lon <= -156.5))
+yfs_egg$mean_temp <- roms_temps$mean[match(yfs_egg$year, roms_temps$year)]
+
+yfs_larvae <- as.data.frame(filter(readRDS(here('data', 'yfs_larvae.rds')),
+                                   lat >= 52 & lat <= 62,
+                                   lon >= -176.5 & lon <= -156.5))
+yfs_larvae$mean_temp <- roms_temps$mean[match(yfs_larvae$year, roms_temps$year)]
+
+akp_egg <- as.data.frame(filter(readRDS(here('data', 'akp_egg.rds')),
+                                lat >= 52 & lat <= 62,
+                                lon >= -176.5 & lon <= -156.5))
+akp_egg$mean_temp <- roms_temps$mean[match(akp_egg$year, roms_temps$year)]
+
+akp_larvae <- as.data.frame(filter(readRDS(here('data', 'akp_larvae.rds')),
+                                   lat >= 52 & lat <= 62,
+                                   lon >= -176.5 & lon <= -156.5))
+akp_larvae$mean_temp <- roms_temps$mean[match(akp_larvae$year, roms_temps$year)]
+
 
 # Match ROMS output function
 varid_match <- function(data, model_output1, model_output2){
@@ -42,14 +72,12 @@ varid_match <- function(data, model_output1, model_output2){
   for (i in 1:nrow(data)) {
     idx_time <- order(abs(model_output1[[3]] - data$date[i]))[1]
     data$roms_date[i] <- model_output1[[3]][idx_time]
-    idx_grid <- order(distance_function(
-      data$lat[i],
-      data$lon[i],
-      c(model_output1[[2]]),
-      c(model_output1[[1]])
-    ))[1]
-    data$roms_temperature[i] <- c(model_output1[[4]][, , idx_time])[idx_grid]
-    data$roms_salinity[i] <- c(model_output2[[4]][, , idx_time])[idx_grid]
+    idx_grid <- order(distance_function(data$lat[i],
+                                        data$lon[i],
+                                        c(model_output1[[2]]),
+                                        c(model_output1[[1]])))[1]
+    data$roms_temperature[i] <- c(model_output1[[4]][, , , idx_time])[idx_grid]
+    data$roms_salinity[i] <- c(model_output2[[4]][, , , idx_time])[idx_grid]
   }
   return(data)
 }
@@ -130,585 +158,109 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-# create lists of the four variables, one for salinity and temperature each
-temp_output <- nc_extract(bering_model_temp, temp, 'temp')
-salt_output <- nc_extract(bering_model_salt, salt, 'salt')
+# Function to extract netcdf
+years_list <- list('2015-2019', '2020-2024', '2025-2029', '2030-2034',
+                '2035-2039', '2040-2044', '2045-2049', '2050-2054',
+                '2055-2059', '2060-2064', '2065-2069', '2070-2074',
+                '2075-2079', '2080-2084', '2085-2089', '2090-2094',
+                '2095-2099')
 
-# Close netcdfs
-nc_close(bering_model_temp)
-nc_close(bering_model_salt)
+get_temp_filepath <- function(years){
+  filepath = paste('D:/B10K-K20P19_CMIP6_gfdl_ssp126/Level1/B10K-K20P19_CMIP6_gfdl_ssp126_', years, '_average_temp.nc', sep = '')
+  return(filepath)
+}
+
+get_salt_filepath <- function(years){
+  filepath = paste('D:/B10K-K20P19_CMIP6_gfdl_ssp126/Level1/B10K-K20P19_CMIP6_gfdl_ssp126_', years, '_average_salt.nc', sep = '')
+  return(filepath)
+}
+
+# Function to get predictions
+get_preds <- function(y, years_list, data, year, 
+                      date, doy, start_date, end_date){
+  # Prediction grid
+  nlat = 80
+  nlon = 120
+  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
+  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
+  grid_extent <- expand.grid(lond, latd)
+  names(grid_extent) <- c('lon', 'lat')
+  
+  # Calculate distance of each grid point to closest 'positive observation'
+  grid_extent$dist <- NA
+  for (k in 1:nrow(grid_extent)) {
+    dist <- distance_function(grid_extent$lat[k],
+                              grid_extent$lon[k],
+                              data$lat,
+                              data$lon)
+    grid_extent$dist[k] <- min(dist)
+  }
+  
+  # Extract from netcdf
+  bering_model_temp = nc_open(get_temp_filepath(years_list[y]))
+  bering_model_salt = nc_open(get_salt_filepath(years_list[y]))
+  
+  temp_output <- nc_extract(bering_model_temp, temp, 'temp')
+  salt_output <- nc_extract(bering_model_salt, salt, 'salt')
+  
+  nc_close(bering_model_temp)
+  nc_close(bering_model_salt)
+  
+  # Assign a within sample year and doy to the grid data
+  grid_extent$year <- year
+  grid_extent$date <- rep(as.Date(date),
+                          length(grid_extent))
+  grid_extent$doy <- rep(doy, length(grid_extent))
+  
+  # Attach ROMs forecast
+  grid_extent <- varid_match(grid_extent, temp_output, salt_output)
+  
+  # Calculate mean temperature
+  time_index <- temp_output[[3]] >= start_date & temp_output[[3]] <= end_date
+  temp_array <- temp_output[[4]][, , , time_index]
+  
+  # Select out box on the shelf
+  temp_data <- as.data.frame(cbind(lon = as.vector(temp_output[[1]]), 
+                                     lat = as.vector(temp_output[[2]]), 
+                                     temp = as.vector(temp_array)))
+  temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 56 & lat <= 58)
+  mean <- mean(temp_filtered$temp, na.rm = T)
+  
+  grid_extent$mean_temp <- mean
+  
+  gam <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+               s(doy, k = 8) +
+               s(lon, lat) +
+               s(roms_temperature, k = 6) +
+               s(roms_salinity, k = 6) +
+               s(lat, lon, by = mean_temp, k = 6),
+             data = data,
+             family = tw(link = 'log'),
+             method = 'REML')
+  
+  # Predict on forecasted output
+  grid_extent$pred <- predict(gam, newdata = grid_extent)
+  grid_extent$pred[grid_extent$dist > 30000] <- NA
+  
+  return(grid_extent)
+  
+}
+
+
 
 ### Predict future distributions ----
 #### Pollock ----
 ##### Eggs ----
-# Two-part binomial and gaussian
-# binomial
-pk_egg$presence <- 1 * (pk_egg$count > 0)
-pk_egg_gam1 <- gam(presence ~ 
-                     s(doy) +
-                     s(lat, lon),
-                   data = pk_egg,
-                   family = "binomial")
-windows()
-plot(pk_egg_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/pollock_forecast', 'pollock_egg_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~
-                     doy +
-                     s(roms_salinity, k = 4) +
-                     s(roms_temperature, k = 4),
-                   data = pk_egg[pk_egg$larvalcatchper10m2 > 0 &
-                                   pk_egg$doy == 130, ]) 
-
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(pk_egg_gam2, select = 1, main = "Salinity")
-plot(pk_egg_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/pollock_forecast', 'pollock_egg_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
+grids_pkegg1 <- list()
+for(k in 2015:2019){
+grid <- get_preds(1, years_list, pk_egg, k, "2015-05-10", 
+                  130, "2015-02-01", "2015-04-30")
+grids_pkegg1[[paste("year", k)]] <- grid
+} # only produces one year, probably not enough memory to finish
 
 
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
-lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
-grid_extent_eggpk <- expand.grid(lond, latd)
-names(grid_extent_eggpk) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_eggpk$dist <- NA
-for (k in 1:nrow(grid_extent_eggpk)) {
-  dist <- distance_function(grid_extent_eggpk$lat[k],
-                            grid_extent_eggpk$lon[k],
-                            pk_egg$lat,
-                            pk_egg$lon)
-  grid_extent_eggpk$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_eggpk$year <- 2022
-grid_extent_eggpk$date <- rep(as.Date("2022-05-10"), length(grid_extent_eggpk))
-grid_extent_eggpk$doy <- rep(130, length(grid_extent_eggpk))
-
-# Attach ROMs forecast
-grid_extent_eggpk <- varid_match(grid_extent_eggpk, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_eggpk$pred1 <- predict(pk_egg_gam1, newdata = grid_extent_eggpk)
-grid_extent_eggpk$pred2 <- predict(pk_egg_gam2, newdata = grid_extent_eggpk)
-grid_extent_eggpk$pred <- grid_extent_eggpk$pred1 * grid_extent_eggpk$pred2
-grid_extent_eggpk$pred[grid_extent_eggpk$dist > 30000] <- NA
 
 # Plot
 windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_eggpk, "Forecasted Distribution")
+grid_predict(grid_pkegg1, "Forecasted Distribution")
 
-##### Larvae ----
-# Two-part binomial and gaussian
-# binomial
-pk_larvae$presence <- 1 * (pk_larvae$count > 0)
-pk_larvae_gam1 <- gam(presence ~ 
-                     s(doy) +
-                     s(lon, lat),
-                   data = pk_larvae,
-                   family = "binomial")
-
-windows()
-plot(pk_larvae_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/pollock_forecast', 'pollock_larvae_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-pk_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                     doy +
-                     s(roms_salinity, k = 4) +
-                     s(roms_temperature, k = 4),
-                   data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0 &
-                                      pk_larvae$doy == 150, ])
-
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(pk_larvae_gam2, select = 1, main = "Salinity")
-plot(pk_larvae_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/pollock_forecast', 'pollock_larvae_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-latd = seq(min(pk_larvae$lat), max(pk_larvae$lat), length.out = nlat)
-lond = seq(min(pk_larvae$lon), max(pk_larvae$lon), length.out = nlon)
-grid_extent_larvaepk <- expand.grid(lond, latd)
-names(grid_extent_larvaepk) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_larvaepk$dist <- NA
-for (k in 1:nrow(grid_extent_larvaepk)) {
-  dist <- distance_function(grid_extent_larvaepk$lat[k],
-                            grid_extent_larvaepk$lon[k],
-                            pk_larvae$lat,
-                            pk_larvae$lon)
-  grid_extent_larvaepk$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_larvaepk$year <- 2022
-grid_extent_larvaepk$date <- rep(as.Date("2022-05-30"), length(grid_extent_larvaepk))
-grid_extent_larvaepk$doy <- rep(150, length(grid_extent_larvaepk))
-
-# Attach ROMs forecast
-grid_extent_larvaepk <- varid_match(grid_extent_larvaepk, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_larvaepk$pred1 <- predict(pk_larvae_gam1, newdata = grid_extent_larvaepk)
-grid_extent_larvaepk$pred2 <- predict(pk_larvae_gam2, newdata = grid_extent_larvaepk)
-grid_extent_larvaepk$pred <- grid_extent_larvaepk$pred1 * grid_extent_larvaepk$pred2
-grid_extent_larvaepk$pred[grid_extent_larvaepk$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_larvaepk, "Forecasted Distribution")
-
-# Combined plot
-windows(width = 12, height = 5, family = "serif")
-par(mfrow = c(1, 2), 
-    mai = c(0.9, 0.9, 0.5, 0.5))
-grid_predict(grid_extent_eggpk, "Egg Distribution")
-grid_predict(grid_extent_larvaepk, "Larval Distribution")
-dev.copy(jpeg, here('results/pollock_forecast', 'pollock_forecast.jpg'), 
-         height = 5, width = 12, res = 200, units = 'in', family = "serif")
-dev.off()
-
-#### Flathead Sole ----
-##### Eggs ----
-# Two-part binomial and gaussian
-# binomial
-fhs_egg$presence <- 1 * (fhs_egg$count > 0)
-fhs_egg_gam1 <- gam(presence ~ 
-                     s(doy) +
-                     s(lon, lat),
-                   data = fhs_egg,
-                   family = "binomial")
-
-windows()
-plot(fhs_egg_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/flathead_forecast', 'flathead_egg_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-fhs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                     doy +
-                     s(roms_salinity, k = 4) +
-                     s(roms_temperature, k = 4),
-                   data = fhs_egg[fhs_egg$larvalcatchper10m2 > 0 &
-                                    fhs_egg$doy == 140, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(fhs_egg_gam2, select = 1, main = "Salinity")
-plot(fhs_egg_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/flathead_forecast', 'flathead_egg_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(fhs_egg$lat), max(fhs_egg$lat), length.out = nlat)
-lond = seq(min(fhs_egg$lon), max(fhs_egg$lon), length.out = nlon)
-grid_extent_eggfhs <- expand.grid(lond, latd)
-names(grid_extent_eggfhs) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_eggfhs$dist <- NA
-for (k in 1:nrow(grid_extent_eggfhs)) {
-  dist <- distance_function(grid_extent_eggfhs$lat[k],
-                            grid_extent_eggfhs$lon[k],
-                            fhs_egg$lat,
-                            fhs_egg$lon)
-  grid_extent_eggfhs$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_eggfhs$year <- 2022
-grid_extent_eggfhs$date <- rep(as.Date("2022-05-20"), length(grid_extent_eggfhs))
-grid_extent_eggfhs$doy <- rep(140, length(grid_extent_eggfhs))
-
-# Attach ROMs forecast
-grid_extent_eggfhs <- varid_match(grid_extent_eggfhs, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_eggfhs$pred1 <- predict(fhs_egg_gam1, newdata = grid_extent_eggfhs)
-grid_extent_eggfhs$pred2 <- predict(fhs_egg_gam2, newdata = grid_extent_eggfhs)
-grid_extent_eggfhs$pred <- grid_extent_eggfhs$pred1 * grid_extent_eggfhs$pred2
-grid_extent_eggfhs$pred[grid_extent_eggfhs$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_eggfhs, "Forecasted Distribution")
-
-##### Larvae ----
-# Two-part binomial and gaussian
-# binomial
-fhs_larvae$presence <- 1 * (fhs_larvae$count > 0)
-fhs_larvae_gam1 <- gam(presence ~ 
-                        s(doy) +
-                        s(lon, lat),
-                      data = fhs_larvae,
-                      family = "binomial")
-windows()
-plot(fhs_larvae_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/flathead_forecast', 'flathead_larvae_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-fhs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                        doy +
-                        s(roms_salinity, k = 4) +
-                        s(roms_temperature, k = 4),
-                      data = fhs_larvae[fhs_larvae$larvalcatchper10m2 > 0 &
-                                          fhs_larvae$doy == 150, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(fhs_larvae_gam2, select = 1, main = "Salinity")
-plot(fhs_larvae_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/flathead_forecast', 'flathead_larvae_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(fhs_larvae$lat), max(fhs_larvae$lat), length.out = nlat)
-lond = seq(min(fhs_larvae$lon), max(fhs_larvae$lon), length.out = nlon)
-grid_extent_larvaefhs <- expand.grid(lond, latd)
-names(grid_extent_larvaefhs) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_larvaefhs$dist <- NA
-for (k in 1:nrow(grid_extent_larvaefhs)) {
-  dist <- distance_function(grid_extent_larvaefhs$lat[k],
-                            grid_extent_larvaefhs$lon[k],
-                            fhs_larvae$lat,
-                            fhs_larvae$lon)
-  grid_extent_larvaefhs$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_larvaefhs$year <- 2022
-grid_extent_larvaefhs$date <- rep(as.Date("2022-05-30"), length(grid_extent_larvaefhs))
-grid_extent_larvaefhs$doy <- rep(150, length(grid_extent_larvaefhs))
-
-# Attach ROMs forecast
-grid_extent_larvaefhs <- varid_match(grid_extent_larvaefhs, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_larvaefhs$pred1 <- predict(fhs_larvae_gam1, newdata = grid_extent_larvaefhs)
-grid_extent_larvaefhs$pred2 <- predict(fhs_larvae_gam2, newdata = grid_extent_larvaefhs)
-grid_extent_larvaefhs$pred <- grid_extent_larvaefhs$pred1 * grid_extent_larvaefhs$pred2
-grid_extent_larvaefhs$pred[grid_extent_larvaefhs$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_larvaefhs, "Forecasted Distribution")
-
-# Combined plot
-windows(width = 12, height = 5, family = "serif")
-par(mfrow = c(1, 2), 
-    mai = c(0.9, 0.9, 0.5, 0.5))
-grid_predict(grid_extent_eggfhs, "Egg Distribution")
-grid_predict(grid_extent_larvaefhs, "Larval Distribution")
-dev.copy(jpeg, here('results/flathead_forecast', 'flathead_forecast.jpg'), 
-         width = 12, height = 5, res = 200, units = 'in', family = "serif")
-dev.off()
-
-#### Alaska Plaice ----
-##### Eggs ----
-# Two-part binomial and gaussian
-# binomial
-akp_egg$presence <- 1 * (akp_egg$count > 0)
-akp_egg_gam1 <- gam(presence ~ 
-                      s(doy) +
-                      s(lon, lat),
-                    data = akp_egg,
-                    family = "binomial")
-windows()
-plot(akp_egg_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/plaice_forecast', 'plaice_egg_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-akp_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                      doy +
-                      s(roms_salinity, k = 4) +
-                      s(roms_temperature, k = 4),
-                    data = akp_egg[akp_egg$larvalcatchper10m2 > 0 &
-                                     akp_egg$doy == 140, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(akp_egg_gam2, select = 1, main = "Salinity")
-plot(akp_egg_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/plaice_forecast', 'plaice_egg_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(akp_egg$lat), max(akp_egg$lat), length.out = nlat)
-lond = seq(min(akp_egg$lon), max(akp_egg$lon), length.out = nlon)
-grid_extent_eggakp <- expand.grid(lond, latd)
-names(grid_extent_eggakp) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_eggakp$dist <- NA
-for (k in 1:nrow(grid_extent_eggakp)) {
-  dist <- distance_function(grid_extent_eggakp$lat[k],
-                            grid_extent_eggakp$lon[k],
-                            akp_egg$lat,
-                            akp_egg$lon)
-  grid_extent_eggakp$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_eggakp$year <- 2022
-grid_extent_eggakp$date <- rep(as.Date("2022-05-20"), length(grid_extent_eggakp))
-grid_extent_eggakp$doy <- rep(140, length(grid_extent_eggakp))
-
-# Attach ROMs forecast
-grid_extent_eggakp <- varid_match(grid_extent_eggakp, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_eggakp$pred1 <- predict(akp_egg_gam1, newdata = grid_extent_eggakp)
-grid_extent_eggakp$pred2 <- predict(akp_egg_gam2, newdata = grid_extent_eggakp)
-grid_extent_eggakp$pred <- grid_extent_eggakp$pred1 * grid_extent_eggakp$pred2
-grid_extent_eggakp$pred[grid_extent_eggakp$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_eggakp, "Forecasted Distribution")
-
-##### Larvae ----
-# Two-part binomial and gaussian
-# binomial
-akp_larvae$presence <- 1 * (akp_larvae$count > 0)
-akp_larvae_gam1 <- gam(presence ~ 
-                         s(doy) +
-                         s(lon, lat),
-                       data = akp_larvae,
-                       family = "binomial")
-windows()
-plot(akp_larvae_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/plaice_forecast', 'plaice_larvae_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-akp_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                         doy +
-                         s(roms_salinity, k = 4) +
-                         s(roms_temperature, k = 4),
-                       data = akp_larvae[akp_larvae$larvalcatchper10m2 > 0 &
-                                           akp_larvae$doy == 156, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(akp_larvae_gam2, select = 1, main = "Salinity")
-plot(akp_larvae_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/plaice_forecast', 'plaice_larvae_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(akp_larvae$lat), max(akp_larvae$lat), length.out = nlat)
-lond = seq(min(akp_larvae$lon), max(akp_larvae$lon), length.out = nlon)
-grid_extent_larvaeakp <- expand.grid(lond, latd)
-names(grid_extent_larvaeakp) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_larvaeakp$dist <- NA
-for (k in 1:nrow(grid_extent_larvaeakp)) {
-  dist <- distance_function(grid_extent_larvaeakp$lat[k],
-                            grid_extent_larvaeakp$lon[k],
-                            akp_larvae$lat,
-                            akp_larvae$lon)
-  grid_extent_larvaeakp$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_larvaeakp$year <- 2022
-grid_extent_larvaeakp$date <- rep(as.Date("2022-06-05"), length(grid_extent_larvaeakp))
-grid_extent_larvaeakp$doy <- rep(156, length(grid_extent_larvaeakp))
-
-# Attach ROMs forecast
-grid_extent_larvaeakp <- varid_match(grid_extent_larvaeakp, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_larvaeakp$pred1 <- predict(akp_larvae_gam1, newdata = grid_extent_larvaeakp)
-grid_extent_larvaeakp$pred2 <- predict(akp_larvae_gam2, newdata = grid_extent_larvaeakp)
-grid_extent_larvaeakp$pred <- grid_extent_larvaeakp$pred1 * grid_extent_larvaeakp$pred2
-grid_extent_larvaeakp$pred[grid_extent_larvaeakp$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_larvaeakp, "Forecasted Distribution")
-
-# Combined plot
-windows(width = 12, height = 5, family = "serif")
-par(mfrow = c(1, 2), 
-    mai = c(0.9, 0.9, 0.5, 0.5))
-grid_predict(grid_extent_eggakp, "Egg Distribution")
-grid_predict(grid_extent_larvaeakp, "Larval Distribution")
-dev.copy(jpeg, here('results/plaice_forecast', 'plaice_forecast.jpg'), 
-         width = 12, height = 5, res = 200, units = 'in', family = "serif")
-dev.off()
-
-#### Yellowfin Sole ----
-##### Eggs ----
-# Two-part binomial and gaussian
-# binomial
-yfs_egg$presence <- 1 * (yfs_egg$count > 0)
-yfs_egg_gam1 <- gam(presence ~ 
-                      s(doy) +
-                      s(lon, lat),
-                    data = yfs_egg,
-                    family = "binomial")
-windows()
-plot(yfs_egg_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_egg_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-yfs_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                      s(doy) +
-                      s(roms_salinity, k = 4) +
-                      s(roms_temperature, k = 4),
-                    data = yfs_egg[yfs_egg$larvalcatchper10m2 > 0, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(yfs_egg_gam2, select = 2, main = "Salinity")
-plot(yfs_egg_gam2, select = 3, main = "Temperature")
-dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_egg_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(yfs_egg$lat), max(yfs_egg$lat), length.out = nlat)
-lond = seq(min(yfs_egg$lon), max(yfs_egg$lon), length.out = nlon)
-grid_extent_eggyfs <- expand.grid(lond, latd)
-names(grid_extent_eggyfs) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_eggyfs$dist <- NA
-for (k in 1:nrow(grid_extent_eggyfs)) {
-  dist <- distance_function(grid_extent_eggyfs$lat[k],
-                            grid_extent_eggyfs$lon[k],
-                            yfs_egg$lat,
-                            yfs_egg$lon)
-  grid_extent_eggyfs$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_eggyfs$year <- 2022
-grid_extent_eggyfs$date <- rep(as.Date("2022-06-19"), length(grid_extent_eggyfs))
-grid_extent_eggyfs$doy <- rep(170, length(grid_extent_eggyfs))
-
-# Attach ROMs forecast
-grid_extent_eggyfs <- varid_match(grid_extent_eggyfs, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_eggyfs$pred1 <- predict(yfs_egg_gam1, newdata = grid_extent_eggyfs)
-grid_extent_eggyfs$pred2 <- predict(yfs_egg_gam2, newdata = grid_extent_eggyfs)
-grid_extent_eggyfs$pred <- grid_extent_eggyfs$pred1 * grid_extent_eggyfs$pred2
-grid_extent_eggyfs$pred[grid_extent_eggyfs$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_eggyfs, "Forecasted Distribution")
-
-##### Larvae ----
-# Two-part binomial and gaussian
-# binomial
-yfs_larvae$presence <- 1 * (yfs_larvae$count > 0)
-yfs_larvae_gam1 <- gam(presence ~ 
-                         s(doy) +
-                         s(lon, lat),
-                       data = yfs_larvae,
-                       family = "binomial")
-windows()
-plot(yfs_larvae_gam1, select = 1, main = "DOY")
-dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_larvae_gam1.jpg'), 
-         height = 5, width = 5, units = 'in', res = 200 )
-dev.off()
-
-# gaussian
-yfs_larvae_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ 
-                         doy +
-                         s(roms_salinity, k = 4) +
-                         s(roms_temperature, k = 4),
-                       data = yfs_larvae[yfs_larvae$larvalcatchper10m2 > 0 &
-                                           yfs_larvae$doy == 250, ])
-windows(height= 5, width = 10)
-par(mfrow = c(1, 2))
-plot(yfs_larvae_gam2, select = 1, main = "Salinity")
-plot(yfs_larvae_gam2, select = 2, main = "Temperature")
-dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_larvae_gam2.jpg'), 
-         height = 5, width = 10, units = 'in', res = 200 )
-dev.off()
-
-# Prediction grid
-nlat = 80
-nlon = 120
-latd = seq(min(yfs_larvae$lat), max(yfs_larvae$lat), length.out = nlat)
-lond = seq(min(yfs_larvae$lon), max(yfs_larvae$lon), length.out = nlon)
-grid_extent_larvaeyfs <- expand.grid(lond, latd)
-names(grid_extent_larvaeyfs) <- c('lon', 'lat')
-
-# Calculate distance of each grid point to closest 'positive observation'
-grid_extent_larvaeyfs$dist <- NA
-for (k in 1:nrow(grid_extent_larvaeyfs)) {
-  dist <- distance_function(grid_extent_larvaeyfs$lat[k],
-                            grid_extent_larvaeyfs$lon[k],
-                            yfs_larvae$lat,
-                            yfs_larvae$lon)
-  grid_extent_larvaeyfs$dist[k] <- min(dist)
-}
-
-# Assign a within sample year and doy to the grid data
-grid_extent_larvaeyfs$year <- 2022
-grid_extent_larvaeyfs$date <- rep(as.Date("2022-09-07"), length(grid_extent_larvaeyfs))
-grid_extent_larvaeyfs$doy <- rep(250, length(grid_extent_larvaeyfs))
-
-# Attach ROMs forecast
-grid_extent_larvaeyfs <- varid_match(grid_extent_larvaeyfs, temp_output, salt_output)
-
-# Predict on forecasted output
-grid_extent_larvaeyfs$pred1 <- predict(yfs_larvae_gam1, newdata = grid_extent_larvaeyfs)
-grid_extent_larvaeyfs$pred2 <- predict(yfs_larvae_gam2, newdata = grid_extent_larvaeyfs)
-grid_extent_larvaeyfs$pred <- grid_extent_larvaeyfs$pred1 * grid_extent_larvaeyfs$pred2
-grid_extent_larvaeyfs$pred[grid_extent_larvaeyfs$dist > 30000] <- NA
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_extent_larvaeyfs, "Forecasted Distribution")
-
-# Combined plot
-windows(width = 12, height = 5, family = "serif")
-par(mfrow = c(1, 2), 
-    mai = c(0.9, 0.9, 0.5, 0.5))
-grid_predict(grid_extent_eggyfs, "Egg Distribution")
-grid_predict(grid_extent_larvaeyfs, "Larval Distribution")
-dev.copy(jpeg, here('results/yellowfin_forecast', 'yellowfin_forecast.jpg'), 
-         width = 12, height = 5, res = 200, units = 'in', family = "serif")
-dev.off()
