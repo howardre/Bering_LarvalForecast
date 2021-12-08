@@ -19,14 +19,14 @@ vc_grids <- function(data, gam_list){
   spatial_grid$mean_temp <- mean(data$mean_temp, na.rm = T)
   spatial_grid$roms_temperature <- mean(data$roms_temperature, na.rm = T)
   spatial_grid$roms_salinity <- mean(data$roms_salinity, na.rm = T)
-  spatial_grid$pred <- predict(gam_list[[1]][[3]], newdata = spatial_grid)
-  spatial_grid$se <- predict(gam_list[[1]][[3]], newdata = spatial_grid, se = T)[[2]]
+  spatial_grid$pred <- predict(gam_list[[2]], newdata = spatial_grid)
+  spatial_grid$se <- predict(gam_list[[2]], newdata = spatial_grid, se = T)[[2]]
   spatial_grid$pred_up <- spatial_grid$pred + 1.96 * spatial_grid$se
   spatial_grid$pred_lw <- spatial_grid$pred - 1.96 * spatial_grid$se
   spatial_grid$pred[spatial_grid$dist > 30000] <- NA
   spatial_grid$mean_temp <- mean(data$mean_temp, na.rm = T) + 1
-  spatial_grid$pred2 <- predict(gam_list[[1]][[3]], newdata = spatial_grid)
-  spatial_grid$se2 <- predict(gam_list[[1]][[3]], newdata = spatial_grid, se = T)[[2]]
+  spatial_grid$pred2 <- predict(gam_list[[2]], newdata = spatial_grid)
+  spatial_grid$se2 <- predict(gam_list[[2]], newdata = spatial_grid, se = T)[[2]]
   spatial_grid$pred2_up <- spatial_grid$pred2 + 1.96 * spatial_grid$se2
   spatial_grid$pred2_lw <- spatial_grid$pred2 - 1.96 * spatial_grid$se2
   spatial_grid$diff <- spatial_grid$pred2 - spatial_grid$pred
