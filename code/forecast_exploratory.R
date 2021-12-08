@@ -159,11 +159,11 @@ grid_predict <- function(grid, title){
 }
 
 # Function to extract netcdf
-years_list <- list('2015-2019', '2020-2024', '2025-2029', '2030-2034',
-                '2035-2039', '2040-2044', '2045-2049', '2050-2054',
-                '2055-2059', '2060-2064', '2065-2069', '2070-2074',
-                '2075-2079', '2080-2084', '2085-2089', '2090-2094',
-                '2095-2099')
+years_list <- list('2010-2014', '2015-2019', '2020-2024', '2025-2029', 
+                   '2030-2034','2035-2039', '2040-2044', '2045-2049', 
+                   '2050-2054', '2055-2059', '2060-2064', '2065-2069', 
+                   '2070-2074', '2075-2079', '2080-2084', '2085-2089', 
+                   '2090-2094', '2095-2099')
 
 get_temp_filepath <- function(years){
   filepath = paste('D:/B10K-K20P19_CMIP6_gfdl_ssp126/Level1/B10K-K20P19_CMIP6_gfdl_ssp126_', years, '_average_temp.nc', sep = '')
@@ -252,12 +252,17 @@ get_preds <- function(y, years_list, data, year,
 #### Pollock ----
 ##### Eggs ----
 grids_pkegg1 <- list()
-for(k in 2015:2019){
-grid <- get_preds(1, years_list, pk_egg, k, "2015-05-10", 
-                  130, "2015-02-01", "2015-04-30")
-grids_pkegg1[[paste("year", k)]] <- grid
-} # only produces one year, probably not enough memory to finish
+for(i in 2015:2019){
+  date1 <- paste(i, "-05-10", sep = "")
+  date2 <- paste(i, "-02-01", sep = "")
+  date3 <- paste(i, "-04-30", sep = "")
+  grid <- get_preds(1, years_list, pk_egg, i, 
+                    date1, 130, date2, date3)
+  grids_pkegg1[[paste("year", i, sep = "")]] <- grid
+  } # only produces two years, probably not enough memory to finish
 
+
+# Average in 30-year increments (2010 - 2039, 2040 - 2069, 2070 - 2099)
 
 
 # Plot
