@@ -1,12 +1,7 @@
-# Title: Forecasting
-# Date: complete 7/07/2021
-
 ### Libraries, functions, and data ----
 library(maps)
 library(maptools)
 library(mapdata)
-library(raster)
-library(ncdf4)
 library(spacetime)
 library(fields)
 library(here)
@@ -18,9 +13,12 @@ library(RColorBrewer)
 library(mgcv)
 source(here('code/functions', 'distance_function.R'))
 
+
 # Fish data
-# Load ROMS temperature means
+# Load ROMS temperature means and forecast
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
+temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
+salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 
 # Load fish data
 pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
@@ -64,36 +62,24 @@ akp_larvae <- as.data.frame(filter(readRDS(here('data', 'akp_larvae.rds')),
 akp_larvae$mean_temp <- roms_temps$mean[match(akp_larvae$year, roms_temps$year)]
 
 
+
 # Match ROMS output function
 varid_match <- function(data, model_output1, model_output2){
   data$roms_date <- NA
   data$roms_temperature <- NA
   data$roms_salinity <- NA
   for (i in 1:nrow(data)) {
-    idx_time <- order(abs(model_output1[[3]] - data$date[i]))[1]
-    data$roms_date[i] <- model_output1[[3]][idx_time]
+    idx_time <- order(abs(model_output1[[1]][[3]] - data$date[i]))[1]
+    data$roms_date[i] <- model_output1[[1]][[3]][idx_time]
     idx_grid <- order(distance_function(data$lat[i],
                                         data$lon[i],
-                                        c(model_output1[[2]]),
-                                        c(model_output1[[1]])))[1]
-    data$roms_temperature[i] <- c(model_output1[[4]][, , , idx_time])[idx_grid]
-    data$roms_salinity[i] <- c(model_output2[[4]][, , , idx_time])[idx_grid]
+                                        c(model_output1[[1]][[2]]),
+                                        c(model_output1[[1]][[1]])))[1]
+    data$roms_temperature[i] <- c(model_output1[[1]][[4]][, , idx_time])[idx_grid]
+    data$roms_salinity[i] <- c(model_output2[[1]][[4]][, , idx_time])[idx_grid]
   }
   return(data)
 }
-
-# Function to extract data from .nc files
-nc_extract <- function(file, variable, varid_name){
-  lon <- ncvar_get(file, varid = 'lon_rho')
-  lon1 <- ifelse(lon >= 180, lon -360, lon)
-  lat <- ncvar_get(file, varid = 'lat_rho')
-  time <- ncvar_get(file, varid = 'ocean_time')
-  time1 <- as.Date(time / (60 * 60 * 24), origin = "1900-01-01 00:00:00")
-  fillvalue_t <- ncatt_get(file, varid_name, "_FillValue")
-  variable <- ncvar_get(file, varid = varid_name)
-  variable[variable == fillvalue_t$value] <- NA
-  return_list <- list("lon1" = lon1, "lat" = lat, "time1" = time1, "variable" = variable)
-} 
 
 # Function to make maps
 grid_predict <- function(grid, title){
@@ -158,26 +144,11 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-# Function to extract netcdf
-years_list <- list('2010-2014', '2015-2019', '2020-2024', '2025-2029', 
-                   '2030-2034','2035-2039', '2040-2044', '2045-2049', 
-                   '2050-2054', '2055-2059', '2060-2064', '2065-2069', 
-                   '2070-2074', '2075-2079', '2080-2084', '2085-2089', 
-                   '2090-2094', '2095-2099')
-
-get_temp_filepath <- function(years){
-  filepath = paste('D:/B10K-K20P19_CMIP6_gfdl_ssp126/Level1/B10K-K20P19_CMIP6_gfdl_ssp126_', years, '_average_temp.nc', sep = '')
-  return(filepath)
-}
-
-get_salt_filepath <- function(years){
-  filepath = paste('D:/B10K-K20P19_CMIP6_gfdl_ssp126/Level1/B10K-K20P19_CMIP6_gfdl_ssp126_', years, '_average_salt.nc', sep = '')
-  return(filepath)
-}
 
 # Function to get predictions
-get_preds <- function(y, years_list, data, year, 
-                      date, doy, start_date, end_date){
+get_preds <- function(data, year, date, doy, 
+                      start_date, end_date,
+                      temp_output, salt_output){
   # Prediction grid
   nlat = 80
   nlon = 120
@@ -196,16 +167,6 @@ get_preds <- function(y, years_list, data, year,
     grid_extent$dist[k] <- min(dist)
   }
   
-  # Extract from netcdf
-  bering_model_temp = nc_open(get_temp_filepath(years_list[y]))
-  bering_model_salt = nc_open(get_salt_filepath(years_list[y]))
-  
-  temp_output <- nc_extract(bering_model_temp, temp, 'temp')
-  salt_output <- nc_extract(bering_model_salt, salt, 'salt')
-  
-  nc_close(bering_model_temp)
-  nc_close(bering_model_salt)
-  
   # Assign a within sample year and doy to the grid data
   grid_extent$year <- year
   grid_extent$date <- rep(as.Date(date),
@@ -216,13 +177,13 @@ get_preds <- function(y, years_list, data, year,
   grid_extent <- varid_match(grid_extent, temp_output, salt_output)
   
   # Calculate mean temperature
-  time_index <- temp_output[[3]] >= start_date & temp_output[[3]] <= end_date
-  temp_array <- temp_output[[4]][, , , time_index]
+  time_index <- temp_output[[1]][[3]] >= start_date & temp_output[[1]][[3]] <= end_date
+  temp_array <- temp_output[[1]][[4]][, , time_index]
   
   # Select out box on the shelf
-  temp_data <- as.data.frame(cbind(lon = as.vector(temp_output[[1]]), 
-                                     lat = as.vector(temp_output[[2]]), 
-                                     temp = as.vector(temp_array)))
+  temp_data <- as.data.frame(cbind(lon = as.vector(temp_output[[1]][[1]]), 
+                                   lat = as.vector(temp_output[[1]][[2]]), 
+                                   temp = as.vector(temp_array)))
   temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 56 & lat <= 58)
   mean <- mean(temp_filtered$temp, na.rm = T)
   
@@ -248,24 +209,70 @@ get_preds <- function(y, years_list, data, year,
 
 
 
-### Predict future distributions ----
-#### Pollock ----
-##### Eggs ----
-grids_pkegg1 <- list()
-for(i in 2015:2019){
-  date1 <- paste(i, "-05-10", sep = "")
-  date2 <- paste(i, "-02-01", sep = "")
-  date3 <- paste(i, "-04-30", sep = "")
-  grid <- get_preds(1, years_list, pk_egg, i, 
-                    date1, 130, date2, date3)
-  grids_pkegg1[[paste("year", i, sep = "")]] <- grid
-  } # only produces two years, probably not enough memory to finish
+# Troubleshoot function
+nlat = 80
+nlon = 120
+latd = seq(min(pk_egg$lat), max(pk_egg$lat), length.out = nlat)
+lond = seq(min(pk_egg$lon), max(pk_egg$lon), length.out = nlon)
+grid_extent <- expand.grid(lond, latd)
+names(grid_extent) <- c('lon', 'lat')
+
+# Calculate distance of each grid point to closest 'positive observation'
+grid_extent$dist <- NA
+for (k in 1:nrow(grid_extent)) {
+  dist <- distance_function(grid_extent$lat[k],
+                            grid_extent$lon[k],
+                            pk_egg$lat,
+                            pk_egg$lon)
+  grid_extent$dist[k] <- min(dist)
+}
+
+# Assign a within sample year and doy to the grid data
+grid_extent$year <- 2015
+grid_extent$date <- rep(as.Date("2015-05-10"),
+                        length(grid_extent))
+grid_extent$doy <- rep(130, length(grid_extent))
+
+# Attach ROMs forecast
+grid_extent <- varid_match(grid_extent, temps_cesm_ssp126, salts_cesm_ssp126)
+
+# Calculate mean temperature
+time_index <- temps_cesm_ssp126[[1]][[3]] >= "2015-03-01" & temps_cesm_ssp126[[1]][[3]] <= "2015-04-30"
+temp_array <- temps_cesm_ssp126[[1]][[4]][, , time_index]
+
+# Select out box on the shelf
+temp_pk_egg <- as.pk_egg.frame(cbind(lon = as.vector(temp_output[[1]][[1]]), 
+                                 lat = as.vector(temp_output[[1]][[2]]), 
+                                 temp = as.vector(temp_array)))
+temp_filtered <- temp_pk_egg %>% filter(lon >= -170 & lon <= -165, lat >= 56 & lat <= 58)
+mean <- mean(temp_filtered$temp, na.rm = T)
+
+grid_extent$mean_temp <- mean
+
+gam <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+             s(doy, k = 8) +
+             s(lon, lat) +
+             s(roms_temperature, k = 6) +
+             s(roms_salinity, k = 6) +
+             s(lat, lon, by = mean_temp, k = 6),
+           pk_egg = pk_egg,
+           family = tw(link = 'log'),
+           method = 'REML')
+
+# Predict on forecasted output
+grid_extent$pred <- predict(gam, newpk_egg = grid_extent)
+grid_extent$pred[grid_extent$dist > 30000] <- NA
 
 
-# Average in 30-year increments (2010 - 2039, 2040 - 2069, 2070 - 2099)
 
 
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_pkegg1, "Forecasted Distribution")
-
+grids_pkegg2 <- list()
+for(j in 2015:2019){
+  date1 <- paste(j, "-05-10", sep = "")
+  date2 <- paste(j, "-03-01", sep = "")
+  date3 <- paste(j, "-04-30", sep = "")
+  grid <- get_preds(pk_egg, j, date1, 130, 
+                    date2, date3, temps_cesm_ssp126,
+                    salts_cesm_ssp126)
+  grids_pkegg2[[paste("year", j, sep = "")]] <- grid
+}
