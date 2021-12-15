@@ -265,15 +265,6 @@ rm(salts_miroc_historical)
 
 
 
-### Combine each set of lists into dataframes
-temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
-
-
-temps_cesm_ssp126_df <- do.call(rbind, temps_cesm_ssp126)
-
-temps_cesm_ssp126_df <- data.frame(temps_cesm_ssp126[[1]])
-
-
 
 
 
@@ -584,32 +575,4 @@ ggsave("./output/plots/plot_cesm_decade.png",
        width = 15, height = 10, units = "in")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Predict future distributions ----
-#### Pollock ----
-##### Eggs ----
-
-
-
-# Average in 30-year increments (2010 - 2039, 2040 - 2069, 2070 - 2099)
-
-
-# Plot
-windows(width = 6, height = 5, family = "serif")
-grid_predict(grid_pkegg1, "Forecasted Distribution")
 
