@@ -229,15 +229,15 @@ df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg1), fixed = T)
-df_pkegg_avg1 <- data.frame(lat = df_pkegg1$lat, 
+df_pkegg_avg1_cesm126 <- data.frame(lat = df_pkegg1$lat, 
                            lon = df_pkegg1$lon, 
                            dist = df_pkegg1$dist,
                            avg_pred = rowSums(df_pkegg1[, x])/25)
-saveRDS(df_pkegg_avg1, file = here("data", "df_pkegg_avg1.rds"))
+saveRDS(df_pkegg_avg1_cesm126, file = here("data", "df_pkegg_avg1_cesm126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg1, "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
+grid_predict(df_pkegg_avg1_cesm126, "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp126_1.jpg'),
@@ -284,15 +284,15 @@ df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg2), fixed = T)
-df_pkegg_avg2 <- data.frame(lat = df_pkegg2$lat, 
+df_pkegg_avg2_cesm126 <- data.frame(lat = df_pkegg2$lat, 
                            lon = df_pkegg2$lon, 
                            dist = df_pkegg2$dist,
                            avg_pred = rowSums(df_pkegg2[, x])/30)
-saveRDS(df_pkegg_avg2, file = here("data", "df_pkegg2_avg.rds"))
+saveRDS(df_pkegg_avg2_cesm126, file = here("data", "df_pkegg_avg2_cesm126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg2, "Forecasted Distribution 2040 - 2069 \n CESM SSP126")
+grid_predict(df_pkegg_avg2_cesm126, "Forecasted Distribution 2040 - 2069 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp126_2.jpg'),
@@ -339,15 +339,15 @@ df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg3), fixed = T)
-df_pkegg_avg3 <- data.frame(lat = df_pkegg3$lat, 
+df_pkegg_avg3_cesm126 <- data.frame(lat = df_pkegg3$lat, 
                             lon = df_pkegg3$lon, 
                             dist = df_pkegg3$dist,
                             avg_pred = rowSums(df_pkegg3[, x])/30)
-saveRDS(df_pkegg_avg3, file = here("data", "df_pkegg3_avg.rds"))
+saveRDS(df_pkegg_avg3_cesm126, file = here("data", "df_pkegg_avg3_cesm126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg3, "Forecasted Distribution 2070 - 2099 \n CESM SSP126")
+grid_predict(df_pkegg_avg3_cesm126, "Forecasted Distribution 2070 - 2099 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp126_3.jpg'),
@@ -393,15 +393,15 @@ df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg4), fixed = T)
-df_pkegg_avg4 <- data.frame(lat = df_pkegg4$lat, 
+df_pkegg_avg4_cesm585 <- data.frame(lat = df_pkegg4$lat, 
                             lon = df_pkegg4$lon, 
                             dist = df_pkegg4$dist,
                             avg_pred = rowSums(df_pkegg4[, x])/25)
-saveRDS(df_pkegg_avg4, file = here("data", "df_pkegg_avg4.rds"))
+saveRDS(df_pkegg_avg4_cesm585, file = here("data", "df_pkegg_avg4_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg4, "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
+grid_predict(df_pkegg_avg4_cesm585, "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp585_1.jpg'),
@@ -448,15 +448,15 @@ df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg5), fixed = T)
-df_pkegg_avg5 <- data.frame(lat = df_pkegg5$lat, 
+df_pkegg_avg5_cesm585 <- data.frame(lat = df_pkegg5$lat, 
                             lon = df_pkegg5$lon, 
                             dist = df_pkegg5$dist,
                             avg_pred = rowSums(df_pkegg5[, x])/30)
-saveRDS(df_pkegg_avg5, file = here("data", "df_pkegg5_avg.rds"))
+saveRDS(df_pkegg_avg5_cesm585, file = here("data", "df_pkegg_avg5_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg5, "Forecasted Distribution 5040 - 5069 \n CESM SSP585")
+grid_predict(df_pkegg_avg5_cesm585, "Forecasted Distribution 2040 - 2069 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp585_2.jpg'),
@@ -503,18 +503,676 @@ df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg6), fixed = T)
-df_pkegg_avg6 <- data.frame(lat = df_pkegg6$lat, 
+df_pkegg_avg6_cesm585 <- data.frame(lat = df_pkegg6$lat, 
                             lon = df_pkegg6$lon, 
                             dist = df_pkegg6$dist,
                             avg_pred = rowSums(df_pkegg6[, x])/60)
-saveRDS(df_pkegg_avg6, file = here("data", "df_pkegg6_avg.rds"))
+saveRDS(df_pkegg_avg6_cesm585, file = here("data", "df_pkegg_avg6_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg6, "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
+grid_predict(df_pkegg_avg6_cesm585, "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
+temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
+salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
+
+## 2015 - 2039
+grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 1)
+grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 2)
+grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 3)
+grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 4)
+grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 5)
+
+# Combine into one data frame
+df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
+                  grids_pkegg1[[4]], grids_pkegg1[[5]], grids_pkegg2[[1]], 
+                  grids_pkegg2[[2]], grids_pkegg2[[3]], grids_pkegg2[[4]],
+                  grids_pkegg2[[5]], grids_pkegg3[[1]], grids_pkegg3[[2]], 
+                  grids_pkegg3[[3]], grids_pkegg3[[4]], grids_pkegg3[[5]],
+                  grids_pkegg4[[1]], grids_pkegg4[[2]], grids_pkegg4[[3]], 
+                  grids_pkegg4[[4]], grids_pkegg4[[5]], grids_pkegg5[[1]], 
+                  grids_pkegg5[[2]], grids_pkegg5[[3]], grids_pkegg5[[4]],
+                  grids_pkegg5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg1), fixed = T)
+df_pkegg_avg1_gfdl126 <- data.frame(lat = df_pkegg1$lat, 
+                            lon = df_pkegg1$lon, 
+                            dist = df_pkegg1$dist,
+                            avg_pred = rowSums(df_pkegg1[, x])/25)
+saveRDS(df_pkegg_avg1_gfdl126, file = here("data", "df_pkegg_avg1_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n gfdl SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp126_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 6)
+grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 7)
+grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 8)
+grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 9)
+grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 10)
+grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 11)
+
+# Combine into one data frame
+df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
+                  grids_pkegg6[[4]], grids_pkegg6[[5]], grids_pkegg7[[1]], 
+                  grids_pkegg7[[2]], grids_pkegg7[[3]], grids_pkegg7[[4]],
+                  grids_pkegg7[[5]], grids_pkegg8[[1]], grids_pkegg8[[2]], 
+                  grids_pkegg8[[3]], grids_pkegg8[[4]], grids_pkegg8[[5]],
+                  grids_pkegg9[[1]], grids_pkegg9[[2]], grids_pkegg9[[3]], 
+                  grids_pkegg9[[4]], grids_pkegg9[[5]], grids_pkegg10[[1]], 
+                  grids_pkegg10[[2]], grids_pkegg10[[3]], grids_pkegg10[[4]],
+                  grids_pkegg11[[5]], grids_pkegg11[[1]], grids_pkegg11[[2]],
+                  grids_pkegg11[[3]], grids_pkegg11[[4]], grids_pkegg11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg2), fixed = T)
+df_pkegg_avg2_gfdl126 <- data.frame(lat = df_pkegg2$lat, 
+                            lon = df_pkegg2$lon, 
+                            dist = df_pkegg2$dist,
+                            avg_pred = rowSums(df_pkegg2[, x])/30)
+saveRDS(df_pkegg_avg2_gfdl126, file = here("data", "df_pkegg_avg2_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n gfdl SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp126_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 12)
+grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 13)
+grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 14)
+grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 15)
+grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 16)
+grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 17)
+
+# Combine into one data frame
+df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
+                  grids_pkegg12[[4]], grids_pkegg12[[5]], grids_pkegg13[[1]], 
+                  grids_pkegg13[[2]], grids_pkegg13[[3]], grids_pkegg13[[4]],
+                  grids_pkegg13[[5]], grids_pkegg14[[1]], grids_pkegg14[[2]], 
+                  grids_pkegg14[[3]], grids_pkegg14[[4]], grids_pkegg14[[5]],
+                  grids_pkegg15[[1]], grids_pkegg15[[2]], grids_pkegg15[[3]], 
+                  grids_pkegg15[[4]], grids_pkegg15[[5]], grids_pkegg16[[1]], 
+                  grids_pkegg16[[2]], grids_pkegg16[[3]], grids_pkegg16[[4]],
+                  grids_pkegg17[[5]], grids_pkegg17[[1]], grids_pkegg17[[2]],
+                  grids_pkegg17[[3]], grids_pkegg17[[4]], grids_pkegg17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg3), fixed = T)
+df_pkegg_avg3_gfdl126 <- data.frame(lat = df_pkegg3$lat, 
+                            lon = df_pkegg3$lon, 
+                            dist = df_pkegg3$dist,
+                            avg_pred = rowSums(df_pkegg3[, x])/30)
+saveRDS(df_pkegg_avg3_gfdl126, file = here("data", "df_pkegg_avg3_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n gfdl SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp126_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
+temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
+salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
+
+## 2015 - 2039
+grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 1)
+grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 2)
+grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 3)
+grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 4)
+grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 5)
+
+# Combine into one data frame
+df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
+                  grids_pkegg1[[4]], grids_pkegg1[[5]], grids_pkegg2[[1]], 
+                  grids_pkegg2[[2]], grids_pkegg2[[3]], grids_pkegg2[[4]],
+                  grids_pkegg2[[5]], grids_pkegg3[[1]], grids_pkegg3[[2]], 
+                  grids_pkegg3[[3]], grids_pkegg3[[4]], grids_pkegg3[[5]],
+                  grids_pkegg4[[1]], grids_pkegg4[[2]], grids_pkegg4[[3]], 
+                  grids_pkegg4[[4]], grids_pkegg4[[5]], grids_pkegg5[[1]], 
+                  grids_pkegg5[[2]], grids_pkegg5[[3]], grids_pkegg5[[4]],
+                  grids_pkegg5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg4), fixed = T)
+df_pkegg_avg4_gfdl585 <- data.frame(lat = df_pkegg4$lat, 
+                            lon = df_pkegg4$lon, 
+                            dist = df_pkegg4$dist,
+                            avg_pred = rowSums(df_pkegg4[, x])/25)
+saveRDS(df_pkegg_avg4_gfdl585, file = here("data", "df_pkegg_avg4_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg4_gfdl585, "Forecasted Distribution 2015 - 2039 \n gfdl SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp585_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 6)
+grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 7)
+grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 8)
+grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 9)
+grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 10)
+grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 11)
+
+# Combine into one data frame
+df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
+                  grids_pkegg6[[4]], grids_pkegg6[[5]], grids_pkegg7[[1]], 
+                  grids_pkegg7[[2]], grids_pkegg7[[3]], grids_pkegg7[[4]],
+                  grids_pkegg7[[5]], grids_pkegg8[[1]], grids_pkegg8[[2]], 
+                  grids_pkegg8[[3]], grids_pkegg8[[4]], grids_pkegg8[[5]],
+                  grids_pkegg9[[1]], grids_pkegg9[[2]], grids_pkegg9[[3]], 
+                  grids_pkegg9[[4]], grids_pkegg9[[5]], grids_pkegg10[[1]], 
+                  grids_pkegg10[[2]], grids_pkegg10[[3]], grids_pkegg10[[4]],
+                  grids_pkegg11[[5]], grids_pkegg11[[1]], grids_pkegg11[[2]],
+                  grids_pkegg11[[3]], grids_pkegg11[[4]], grids_pkegg11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg5), fixed = T)
+df_pkegg_avg5_gfdl585 <- data.frame(lat = df_pkegg5$lat, 
+                            lon = df_pkegg5$lon, 
+                            dist = df_pkegg5$dist,
+                            avg_pred = rowSums(df_pkegg5[, x])/30)
+saveRDS(df_pkegg_avg5_gfdl585, file = here("data", "df_pkegg_avg5_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg5_gfdl585, "Forecasted Distribution 2040 - 2069 \n gfdl SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp585_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 12)
+grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 13)
+grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 14)
+grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 15)
+grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 16)
+grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 17)
+
+# Combine into one data frame
+df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
+                  grids_pkegg12[[4]], grids_pkegg12[[5]], grids_pkegg13[[1]], 
+                  grids_pkegg13[[2]], grids_pkegg13[[3]], grids_pkegg13[[4]],
+                  grids_pkegg13[[5]], grids_pkegg14[[1]], grids_pkegg14[[2]], 
+                  grids_pkegg14[[3]], grids_pkegg14[[4]], grids_pkegg14[[5]],
+                  grids_pkegg15[[1]], grids_pkegg15[[2]], grids_pkegg15[[3]], 
+                  grids_pkegg15[[4]], grids_pkegg15[[5]], grids_pkegg16[[1]], 
+                  grids_pkegg16[[2]], grids_pkegg16[[3]], grids_pkegg16[[4]],
+                  grids_pkegg17[[5]], grids_pkegg17[[1]], grids_pkegg17[[2]],
+                  grids_pkegg17[[3]], grids_pkegg17[[4]], grids_pkegg17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg6), fixed = T)
+df_pkegg_avg6_gfdl585 <- data.frame(lat = df_pkegg6$lat, 
+                            lon = df_pkegg6$lon, 
+                            dist = df_pkegg6$dist,
+                            avg_pred = rowSums(df_pkegg6[, x])/60)
+saveRDS(df_pkegg_avg6_gfdl585, file = here("data", "df_pkegg_avg6_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg6_gfdl585, "Forecasted Distribution 2070 - 2099 \n gfdl SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_gfdl_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
+temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
+salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
+
+## 2015 - 2039
+grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 1)
+grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 2)
+grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 3)
+grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 4)
+grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 5)
+
+# Combine into one data frame
+df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
+                  grids_pkegg1[[4]], grids_pkegg1[[5]], grids_pkegg2[[1]], 
+                  grids_pkegg2[[2]], grids_pkegg2[[3]], grids_pkegg2[[4]],
+                  grids_pkegg2[[5]], grids_pkegg3[[1]], grids_pkegg3[[2]], 
+                  grids_pkegg3[[3]], grids_pkegg3[[4]], grids_pkegg3[[5]],
+                  grids_pkegg4[[1]], grids_pkegg4[[2]], grids_pkegg4[[3]], 
+                  grids_pkegg4[[4]], grids_pkegg4[[5]], grids_pkegg5[[1]], 
+                  grids_pkegg5[[2]], grids_pkegg5[[3]], grids_pkegg5[[4]],
+                  grids_pkegg5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg1), fixed = T)
+df_pkegg_avg1_miroc126 <- data.frame(lat = df_pkegg1$lat, 
+                                    lon = df_pkegg1$lon, 
+                                    dist = df_pkegg1$dist,
+                                    avg_pred = rowSums(df_pkegg1[, x])/25)
+saveRDS(df_pkegg_avg1_miroc126, file = here("data", "df_pkegg_avg1_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n miroc SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp126_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 6)
+grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 7)
+grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 8)
+grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 9)
+grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 10)
+grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 11)
+
+# Combine into one data frame
+df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
+                  grids_pkegg6[[4]], grids_pkegg6[[5]], grids_pkegg7[[1]], 
+                  grids_pkegg7[[2]], grids_pkegg7[[3]], grids_pkegg7[[4]],
+                  grids_pkegg7[[5]], grids_pkegg8[[1]], grids_pkegg8[[2]], 
+                  grids_pkegg8[[3]], grids_pkegg8[[4]], grids_pkegg8[[5]],
+                  grids_pkegg9[[1]], grids_pkegg9[[2]], grids_pkegg9[[3]], 
+                  grids_pkegg9[[4]], grids_pkegg9[[5]], grids_pkegg10[[1]], 
+                  grids_pkegg10[[2]], grids_pkegg10[[3]], grids_pkegg10[[4]],
+                  grids_pkegg11[[5]], grids_pkegg11[[1]], grids_pkegg11[[2]],
+                  grids_pkegg11[[3]], grids_pkegg11[[4]], grids_pkegg11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg2), fixed = T)
+df_pkegg_avg2_miroc126 <- data.frame(lat = df_pkegg2$lat, 
+                                    lon = df_pkegg2$lon, 
+                                    dist = df_pkegg2$dist,
+                                    avg_pred = rowSums(df_pkegg2[, x])/30)
+saveRDS(df_pkegg_avg2_miroc126, file = here("data", "df_pkegg_avg2_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n miroc SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp126_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 12)
+grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 13)
+grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 14)
+grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 15)
+grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 16)
+grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 17)
+
+# Combine into one data frame
+df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
+                  grids_pkegg12[[4]], grids_pkegg12[[5]], grids_pkegg13[[1]], 
+                  grids_pkegg13[[2]], grids_pkegg13[[3]], grids_pkegg13[[4]],
+                  grids_pkegg13[[5]], grids_pkegg14[[1]], grids_pkegg14[[2]], 
+                  grids_pkegg14[[3]], grids_pkegg14[[4]], grids_pkegg14[[5]],
+                  grids_pkegg15[[1]], grids_pkegg15[[2]], grids_pkegg15[[3]], 
+                  grids_pkegg15[[4]], grids_pkegg15[[5]], grids_pkegg16[[1]], 
+                  grids_pkegg16[[2]], grids_pkegg16[[3]], grids_pkegg16[[4]],
+                  grids_pkegg17[[5]], grids_pkegg17[[1]], grids_pkegg17[[2]],
+                  grids_pkegg17[[3]], grids_pkegg17[[4]], grids_pkegg17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg3), fixed = T)
+df_pkegg_avg3_miroc126 <- data.frame(lat = df_pkegg3$lat, 
+                                    lon = df_pkegg3$lon, 
+                                    dist = df_pkegg3$dist,
+                                    avg_pred = rowSums(df_pkegg3[, x])/30)
+saveRDS(df_pkegg_avg3_miroc126, file = here("data", "df_pkegg_avg3_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n miroc SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp126_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
+temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
+salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
+
+## 2015 - 2039
+grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 1)
+grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 2)
+grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 3)
+grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 4)
+grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 5)
+
+# Combine into one data frame
+df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
+                  grids_pkegg1[[4]], grids_pkegg1[[5]], grids_pkegg2[[1]], 
+                  grids_pkegg2[[2]], grids_pkegg2[[3]], grids_pkegg2[[4]],
+                  grids_pkegg2[[5]], grids_pkegg3[[1]], grids_pkegg3[[2]], 
+                  grids_pkegg3[[3]], grids_pkegg3[[4]], grids_pkegg3[[5]],
+                  grids_pkegg4[[1]], grids_pkegg4[[2]], grids_pkegg4[[3]], 
+                  grids_pkegg4[[4]], grids_pkegg4[[5]], grids_pkegg5[[1]], 
+                  grids_pkegg5[[2]], grids_pkegg5[[3]], grids_pkegg5[[4]],
+                  grids_pkegg5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg4), fixed = T)
+df_pkegg_avg4_miroc585 <- data.frame(lat = df_pkegg4$lat, 
+                                    lon = df_pkegg4$lon, 
+                                    dist = df_pkegg4$dist,
+                                    avg_pred = rowSums(df_pkegg4[, x])/25)
+saveRDS(df_pkegg_avg4_miroc585, file = here("data", "df_pkegg_avg4_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg4_miroc585, "Forecasted Distribution 2015 - 2039 \n miroc SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp585_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 6)
+grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 7)
+grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 8)
+grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 9)
+grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 10)
+grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 11)
+
+# Combine into one data frame
+df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
+                  grids_pkegg6[[4]], grids_pkegg6[[5]], grids_pkegg7[[1]], 
+                  grids_pkegg7[[2]], grids_pkegg7[[3]], grids_pkegg7[[4]],
+                  grids_pkegg7[[5]], grids_pkegg8[[1]], grids_pkegg8[[2]], 
+                  grids_pkegg8[[3]], grids_pkegg8[[4]], grids_pkegg8[[5]],
+                  grids_pkegg9[[1]], grids_pkegg9[[2]], grids_pkegg9[[3]], 
+                  grids_pkegg9[[4]], grids_pkegg9[[5]], grids_pkegg10[[1]], 
+                  grids_pkegg10[[2]], grids_pkegg10[[3]], grids_pkegg10[[4]],
+                  grids_pkegg11[[5]], grids_pkegg11[[1]], grids_pkegg11[[2]],
+                  grids_pkegg11[[3]], grids_pkegg11[[4]], grids_pkegg11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg5), fixed = T)
+df_pkegg_avg5_miroc585 <- data.frame(lat = df_pkegg5$lat, 
+                                    lon = df_pkegg5$lon, 
+                                    dist = df_pkegg5$dist,
+                                    avg_pred = rowSums(df_pkegg5[, x])/30)
+saveRDS(df_pkegg_avg5_miroc585, file = here("data", "df_pkegg_avg5_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg5_miroc585, "Forecasted Distribution 2040 - 2069 \n miroc SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp585_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 12)
+grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 13)
+grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 14)
+grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 15)
+grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 16)
+grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 17)
+
+# Combine into one data frame
+df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
+                  grids_pkegg12[[4]], grids_pkegg12[[5]], grids_pkegg13[[1]], 
+                  grids_pkegg13[[2]], grids_pkegg13[[3]], grids_pkegg13[[4]],
+                  grids_pkegg13[[5]], grids_pkegg14[[1]], grids_pkegg14[[2]], 
+                  grids_pkegg14[[3]], grids_pkegg14[[4]], grids_pkegg14[[5]],
+                  grids_pkegg15[[1]], grids_pkegg15[[2]], grids_pkegg15[[3]], 
+                  grids_pkegg15[[4]], grids_pkegg15[[5]], grids_pkegg16[[1]], 
+                  grids_pkegg16[[2]], grids_pkegg16[[3]], grids_pkegg16[[4]],
+                  grids_pkegg17[[5]], grids_pkegg17[[1]], grids_pkegg17[[2]],
+                  grids_pkegg17[[3]], grids_pkegg17[[4]], grids_pkegg17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pkegg6), fixed = T)
+df_pkegg_avg6_miroc585 <- data.frame(lat = df_pkegg6$lat, 
+                                    lon = df_pkegg6$lon, 
+                                    dist = df_pkegg6$dist,
+                                    avg_pred = rowSums(df_pkegg6[, x])/60)
+saveRDS(df_pkegg_avg6_miroc585, file = here("data", "df_pkegg_avg6_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_avg6_miroc585, "Forecasted Distribution 2070 - 2099 \n miroc SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_miroc_ssp585_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
