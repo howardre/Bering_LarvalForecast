@@ -22,14 +22,12 @@ pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
                                lat >= 52 & lat <= 62,
                                lon >= -176.5 & lon <= -156.5))
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
+pk_egg$catch <- pk_egg$larvalcatchper10m2 + 1
 
 pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds')),
                                   lat >= 52 & lat <= 62,
                                   lon >= -176.5 & lon <= -156.5))
 pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
-
-
-
 
 # Match ROMS output function
 varid_match <- function(data, model_output1, model_output2, list){
@@ -84,7 +82,7 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(-13.6, 8.5),
+        zlim = c(0, 1),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -101,7 +99,7 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(-13.6, 8.5),
+             zlim = c(0, 1),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -163,10 +161,11 @@ get_preds <- function(data, year, date, doy,
              method = 'REML')
   
   # Predict on forecasted output
-  grid_extent$pred <- predict(gam, 
-                              newdata = grid_extent,
-                              type = "link")
-  grid_extent$pred[grid_extent$dist > 30000] <- NA
+  grid_extent$pred_untransformed <- predict(gam,
+                                            newdata = grid_extent,
+                                            type = "link")
+  grid_extent$pred_untransformed[grid_extent$dist > 30000] <- NA
+  grid_extent$pred <- exp(grid_extent$pred_untransformed + 1)
   
   return(grid_extent)
   
@@ -621,7 +620,7 @@ saveRDS(df_pkegg_avg2_gfdl126, file = here("data", "df_pkegg_avg2_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n gfdl SSP126")
+grid_predict(df_pkegg_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp126_2.jpg'),
@@ -676,7 +675,7 @@ saveRDS(df_pkegg_avg3_gfdl126, file = here("data", "df_pkegg_avg3_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n gfdl SSP126")
+grid_predict(df_pkegg_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp126_3.jpg'),
@@ -730,7 +729,7 @@ saveRDS(df_pkegg_avg4_gfdl585, file = here("data", "df_pkegg_avg4_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg4_gfdl585, "Forecasted Distribution 2015 - 2039 \n gfdl SSP585")
+grid_predict(df_pkegg_avg4_gfdl585, "Forecasted Distribution 2015 - 2039 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp585_1.jpg'),
@@ -785,7 +784,7 @@ saveRDS(df_pkegg_avg5_gfdl585, file = here("data", "df_pkegg_avg5_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg5_gfdl585, "Forecasted Distribution 2040 - 2069 \n gfdl SSP585")
+grid_predict(df_pkegg_avg5_gfdl585, "Forecasted Distribution 2040 - 2069 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp585_2.jpg'),
@@ -840,7 +839,7 @@ saveRDS(df_pkegg_avg6_gfdl585, file = here("data", "df_pkegg_avg6_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg6_gfdl585, "Forecasted Distribution 2070 - 2099 \n gfdl SSP585")
+grid_predict(df_pkegg_avg6_gfdl585, "Forecasted Distribution 2070 - 2099 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp585_3.jpg'),
@@ -895,7 +894,7 @@ saveRDS(df_pkegg_avg1_miroc126, file = here("data", "df_pkegg_avg1_miroc126.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n miroc SSP126")
+grid_predict(df_pkegg_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp126_1.jpg'),
@@ -950,7 +949,7 @@ saveRDS(df_pkegg_avg2_miroc126, file = here("data", "df_pkegg_avg2_miroc126.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n miroc SSP126")
+grid_predict(df_pkegg_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp126_2.jpg'),
@@ -1005,7 +1004,7 @@ saveRDS(df_pkegg_avg3_miroc126, file = here("data", "df_pkegg_avg3_miroc126.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n miroc SSP126")
+grid_predict(df_pkegg_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp126_3.jpg'),
@@ -1059,7 +1058,7 @@ saveRDS(df_pkegg_avg4_miroc585, file = here("data", "df_pkegg_avg4_miroc585.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg4_miroc585, "Forecasted Distribution 2015 - 2039 \n miroc SSP585")
+grid_predict(df_pkegg_avg4_miroc585, "Forecasted Distribution 2015 - 2039 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp585_1.jpg'),
@@ -1114,7 +1113,7 @@ saveRDS(df_pkegg_avg5_miroc585, file = here("data", "df_pkegg_avg5_miroc585.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg5_miroc585, "Forecasted Distribution 2040 - 2069 \n miroc SSP585")
+grid_predict(df_pkegg_avg5_miroc585, "Forecasted Distribution 2040 - 2069 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp585_2.jpg'),
@@ -1169,10 +1168,1150 @@ saveRDS(df_pkegg_avg6_miroc585, file = here("data", "df_pkegg_avg6_miroc585.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg6_miroc585, "Forecasted Distribution 2070 - 2099 \n miroc SSP585")
+grid_predict(df_pkegg_avg6_miroc585, "Forecasted Distribution 2070 - 2099 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_miroc_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+
+### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
+#### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
+##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
+temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
+salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 5)
+
+# Combine into one data frame
+df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae1), fixed = T)
+df_pklarvae_avg1_cesm126 <- data.frame(lat = df_pklarvae1$lat, 
+                                    lon = df_pklarvae1$lon, 
+                                    dist = df_pklarvae1$dist,
+                                    avg_pred = rowSums(df_pklarvae1[, x])/25)
+saveRDS(df_pklarvae_avg1_cesm126, file = here("data", "df_pklarvae_avg1_cesm126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg1_cesm126, "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp126_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_cesm_ssp126,
+                          salts_cesm_ssp126, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 11)
+
+# Combine into one data frame
+df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae2), fixed = T)
+df_pklarvae_avg2_cesm126 <- data.frame(lat = df_pklarvae2$lat, 
+                                    lon = df_pklarvae2$lon, 
+                                    dist = df_pklarvae2$dist,
+                                    avg_pred = rowSums(df_pklarvae2[, x])/30)
+saveRDS(df_pklarvae_avg2_cesm126, file = here("data", "df_pklarvae_avg2_cesm126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg2_cesm126, "Forecasted Distribution 2040 - 2069 \n CESM SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp126_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_cesm_ssp126,
+                           salts_cesm_ssp126, 17)
+
+# Combine into one data frame
+df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae3), fixed = T)
+df_pklarvae_avg3_cesm126 <- data.frame(lat = df_pklarvae3$lat, 
+                                    lon = df_pklarvae3$lon, 
+                                    dist = df_pklarvae3$dist,
+                                    avg_pred = rowSums(df_pklarvae3[, x])/30)
+saveRDS(df_pklarvae_avg3_cesm126, file = here("data", "df_pklarvae_avg3_cesm126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg3_cesm126, "Forecasted Distribution 2070 - 2099 \n CESM SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp126_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### CESM 585 -----------------------------------------------------------------------------------------------------------------
+temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
+salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 5)
+
+# Combine into one data frame
+df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae4), fixed = T)
+df_pklarvae_avg4_cesm585 <- data.frame(lat = df_pklarvae4$lat, 
+                                    lon = df_pklarvae4$lon, 
+                                    dist = df_pklarvae4$dist,
+                                    avg_pred = rowSums(df_pklarvae4[, x])/25)
+saveRDS(df_pklarvae_avg4_cesm585, file = here("data", "df_pklarvae_avg4_cesm585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg4_cesm585, "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp585_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_cesm_ssp585,
+                          salts_cesm_ssp585, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 11)
+
+# Combine into one data frame
+df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae5), fixed = T)
+df_pklarvae_avg5_cesm585 <- data.frame(lat = df_pklarvae5$lat, 
+                                    lon = df_pklarvae5$lon, 
+                                    dist = df_pklarvae5$dist,
+                                    avg_pred = rowSums(df_pklarvae5[, x])/30)
+saveRDS(df_pklarvae_avg5_cesm585, file = here("data", "df_pklarvae_avg5_cesm585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg5_cesm585, "Forecasted Distribution 2040 - 2069 \n CESM SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp585_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_cesm_ssp585,
+                           salts_cesm_ssp585, 17)
+
+# Combine into one data frame
+df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae6), fixed = T)
+df_pklarvae_avg6_cesm585 <- data.frame(lat = df_pklarvae6$lat, 
+                                    lon = df_pklarvae6$lon, 
+                                    dist = df_pklarvae6$dist,
+                                    avg_pred = rowSums(df_pklarvae6[, x])/60)
+saveRDS(df_pklarvae_avg6_cesm585, file = here("data", "df_pklarvae_avg6_cesm585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg6_cesm585, "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_cesm_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
+temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
+salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 5)
+
+# Combine into one data frame
+df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae1), fixed = T)
+df_pklarvae_avg1_gfdl126 <- data.frame(lat = df_pklarvae1$lat, 
+                                    lon = df_pklarvae1$lon, 
+                                    dist = df_pklarvae1$dist,
+                                    avg_pred = rowSums(df_pklarvae1[, x])/25)
+saveRDS(df_pklarvae_avg1_gfdl126, file = here("data", "df_pklarvae_avg1_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n GFDL SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp126_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_gfdl_ssp126,
+                          salts_gfdl_ssp126, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 11)
+
+# Combine into one data frame
+df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae2), fixed = T)
+df_pklarvae_avg2_gfdl126 <- data.frame(lat = df_pklarvae2$lat, 
+                                    lon = df_pklarvae2$lon, 
+                                    dist = df_pklarvae2$dist,
+                                    avg_pred = rowSums(df_pklarvae2[, x])/30)
+saveRDS(df_pklarvae_avg2_gfdl126, file = here("data", "df_pklarvae_avg2_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n GFDL SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp126_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_gfdl_ssp126,
+                           salts_gfdl_ssp126, 17)
+
+# Combine into one data frame
+df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae3), fixed = T)
+df_pklarvae_avg3_gfdl126 <- data.frame(lat = df_pklarvae3$lat, 
+                                    lon = df_pklarvae3$lon, 
+                                    dist = df_pklarvae3$dist,
+                                    avg_pred = rowSums(df_pklarvae3[, x])/30)
+saveRDS(df_pklarvae_avg3_gfdl126, file = here("data", "df_pklarvae_avg3_gfdl126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n GFDL SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp126_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
+temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
+salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 5)
+
+# Combine into one data frame
+df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae4), fixed = T)
+df_pklarvae_avg4_gfdl585 <- data.frame(lat = df_pklarvae4$lat, 
+                                    lon = df_pklarvae4$lon, 
+                                    dist = df_pklarvae4$dist,
+                                    avg_pred = rowSums(df_pklarvae4[, x])/25)
+saveRDS(df_pklarvae_avg4_gfdl585, file = here("data", "df_pklarvae_avg4_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg4_gfdl585, "Forecasted Distribution 2015 - 2039 \n GFDL SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp585_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_gfdl_ssp585,
+                          salts_gfdl_ssp585, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 11)
+
+# Combine into one data frame
+df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae5), fixed = T)
+df_pklarvae_avg5_gfdl585 <- data.frame(lat = df_pklarvae5$lat, 
+                                    lon = df_pklarvae5$lon, 
+                                    dist = df_pklarvae5$dist,
+                                    avg_pred = rowSums(df_pklarvae5[, x])/30)
+saveRDS(df_pklarvae_avg5_gfdl585, file = here("data", "df_pklarvae_avg5_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg5_gfdl585, "Forecasted Distribution 2040 - 2069 \n GFDL SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp585_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_gfdl_ssp585,
+                           salts_gfdl_ssp585, 17)
+
+# Combine into one data frame
+df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae6), fixed = T)
+df_pklarvae_avg6_gfdl585 <- data.frame(lat = df_pklarvae6$lat, 
+                                    lon = df_pklarvae6$lon, 
+                                    dist = df_pklarvae6$dist,
+                                    avg_pred = rowSums(df_pklarvae6[, x])/60)
+saveRDS(df_pklarvae_avg6_gfdl585, file = here("data", "df_pklarvae_avg6_gfdl585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg6_gfdl585, "Forecasted Distribution 2070 - 2099 \n GFDL SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_gfdl_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
+temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
+salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 5)
+
+# Combine into one data frame
+df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae1), fixed = T)
+df_pklarvae_avg1_miroc126 <- data.frame(lat = df_pklarvae1$lat, 
+                                     lon = df_pklarvae1$lon, 
+                                     dist = df_pklarvae1$dist,
+                                     avg_pred = rowSums(df_pklarvae1[, x])/25)
+saveRDS(df_pklarvae_avg1_miroc126, file = here("data", "df_pklarvae_avg1_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n MIROC SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp126_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_miroc_ssp126,
+                          salts_miroc_ssp126, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 11)
+
+# Combine into one data frame
+df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae2), fixed = T)
+df_pklarvae_avg2_miroc126 <- data.frame(lat = df_pklarvae2$lat, 
+                                     lon = df_pklarvae2$lon, 
+                                     dist = df_pklarvae2$dist,
+                                     avg_pred = rowSums(df_pklarvae2[, x])/30)
+saveRDS(df_pklarvae_avg2_miroc126, file = here("data", "df_pklarvae_avg2_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n MIROC SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp126_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_miroc_ssp126,
+                           salts_miroc_ssp126, 17)
+
+# Combine into one data frame
+df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae3), fixed = T)
+df_pklarvae_avg3_miroc126 <- data.frame(lat = df_pklarvae3$lat, 
+                                     lon = df_pklarvae3$lon, 
+                                     dist = df_pklarvae3$dist,
+                                     avg_pred = rowSums(df_pklarvae3[, x])/30)
+saveRDS(df_pklarvae_avg3_miroc126, file = here("data", "df_pklarvae_avg3_miroc126.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n MIROC SSP126")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp126_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
+temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
+salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
+
+## 2015 - 2039
+grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 1)
+grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 2)
+grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 3)
+grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 4)
+grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 5)
+
+# Combine into one data frame
+df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
+                  grids_pklarvae1[[4]], grids_pklarvae1[[5]], grids_pklarvae2[[1]], 
+                  grids_pklarvae2[[2]], grids_pklarvae2[[3]], grids_pklarvae2[[4]],
+                  grids_pklarvae2[[5]], grids_pklarvae3[[1]], grids_pklarvae3[[2]], 
+                  grids_pklarvae3[[3]], grids_pklarvae3[[4]], grids_pklarvae3[[5]],
+                  grids_pklarvae4[[1]], grids_pklarvae4[[2]], grids_pklarvae4[[3]], 
+                  grids_pklarvae4[[4]], grids_pklarvae4[[5]], grids_pklarvae5[[1]], 
+                  grids_pklarvae5[[2]], grids_pklarvae5[[3]], grids_pklarvae5[[4]],
+                  grids_pklarvae5[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae4), fixed = T)
+df_pklarvae_avg4_miroc585 <- data.frame(lat = df_pklarvae4$lat, 
+                                     lon = df_pklarvae4$lon, 
+                                     dist = df_pklarvae4$dist,
+                                     avg_pred = rowSums(df_pklarvae4[, x])/25)
+saveRDS(df_pklarvae_avg4_miroc585, file = here("data", "df_pklarvae_avg4_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg4_miroc585, "Forecasted Distribution 2015 - 2039 \n MIROC SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp585_1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2040 - 2069
+grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 6)
+grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 7)
+grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 8)
+grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
+                          temps_miroc_ssp585,
+                          salts_miroc_ssp585, 9)
+grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 10)
+grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 11)
+
+# Combine into one data frame
+df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
+                  grids_pklarvae6[[4]], grids_pklarvae6[[5]], grids_pklarvae7[[1]], 
+                  grids_pklarvae7[[2]], grids_pklarvae7[[3]], grids_pklarvae7[[4]],
+                  grids_pklarvae7[[5]], grids_pklarvae8[[1]], grids_pklarvae8[[2]], 
+                  grids_pklarvae8[[3]], grids_pklarvae8[[4]], grids_pklarvae8[[5]],
+                  grids_pklarvae9[[1]], grids_pklarvae9[[2]], grids_pklarvae9[[3]], 
+                  grids_pklarvae9[[4]], grids_pklarvae9[[5]], grids_pklarvae10[[1]], 
+                  grids_pklarvae10[[2]], grids_pklarvae10[[3]], grids_pklarvae10[[4]],
+                  grids_pklarvae11[[5]], grids_pklarvae11[[1]], grids_pklarvae11[[2]],
+                  grids_pklarvae11[[3]], grids_pklarvae11[[4]], grids_pklarvae11[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae5), fixed = T)
+df_pklarvae_avg5_miroc585 <- data.frame(lat = df_pklarvae5$lat, 
+                                     lon = df_pklarvae5$lon, 
+                                     dist = df_pklarvae5$dist,
+                                     avg_pred = rowSums(df_pklarvae5[, x])/30)
+saveRDS(df_pklarvae_avg5_miroc585, file = here("data", "df_pklarvae_avg5_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg5_miroc585, "Forecasted Distribution 2040 - 2069 \n MIROC SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp585_2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+## 2070 - 2099
+grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 12)
+grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 13)
+grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 14)
+grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 15)
+grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 16)
+grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
+                           temps_miroc_ssp585,
+                           salts_miroc_ssp585, 17)
+
+# Combine into one data frame
+df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
+                  grids_pklarvae12[[4]], grids_pklarvae12[[5]], grids_pklarvae13[[1]], 
+                  grids_pklarvae13[[2]], grids_pklarvae13[[3]], grids_pklarvae13[[4]],
+                  grids_pklarvae13[[5]], grids_pklarvae14[[1]], grids_pklarvae14[[2]], 
+                  grids_pklarvae14[[3]], grids_pklarvae14[[4]], grids_pklarvae14[[5]],
+                  grids_pklarvae15[[1]], grids_pklarvae15[[2]], grids_pklarvae15[[3]], 
+                  grids_pklarvae15[[4]], grids_pklarvae15[[5]], grids_pklarvae16[[1]], 
+                  grids_pklarvae16[[2]], grids_pklarvae16[[3]], grids_pklarvae16[[4]],
+                  grids_pklarvae17[[5]], grids_pklarvae17[[1]], grids_pklarvae17[[2]],
+                  grids_pklarvae17[[3]], grids_pklarvae17[[4]], grids_pklarvae17[[5]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist")) 
+
+
+# Generate average prediction from all predictions
+x <- grepl("pred", names(df_pklarvae6), fixed = T)
+df_pklarvae_avg6_miroc585 <- data.frame(lat = df_pklarvae6$lat, 
+                                     lon = df_pklarvae6$lon, 
+                                     dist = df_pklarvae6$dist,
+                                     avg_pred = rowSums(df_pklarvae6[, x])/60)
+saveRDS(df_pklarvae_avg6_miroc585, file = here("data", "df_pklarvae_avg6_miroc585.rds"))
+
+# Plot
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_avg6_miroc585, "Forecasted Distribution 2070 - 2099 \n MIROC SSP585")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_miroc_ssp585_3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+### Average Predictions ------------------------------------------------------------------------------------------------------------
+#### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
+##### Eggs
+df_pkegg_avg1_cesm126 <- readRDS(here('data', 'df_pkegg_avg1_cesm126.rds'))
+df_pkegg_avg4_cesm585 <- readRDS(here('data', 'df_pkegg_avg4_cesm585.rds'))
+df_pkegg_avg1_gfdl126 <- readRDS(here('data', 'df_pkegg_avg1_gfdl126.rds'))
+df_pkegg_avg4_gfdl585 <- readRDS(here('data', 'df_pkegg_avg4_gfdl585.rds'))
+df_pkegg_avg1_miroc126 <- readRDS(here('data', 'df_pkegg_avg1_miroc126.rds'))
+df_pkegg_avg4_miroc585 <- readRDS(here('data', 'df_pkegg_avg4_miroc585.rds'))
+
+df_pkegg_merged1 <- list(df_pkegg_avg1_cesm126, df_pkegg_avg4_cesm585,
+                            df_pkegg_avg1_gfdl126, df_pkegg_avg4_gfdl585,
+                            df_pkegg_avg1_miroc126, df_pkegg_avg4_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pkegg_merged1), fixed = T)
+df_pkegg_final1 <- data.frame(lat = df_pkegg_merged1$lat,
+                                 lon = df_pkegg_merged1$lon,
+                                 avg_pred = exp((rowSums(df_pkegg_merged1[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_final1, "Forecasted Distribution 2015 - 2039")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_avg1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### Larvae
+df_pklarvae_avg1_cesm126 <- readRDS(here('data', 'df_pklarvae_avg1_cesm126.rds'))
+df_pklarvae_avg4_cesm585 <- readRDS(here('data', 'df_pklarvae_avg4_cesm585.rds'))
+df_pklarvae_avg1_gfdl126 <- readRDS(here('data', 'df_pklarvae_avg1_gfdl126.rds'))
+df_pklarvae_avg4_gfdl585 <- readRDS(here('data', 'df_pklarvae_avg4_gfdl585.rds'))
+df_pklarvae_avg1_miroc126 <- readRDS(here('data', 'df_pklarvae_avg1_miroc126.rds'))
+df_pklarvae_avg4_miroc585 <- readRDS(here('data', 'df_pklarvae_avg4_miroc585.rds'))
+
+df_pklarvae_merged1 <- list(df_pklarvae_avg1_cesm126, df_pklarvae_avg4_cesm585,
+                            df_pklarvae_avg1_gfdl126, df_pklarvae_avg4_gfdl585,
+                            df_pklarvae_avg1_miroc126, df_pklarvae_avg4_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pklarvae_merged1), fixed = T)
+df_pklarvae_final1 <- data.frame(lat = df_pklarvae_merged1$lat,
+                                lon = df_pklarvae_merged1$lon,
+                                avg_pred = exp((rowSums(df_pklarvae_merged1[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_final1, "Forecasted Distribution 2015 - 2039")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_avg1.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+#### 2040-2069 ---------------------------------------------------------------------------------------------------------------------
+##### Eggs
+df_pkegg_avg2_cesm126 <- readRDS(here('data', 'df_pkegg_avg2_cesm126.rds'))
+df_pkegg_avg5_cesm585 <- readRDS(here('data', 'df_pkegg_avg5_cesm585.rds'))
+df_pkegg_avg2_gfdl126 <- readRDS(here('data', 'df_pkegg_avg2_gfdl126.rds'))
+df_pkegg_avg5_gfdl585 <- readRDS(here('data', 'df_pkegg_avg5_gfdl585.rds'))
+df_pkegg_avg2_miroc126 <- readRDS(here('data', 'df_pkegg_avg2_miroc126.rds'))
+df_pkegg_avg5_miroc585 <- readRDS(here('data', 'df_pkegg_avg5_miroc585.rds'))
+
+df_pkegg_merged2 <- list(df_pkegg_avg2_cesm126, df_pkegg_avg5_cesm585,
+                         df_pkegg_avg2_gfdl126, df_pkegg_avg5_gfdl585,
+                         df_pkegg_avg2_miroc126, df_pkegg_avg5_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pkegg_merged2), fixed = T)
+df_pkegg_final2 <- data.frame(lat = df_pkegg_merged2$lat,
+                              lon = df_pkegg_merged2$lon,
+                              avg_pred = exp((rowSums(df_pkegg_merged2[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_final2, "Forecasted Distribution 2015 - 2039")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_avg2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+##### Larvae
+df_pklarvae_avg2_cesm126 <- readRDS(here('data', 'df_pklarvae_avg2_cesm126.rds'))
+df_pklarvae_avg5_cesm585 <- readRDS(here('data', 'df_pklarvae_avg5_cesm585.rds'))
+df_pklarvae_avg2_gfdl126 <- readRDS(here('data', 'df_pklarvae_avg2_gfdl126.rds'))
+df_pklarvae_avg5_gfdl585 <- readRDS(here('data', 'df_pklarvae_avg5_gfdl585.rds'))
+df_pklarvae_avg2_miroc126 <- readRDS(here('data', 'df_pklarvae_avg2_miroc126.rds'))
+df_pklarvae_avg5_miroc585 <- readRDS(here('data', 'df_pklarvae_avg5_miroc585.rds'))
+
+df_pklarvae_merged2 <- list(df_pklarvae_avg2_cesm126, df_pklarvae_avg5_cesm585,
+                         df_pklarvae_avg2_gfdl126, df_pklarvae_avg5_gfdl585,
+                         df_pklarvae_avg2_miroc126, df_pklarvae_avg5_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pklarvae_merged2), fixed = T)
+df_pklarvae_final2 <- data.frame(lat = df_pklarvae_merged2$lat,
+                              lon = df_pklarvae_merged2$lon,
+                              avg_pred = exp((rowSums(df_pklarvae_merged2[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_final2, "Forecasted Distribution 2015 - 2039")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_avg2.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+
+#### 2070-2099----------------------------------------------------------------------------------------------------------------------
+df_pkegg_avg3_cesm126 <- readRDS(here('data', 'df_pkegg_avg3_cesm126.rds'))
+df_pkegg_avg6_cesm585 <- readRDS(here('data', 'df_pkegg_avg6_cesm585.rds'))
+df_pkegg_avg3_gfdl126 <- readRDS(here('data', 'df_pkegg_avg3_gfdl126.rds'))
+df_pkegg_avg6_gfdl585 <- readRDS(here('data', 'df_pkegg_avg6_gfdl585.rds'))
+df_pkegg_avg3_miroc126 <- readRDS(here('data', 'df_pkegg_avg3_miroc126.rds'))
+df_pkegg_avg6_miroc585 <- readRDS(here('data', 'df_pkegg_avg6_miroc585.rds'))
+
+df_pkegg_merged3 <- list(df_pkegg_avg3_cesm126, df_pkegg_avg6_cesm585,
+                         df_pkegg_avg3_gfdl126, df_pkegg_avg6_gfdl585,
+                         df_pkegg_avg3_miroc126, df_pkegg_avg6_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pkegg_merged3), fixed = T)
+df_pkegg_final3 <- data.frame(lat = df_pkegg_merged3$lat,
+                              lon = df_pkegg_merged3$lon,
+                              avg_pred = exp((rowSums(df_pkegg_merged3[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pkegg_final3, "Forecasted Distribution 2015 - 2039")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_avg3.jpg'),
          height = 6,
          width = 6,
          res = 200,
