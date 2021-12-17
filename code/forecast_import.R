@@ -53,10 +53,10 @@ get_salt_filepath <- function(model, years){
   return(filepath)
 }
 
-### Create vectors with variables and save as list
+### Create lists -----
 # May need to remove from environment in order to get through them all
 # Depends on amount of memory available
-# CESM SSP126
+#### CESM SSP126 ----
 temps_cesm_ssp126<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('cesm_ssp126', years_list[j]))
@@ -79,7 +79,7 @@ for(j in 2:18){
 saveRDS(salts_cesm_ssp126, file = here('data', 'salts_cesm_ssp126.rds'))
 rm(salts_cesm_ssp126)
 
-# CESM SSP585
+#### CESM SSP585 ----
 temps_cesm_ssp585<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('cesm_ssp585', years_list[j]))
@@ -102,7 +102,7 @@ for(j in 2:18){
 saveRDS(salts_cesm_ssp585, file = here('data', 'salts_cesm_ssp585.rds'))
 rm(salts_cesm_ssp585)
 
-# CESM Historical
+#### CESM Historical ----
 temps_cesm_historical<- list()
 for(j in 1:7){
   bering_model_temp = nc_open(get_temp_filepath('cesm_historical', years_list_historical[j]))
@@ -125,7 +125,7 @@ for(j in 1:7){
 saveRDS(salts_cesm_historical, file = here('data', 'salts_cesm_historical.rds'))
 rm(salts_cesm_historical)
 
-# GFDL SSP126
+#### GFDL SSP126 ----
 temps_gfdl_ssp126<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('gfdl_ssp126', years_list[j]))
@@ -148,7 +148,7 @@ for(j in 2:18){
 saveRDS(salts_gfdl_ssp126, file = here('data', 'salts_gfdl_ssp126.rds'))
 rm(salts_gfdl_ssp126)
 
-# GFDL SSP585
+#### GFDL SSP585 ----
 temps_gfdl_ssp585<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('gfdl_ssp585', years_list[j]))
@@ -171,7 +171,7 @@ for(j in 2:18){
 saveRDS(salts_gfdl_ssp585, file = here('data', 'salts_gfdl_ssp585.rds'))
 rm(salts_gfdl_ssp585)
 
-# GFDL Historical
+#### GFDL Historical ----
 temps_gfdl_historical<- list()
 for(j in 1:7){
   bering_model_temp = nc_open(get_temp_filepath('gfdl_historical', years_list_historical[j]))
@@ -194,7 +194,7 @@ for(j in 1:7){
 saveRDS(salts_gfdl_historical, file = here('data', 'salts_gfdl_historical.rds'))
 rm(salts_gfdl_historical)
 
-# MIROC SSP126
+#### MIROC SSP126 ----
 temps_miroc_ssp126<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('miroc_ssp126', years_list[j]))
@@ -217,7 +217,7 @@ for(j in 2:18){
 saveRDS(salts_miroc_ssp126, file = here('data', 'salts_miroc_ssp126.rds'))
 rm(salts_miroc_ssp126)
 
-# MIROC SSP585
+#### MIROC SSP585 ----
 temps_miroc_ssp585<- list()
 for(j in 2:18){
   bering_model_temp = nc_open(get_temp_filepath('miroc_ssp585', years_list[j]))
@@ -240,7 +240,7 @@ for(j in 2:18){
 saveRDS(salts_miroc_ssp585, file = here('data', 'salts_miroc_ssp585.rds'))
 rm(salts_miroc_ssp585)
 
-# MIROC Historical
+#### MIROC Historical ----
 temps_miroc_historical<- list()
 for(j in 1:7){
   bering_model_temp = nc_open(get_temp_filepath('miroc_historical', years_list_historical[j]))
@@ -274,7 +274,7 @@ rm(salts_miroc_historical)
 
 
 
-####--------------------------------------------TidyNC Method----------------------------------------------------------------------------------
+###TidyNC Method------------------------------------------------------------------------------------------------------------------------------
 ### Load netcdf with tidync
 # read in netcdf files of projected temp from Bering 10k ROMS
 
