@@ -82,7 +82,7 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(-58.4, .76),
+        zlim = c(-58.4, 1.3),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -99,7 +99,7 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(-58.4, .76),
+             zlim = c(-58.4, 1.3),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -107,19 +107,10 @@ grid_predict <- function(grid, title){
 
 
 ### Bias correction testing ----
-# Average by month for hindcast
-pk_egg$month <- month(pk_egg$date)
-data_baseline <- pk_egg %>%
-  group_by(month, lat, lon) %>%
-  summarise(month_baseline_temp = mean(roms_temperature),
-            month_baseline_salt = mean(roms_salinity))
-
-# Average by month for historical
-temps_cesm_historical <- readRDS(here('data', 'temps_cesm_historical.rds'))
-salts_cesm_historical <- readRDS(here('data', 'salts_cesm_historical.rds'))
-
-# May want to match all to the grid in the function
-# Match the hindcast, historical, and forecast then do the calculations
+# Average by month for hindcast and historical found in each fish dataset
+# Need to match the forecast to the fish dataset by lat, lon, year, month
+# Then subtract the baseline (historical) from the forecast to get the deltas
+# Finally add the deltas to the hindcast to get final values
 
 
 
@@ -154,13 +145,7 @@ get_preds <- function(data, year, date, doy,
   
   # Attach ROMs forecast
   grid_extent <- varid_match(grid_extent, temp_output, salt_output, list)
-  
-  # Bias correction
-  data$month <- month(data$date)
-  data_baseline <- data %>%
-    group_by(month, lat, lon) %>%
-    summarise(month_baseline = mean(roms_temperature))
-  
+
   # Calculate mean temperature
   time_index <- temp_output[[list]][[3]] >= start_date & temp_output[[list]][[3]] <= end_date
   temp_array <- temp_output[[list]][[4]][, , time_index]
