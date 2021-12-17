@@ -145,7 +145,7 @@ get_preds <- function(data, year, date, doy,
   
   # Attach ROMs forecast
   grid_extent <- varid_match(grid_extent, temp_output, salt_output, list)
-
+  
   # Calculate mean temperature
   time_index <- temp_output[[list]][[3]] >= start_date & temp_output[[list]][[3]] <= end_date
   temp_array <- temp_output[[list]][[4]][, , time_index]
