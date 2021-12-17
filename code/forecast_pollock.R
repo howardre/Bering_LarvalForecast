@@ -82,7 +82,7 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 1),
+        zlim = c(-58.4, .76),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -99,10 +99,28 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 1),
+             zlim = c(-58.4, .76),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
+
+
+
+### Bias correction testing ----
+# Average by month for hindcast
+pk_egg$month <- month(pk_egg$date)
+data_baseline <- pk_egg %>%
+  group_by(month, lat, lon) %>%
+  summarise(month_baseline_temp = mean(roms_temperature),
+            month_baseline_salt = mean(roms_salinity))
+
+# Average by month for historical
+temps_cesm_historical <- readRDS(here('data', 'temps_cesm_historical.rds'))
+salts_cesm_historical <- readRDS(here('data', 'salts_cesm_historical.rds'))
+
+# May want to match all to the grid in the function
+# Match the hindcast, historical, and forecast then do the calculations
+
 
 
 # Function to get predictions
@@ -137,11 +155,15 @@ get_preds <- function(data, year, date, doy,
   # Attach ROMs forecast
   grid_extent <- varid_match(grid_extent, temp_output, salt_output, list)
   
+  # Bias correction
+  data$month <- month(data$date)
+  data_baseline <- data %>%
+    group_by(month, lat, lon) %>%
+    summarise(month_baseline = mean(roms_temperature))
+  
   # Calculate mean temperature
   time_index <- temp_output[[list]][[3]] >= start_date & temp_output[[list]][[3]] <= end_date
   temp_array <- temp_output[[list]][[4]][, , time_index]
-  
-  # Select out box on the shelf
   temp_data <- as.data.frame(cbind(lon = as.vector(temp_output[[list]][[1]]), 
                                    lat = as.vector(temp_output[[list]][[2]]), 
                                    temp = as.vector(temp_array)))
@@ -150,6 +172,9 @@ get_preds <- function(data, year, date, doy,
   
   grid_extent$mean_temp <- mean
   
+  
+  
+  # Parameterized model
   gam <- gam(larvalcatchper10m2 + 1 ~ s(year) +
                s(doy, k = 8) +
                s(lon, lat) +
@@ -2169,6 +2194,63 @@ dev.copy(jpeg,
 dev.off()
 
 ### Average Predictions ------------------------------------------------------------------------------------------------------------
+# Change z axis to make figures
+grid_predict <- function(grid, title){
+  nlat = 80
+  nlon = 120
+  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
+  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
+  my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                    "#F5D363", "#EFBA55", "#EAA352",
+                                    "#E68C51", "#E0754F", "#D75C4D",
+                                    "#BB4A48", "#994240", "#763931", 
+                                    "#542D20", "#352311", "#191900")))
+  image(lond,
+        latd,
+        t(matrix(grid$avg_pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        axes = FALSE,
+        xlab = "",
+        ylab = "")
+  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
+  par(new = TRUE)
+  image(lond,
+        latd,
+        t(matrix(grid$avg_pred,
+                 nrow = length(latd),
+                 ncol = length(lond),
+                 byrow = T)),
+        col = my_color(100), 
+        ylab = "Latitude",
+        xlab = "Longitude",
+        xlim = c(-176.5, -156.5),
+        ylim = c(52, 62),
+        zlim = c(0, 11961.215),
+        main = title,
+        cex.main = 1.2,
+        cex.lab = 1.1,
+        cex.axis = 1.1)
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
+  image.plot(legend.only = T,
+             col = my_color(100),
+             legend.shrink = 0.2,
+             smallplot = c(.79, .82, .20, .37),
+             legend.cex = 0.8,
+             axis.args = list(cex.axis = 0.8),
+             legend.width = 0.5,
+             legend.mar = 6,
+             zlim = c(0, 11961.215),
+             legend.args = list("Avg. Predicted \n Occurrence",
+                                side = 2, cex = 1))
+}
+
 #### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
 ##### Eggs
 df_pkegg_avg1_cesm126 <- readRDS(here('data', 'df_pkegg_avg1_cesm126.rds'))
@@ -2249,7 +2331,7 @@ df_pkegg_final2 <- data.frame(lat = df_pkegg_merged2$lat,
                               avg_pred = exp((rowSums(df_pkegg_merged2[, x])/6) + 1))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_final2, "Forecasted Distribution 2015 - 2039")
+grid_predict(df_pkegg_final2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_avg2.jpg'),
@@ -2278,7 +2360,7 @@ df_pklarvae_final2 <- data.frame(lat = df_pklarvae_merged2$lat,
                               avg_pred = exp((rowSums(df_pklarvae_merged2[, x])/6) + 1))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pklarvae_final2, "Forecasted Distribution 2015 - 2039")
+grid_predict(df_pklarvae_final2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_larvae_avg2.jpg'),
@@ -2308,10 +2390,38 @@ df_pkegg_final3 <- data.frame(lat = df_pkegg_merged3$lat,
                               avg_pred = exp((rowSums(df_pkegg_merged3[, x])/6) + 1))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_final3, "Forecasted Distribution 2015 - 2039")
+grid_predict(df_pkegg_final3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_avg3.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+
+df_pklarvae_avg3_cesm126 <- readRDS(here('data', 'df_pklarvae_avg3_cesm126.rds'))
+df_pklarvae_avg6_cesm585 <- readRDS(here('data', 'df_pklarvae_avg6_cesm585.rds'))
+df_pklarvae_avg3_gfdl126 <- readRDS(here('data', 'df_pklarvae_avg3_gfdl126.rds'))
+df_pklarvae_avg6_gfdl585 <- readRDS(here('data', 'df_pklarvae_avg6_gfdl585.rds'))
+df_pklarvae_avg3_miroc126 <- readRDS(here('data', 'df_pklarvae_avg3_miroc126.rds'))
+df_pklarvae_avg6_miroc585 <- readRDS(here('data', 'df_pklarvae_avg6_miroc585.rds'))
+
+df_pklarvae_merged3 <- list(df_pklarvae_avg3_cesm126, df_pklarvae_avg6_cesm585,
+                         df_pklarvae_avg3_gfdl126, df_pklarvae_avg6_gfdl585,
+                         df_pklarvae_avg3_miroc126, df_pklarvae_avg6_miroc585) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist"))
+
+x <- grepl("pred", names(df_pklarvae_merged3), fixed = T)
+df_pklarvae_final3 <- data.frame(lat = df_pklarvae_merged3$lat,
+                              lon = df_pklarvae_merged3$lon,
+                              avg_pred = exp((rowSums(df_pklarvae_merged3[, x])/6) + 1))
+
+windows(width = 6, height = 6, family = "serif")
+grid_predict(df_pklarvae_final3, "Forecasted Distribution 2070 - 2099")
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_avg3.jpg'),
          height = 6,
          width = 6,
          res = 200,
