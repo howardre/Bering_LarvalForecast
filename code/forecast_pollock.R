@@ -105,6 +105,26 @@ grid_predict <- function(grid, title){
 }
 
 
+egg_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+                     s(doy, k = 8) +
+                     s(lon, lat) +
+                     s(roms_temperature, k = 6) +
+                     s(roms_salinity, k = 6) +
+                     s(lat, lon, by = mean_temp, k = 6),
+                   data = pk_egg,
+                   family = tw(link = 'log'),
+                   method = 'REML')
+
+larval_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+                        s(doy, k = 8) +
+                        s(lon, lat) +
+                        s(roms_temperature, k = 6) +
+                        s(roms_salinity, k = 6) +
+                        s(lat, lon, by = mean_temp, k = 6),
+                      data = pk_larvae,
+                      family = tw(link = 'log'),
+                      method = 'REML')
+
 
 ### Bias correction testing ----
 # Average by month for hindcast and historical found in each fish dataset
@@ -118,7 +138,7 @@ grid_predict <- function(grid, title){
 get_preds <- function(data, year, date, doy, 
                       start_date, end_date,
                       temp_output, salt_output,
-                      list){
+                      list, formula){
   # Prediction grid
   nlat = 80
   nlon = 120
@@ -157,25 +177,15 @@ get_preds <- function(data, year, date, doy,
   
   grid_extent$mean_temp <- mean
   
-  
-  
   # Parameterized model
-  gam <- gam(larvalcatchper10m2 + 1 ~ s(year) +
-               s(doy, k = 8) +
-               s(lon, lat) +
-               s(roms_temperature, k = 6) +
-               s(roms_salinity, k = 6) +
-               s(lat, lon, by = mean_temp, k = 6),
-             data = data,
-             family = tw(link = 'log'),
-             method = 'REML')
+  gam <- formula
   
   # Predict on forecasted output
   grid_extent$pred_untransformed <- predict(gam,
                                             newdata = grid_extent,
                                             type = "link")
   grid_extent$pred_untransformed[grid_extent$dist > 30000] <- NA
-  grid_extent$pred <- exp(grid_extent$pred_untransformed + 1)
+  grid_extent$pred <- exp(grid_extent$pred_untransformed) - 1
   
   return(grid_extent)
   
@@ -184,7 +194,7 @@ get_preds <- function(data, year, date, doy,
 # Function to loop through years
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
-                      list){
+                      list, formula){
   grids_pkegg <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
@@ -193,12 +203,11 @@ pred_loop <- function(range, data, doy,
     grid <- get_preds(data, j, date1, doy,
                       date2, date3,
                       temp_output, salt_output,
-                      list)
+                      list, formula)
     grids_pkegg[[paste("year", j, sep = "")]] <- grid
   }
   return(grids_pkegg)
 }
-
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -209,19 +218,24 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 1)
+                          salts_cesm_ssp126, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 2)
+                          salts_cesm_ssp126, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 3)
+                          salts_cesm_ssp126, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 4)
+                          salts_cesm_ssp126, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 5)
+                          salts_cesm_ssp126, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -260,22 +274,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 6)
+                          salts_cesm_ssp126, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 7)
+                          salts_cesm_ssp126, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 8)
+                          salts_cesm_ssp126, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 9)
+                          salts_cesm_ssp126, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 10)
+                          salts_cesm_ssp126, 10,
+                          egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 11)
+                           salts_cesm_ssp126, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -315,22 +335,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 12)
+                           salts_cesm_ssp126, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 13)
+                           salts_cesm_ssp126, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 14)
+                           salts_cesm_ssp126, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 15)
+                           salts_cesm_ssp126, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 16)
+                           salts_cesm_ssp126, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 17)
+                           salts_cesm_ssp126, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -373,19 +399,24 @@ salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 1)
+                          salts_cesm_ssp585, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 2)
+                          salts_cesm_ssp585, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 3)
+                          salts_cesm_ssp585, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 4)
+                          salts_cesm_ssp585, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 5)
+                          salts_cesm_ssp585, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -424,22 +455,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 6)
+                          salts_cesm_ssp585, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 7)
+                          salts_cesm_ssp585, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 8)
+                          salts_cesm_ssp585, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 9)
+                          salts_cesm_ssp585, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 10)
+                           salts_cesm_ssp585, 10,
+                           egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 11)
+                           salts_cesm_ssp585, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -479,22 +516,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 12)
+                           salts_cesm_ssp585, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 13)
+                           salts_cesm_ssp585, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 14)
+                           salts_cesm_ssp585, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 15)
+                           salts_cesm_ssp585, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 16)
+                           salts_cesm_ssp585, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 17)
+                           salts_cesm_ssp585, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -515,7 +558,7 @@ x <- grepl("pred", names(df_pkegg6), fixed = T)
 df_pkegg_avg6_cesm585 <- data.frame(lat = df_pkegg6$lat, 
                             lon = df_pkegg6$lon, 
                             dist = df_pkegg6$dist,
-                            avg_pred = rowSums(df_pkegg6[, x])/60)
+                            avg_pred = rowSums(df_pkegg6[, x])/30)
 saveRDS(df_pkegg_avg6_cesm585, file = here("data", "df_pkegg_avg6_cesm585.rds"))
 
 # Plot
@@ -538,19 +581,24 @@ salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 1)
+                          salts_gfdl_ssp126, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 2)
+                          salts_gfdl_ssp126, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 3)
+                          salts_gfdl_ssp126, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 4)
+                          salts_gfdl_ssp126, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 5)
+                          salts_gfdl_ssp126, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -589,22 +637,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 6)
+                          salts_gfdl_ssp126, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 7)
+                          salts_gfdl_ssp126, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 8)
+                          salts_gfdl_ssp126, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 9)
+                          salts_gfdl_ssp126, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 10)
+                           salts_gfdl_ssp126, 10,
+                           egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 11)
+                           salts_gfdl_ssp126, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -644,22 +698,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 12)
+                           salts_gfdl_ssp126, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 13)
+                           salts_gfdl_ssp126, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 14)
+                           salts_gfdl_ssp126, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 15)
+                           salts_gfdl_ssp126, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 16)
+                           salts_gfdl_ssp126, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 17)
+                           salts_gfdl_ssp126, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -702,19 +762,24 @@ salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 1)
+                          salts_gfdl_ssp585, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 2)
+                          salts_gfdl_ssp585, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 3)
+                          salts_gfdl_ssp585, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 4)
+                          salts_gfdl_ssp585, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 5)
+                          salts_gfdl_ssp585, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -753,22 +818,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 6)
+                          salts_gfdl_ssp585, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 7)
+                          salts_gfdl_ssp585, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 8)
+                          salts_gfdl_ssp585, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 9)
+                          salts_gfdl_ssp585, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 10)
+                           salts_gfdl_ssp585, 10,
+                           egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 11)
+                           salts_gfdl_ssp585, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -808,22 +879,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 12)
+                           salts_gfdl_ssp585, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 13)
+                           salts_gfdl_ssp585, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 14)
+                           salts_gfdl_ssp585, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 15)
+                           salts_gfdl_ssp585, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 16)
+                           salts_gfdl_ssp585, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 17)
+                           salts_gfdl_ssp585, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -844,7 +921,7 @@ x <- grepl("pred", names(df_pkegg6), fixed = T)
 df_pkegg_avg6_gfdl585 <- data.frame(lat = df_pkegg6$lat, 
                             lon = df_pkegg6$lon, 
                             dist = df_pkegg6$dist,
-                            avg_pred = rowSums(df_pkegg6[, x])/60)
+                            avg_pred = rowSums(df_pkegg6[, x])/30)
 saveRDS(df_pkegg_avg6_gfdl585, file = here("data", "df_pkegg_avg6_gfdl585.rds"))
 
 # Plot
@@ -867,19 +944,24 @@ salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 1)
+                          salts_miroc_ssp126, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 2)
+                          salts_miroc_ssp126, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 3)
+                          salts_miroc_ssp126, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 4)
+                          salts_miroc_ssp126, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 5)
+                          salts_miroc_ssp126, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -918,22 +1000,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 6)
+                          salts_miroc_ssp126, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 7)
+                          salts_miroc_ssp126, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 8)
+                          salts_miroc_ssp126, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 9)
+                          salts_miroc_ssp126, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 10)
+                           salts_miroc_ssp126, 10,
+                           egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 11)
+                           salts_miroc_ssp126, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -973,22 +1061,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 12)
+                           salts_miroc_ssp126, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 13)
+                           salts_miroc_ssp126, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 14)
+                           salts_miroc_ssp126, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 15)
+                           salts_miroc_ssp126, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 16)
+                           salts_miroc_ssp126, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 17)
+                           salts_miroc_ssp126, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -1031,19 +1125,24 @@ salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 ## 2015 - 2039
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 1)
+                          salts_miroc_ssp585, 1,
+                          egg_formula)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 2)
+                          salts_miroc_ssp585, 2,
+                          egg_formula)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 3)
+                          salts_miroc_ssp585, 3,
+                          egg_formula)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 4)
+                          salts_miroc_ssp585, 4,
+                          egg_formula)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 5)
+                          salts_miroc_ssp585, 5,
+                          egg_formula)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -1082,22 +1181,28 @@ dev.off()
 ## 2040 - 2069
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 6)
+                          salts_miroc_ssp585, 6,
+                          egg_formula)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 7)
+                          salts_miroc_ssp585, 7,
+                          egg_formula)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 8)
+                          salts_miroc_ssp585, 8,
+                          egg_formula)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 9)
+                          salts_miroc_ssp585, 9,
+                          egg_formula)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 10)
+                           salts_miroc_ssp585, 10,
+                           egg_formula)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 11)
+                           salts_miroc_ssp585, 11,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -1137,22 +1242,28 @@ dev.off()
 ## 2070 - 2099
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 12)
+                           salts_miroc_ssp585, 12,
+                           egg_formula)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 13)
+                           salts_miroc_ssp585, 13,
+                           egg_formula)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 14)
+                           salts_miroc_ssp585, 14,
+                           egg_formula)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 15)
+                           salts_miroc_ssp585, 15,
+                           egg_formula)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 16)
+                           salts_miroc_ssp585, 16,
+                           egg_formula)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 17)
+                           salts_miroc_ssp585, 17,
+                           egg_formula)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -1173,7 +1284,7 @@ x <- grepl("pred", names(df_pkegg6), fixed = T)
 df_pkegg_avg6_miroc585 <- data.frame(lat = df_pkegg6$lat, 
                                     lon = df_pkegg6$lon, 
                                     dist = df_pkegg6$dist,
-                                    avg_pred = rowSums(df_pkegg6[, x])/60)
+                                    avg_pred = rowSums(df_pkegg6[, x])/30)
 saveRDS(df_pkegg_avg6_miroc585, file = here("data", "df_pkegg_avg6_miroc585.rds"))
 
 # Plot
@@ -1199,19 +1310,24 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 1)
+                          salts_cesm_ssp126, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 2)
+                          salts_cesm_ssp126, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 3)
+                          salts_cesm_ssp126, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 4)
+                          salts_cesm_ssp126, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 5)
+                          salts_cesm_ssp126, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -1250,22 +1366,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 6)
+                          salts_cesm_ssp126, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 7)
+                          salts_cesm_ssp126, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 8)
+                          salts_cesm_ssp126, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_cesm_ssp126,
-                          salts_cesm_ssp126, 9)
+                          salts_cesm_ssp126, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 10)
+                           salts_cesm_ssp126, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 11)
+                           salts_cesm_ssp126, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -1305,22 +1427,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 12)
+                           salts_cesm_ssp126, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 13)
+                           salts_cesm_ssp126, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 14)
+                           salts_cesm_ssp126, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 15)
+                           salts_cesm_ssp126, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 16)
+                           salts_cesm_ssp126, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_cesm_ssp126,
-                           salts_cesm_ssp126, 17)
+                           salts_cesm_ssp126, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -1363,19 +1491,24 @@ salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 1)
+                          salts_cesm_ssp585, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 2)
+                          salts_cesm_ssp585, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 3)
+                          salts_cesm_ssp585, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 4)
+                          salts_cesm_ssp585, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 5)
+                          salts_cesm_ssp585, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -1414,22 +1547,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 6)
+                          salts_cesm_ssp585, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 7)
+                          salts_cesm_ssp585, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 8)
+                          salts_cesm_ssp585, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_cesm_ssp585,
-                          salts_cesm_ssp585, 9)
+                          salts_cesm_ssp585, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 10)
+                           salts_cesm_ssp585, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 11)
+                           salts_cesm_ssp585, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -1469,22 +1608,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 12)
+                           salts_cesm_ssp585, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 13)
+                           salts_cesm_ssp585, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 14)
+                           salts_cesm_ssp585, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 15)
+                           salts_cesm_ssp585, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 16)
+                           salts_cesm_ssp585, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_cesm_ssp585,
-                           salts_cesm_ssp585, 17)
+                           salts_cesm_ssp585, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -1505,7 +1650,7 @@ x <- grepl("pred", names(df_pklarvae6), fixed = T)
 df_pklarvae_avg6_cesm585 <- data.frame(lat = df_pklarvae6$lat, 
                                     lon = df_pklarvae6$lon, 
                                     dist = df_pklarvae6$dist,
-                                    avg_pred = rowSums(df_pklarvae6[, x])/60)
+                                    avg_pred = rowSums(df_pklarvae6[, x])/30)
 saveRDS(df_pklarvae_avg6_cesm585, file = here("data", "df_pklarvae_avg6_cesm585.rds"))
 
 # Plot
@@ -1528,19 +1673,24 @@ salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 1)
+                          salts_gfdl_ssp126, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 2)
+                          salts_gfdl_ssp126, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 3)
+                          salts_gfdl_ssp126, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 4)
+                          salts_gfdl_ssp126, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 5)
+                          salts_gfdl_ssp126, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -1579,22 +1729,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 6)
+                          salts_gfdl_ssp126, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 7)
+                          salts_gfdl_ssp126, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 8)
+                          salts_gfdl_ssp126, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_gfdl_ssp126,
-                          salts_gfdl_ssp126, 9)
+                          salts_gfdl_ssp126, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 10)
+                           salts_gfdl_ssp126, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 11)
+                           salts_gfdl_ssp126, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -1634,22 +1790,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 12)
+                           salts_gfdl_ssp126, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 13)
+                           salts_gfdl_ssp126, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 14)
+                           salts_gfdl_ssp126, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 15)
+                           salts_gfdl_ssp126, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 16)
+                           salts_gfdl_ssp126, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 17)
+                           salts_gfdl_ssp126, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -1692,19 +1854,24 @@ salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 1)
+                          salts_gfdl_ssp585, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 2)
+                          salts_gfdl_ssp585, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 3)
+                          salts_gfdl_ssp585, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 4)
+                          salts_gfdl_ssp585, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 5)
+                          salts_gfdl_ssp585, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -1743,22 +1910,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 6)
+                          salts_gfdl_ssp585, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 7)
+                          salts_gfdl_ssp585, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 8)
+                          salts_gfdl_ssp585, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_gfdl_ssp585,
-                          salts_gfdl_ssp585, 9)
+                          salts_gfdl_ssp585, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 10)
+                           salts_gfdl_ssp585, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 11)
+                           salts_gfdl_ssp585, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -1798,22 +1971,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 12)
+                           salts_gfdl_ssp585, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 13)
+                           salts_gfdl_ssp585, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 14)
+                           salts_gfdl_ssp585, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 15)
+                           salts_gfdl_ssp585, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 16)
+                           salts_gfdl_ssp585, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 17)
+                           salts_gfdl_ssp585, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -1834,7 +2013,7 @@ x <- grepl("pred", names(df_pklarvae6), fixed = T)
 df_pklarvae_avg6_gfdl585 <- data.frame(lat = df_pklarvae6$lat, 
                                     lon = df_pklarvae6$lon, 
                                     dist = df_pklarvae6$dist,
-                                    avg_pred = rowSums(df_pklarvae6[, x])/60)
+                                    avg_pred = rowSums(df_pklarvae6[, x])/30)
 saveRDS(df_pklarvae_avg6_gfdl585, file = here("data", "df_pklarvae_avg6_gfdl585.rds"))
 
 # Plot
@@ -1857,19 +2036,24 @@ salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 1)
+                          salts_miroc_ssp126, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 2)
+                          salts_miroc_ssp126, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 3)
+                          salts_miroc_ssp126, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 4)
+                          salts_miroc_ssp126, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 5)
+                          salts_miroc_ssp126, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae1 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -1908,22 +2092,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 6)
+                          salts_miroc_ssp126, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 7)
+                          salts_miroc_ssp126, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 8)
+                          salts_miroc_ssp126, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_miroc_ssp126,
-                          salts_miroc_ssp126, 9)
+                          salts_miroc_ssp126, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 10)
+                           salts_miroc_ssp126, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 11)
+                           salts_miroc_ssp126, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae2 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -1963,22 +2153,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 12)
+                           salts_miroc_ssp126, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 13)
+                           salts_miroc_ssp126, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 14)
+                           salts_miroc_ssp126, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 15)
+                           salts_miroc_ssp126, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 16)
+                           salts_miroc_ssp126, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_miroc_ssp126,
-                           salts_miroc_ssp126, 17)
+                           salts_miroc_ssp126, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae3 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -2021,19 +2217,24 @@ salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 ## 2015 - 2039
 grids_pklarvae1 <- pred_loop(2015:2019, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 1)
+                          salts_miroc_ssp585, 1,
+                          larval_formula)
 grids_pklarvae2 <- pred_loop(2020:2024, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 2)
+                          salts_miroc_ssp585, 2,
+                          larval_formula)
 grids_pklarvae3 <- pred_loop(2025:2029, pk_larvae, 130,
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 3)
+                          salts_miroc_ssp585, 3,
+                          larval_formula)
 grids_pklarvae4 <- pred_loop(2030:2034, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 4)
+                          salts_miroc_ssp585, 4,
+                          larval_formula)
 grids_pklarvae5 <- pred_loop(2035:2039, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 5)
+                          salts_miroc_ssp585, 5,
+                          larval_formula)
 
 # Combine into one data frame
 df_pklarvae4 <- list(grids_pklarvae1[[1]], grids_pklarvae1[[2]], grids_pklarvae1[[3]], 
@@ -2072,22 +2273,28 @@ dev.off()
 ## 2040 - 2069
 grids_pklarvae6 <- pred_loop(2040:2044, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 6)
+                          salts_miroc_ssp585, 6,
+                          larval_formula)
 grids_pklarvae7 <- pred_loop(2045:2049, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 7)
+                          salts_miroc_ssp585, 7,
+                          larval_formula)
 grids_pklarvae8 <- pred_loop(2050:2054, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 8)
+                          salts_miroc_ssp585, 8,
+                          larval_formula)
 grids_pklarvae9 <- pred_loop(2055:2059, pk_larvae, 130, 
                           temps_miroc_ssp585,
-                          salts_miroc_ssp585, 9)
+                          salts_miroc_ssp585, 9,
+                          larval_formula)
 grids_pklarvae10 <- pred_loop(2060:2064, pk_larvae, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 10)
+                           salts_miroc_ssp585, 10,
+                           larval_formula)
 grids_pklarvae11 <- pred_loop(2065:2069, pk_larvae, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 11)
+                           salts_miroc_ssp585, 11,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae5 <- list(grids_pklarvae6[[1]], grids_pklarvae6[[2]], grids_pklarvae6[[3]], 
@@ -2127,22 +2334,28 @@ dev.off()
 ## 2070 - 2099
 grids_pklarvae12 <- pred_loop(2070:2074, pk_larvae, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 12)
+                           salts_miroc_ssp585, 12,
+                           larval_formula)
 grids_pklarvae13 <- pred_loop(2075:2079, pk_larvae, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 13)
+                           salts_miroc_ssp585, 13,
+                           larval_formula)
 grids_pklarvae14 <- pred_loop(2080:2084, pk_larvae, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 14)
+                           salts_miroc_ssp585, 14,
+                           larval_formula)
 grids_pklarvae15 <- pred_loop(2085:2089, pk_larvae, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 15)
+                           salts_miroc_ssp585, 15,
+                           larval_formula)
 grids_pklarvae16 <- pred_loop(2090:2094, pk_larvae, 130,
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 16)
+                           salts_miroc_ssp585, 16,
+                           larval_formula)
 grids_pklarvae17 <- pred_loop(2095:2099, pk_larvae, 130, 
                            temps_miroc_ssp585,
-                           salts_miroc_ssp585, 17)
+                           salts_miroc_ssp585, 17,
+                           larval_formula)
 
 # Combine into one data frame
 df_pklarvae6 <- list(grids_pklarvae12[[1]], grids_pklarvae12[[2]], grids_pklarvae12[[3]], 
@@ -2163,7 +2376,7 @@ x <- grepl("pred", names(df_pklarvae6), fixed = T)
 df_pklarvae_avg6_miroc585 <- data.frame(lat = df_pklarvae6$lat, 
                                      lon = df_pklarvae6$lon, 
                                      dist = df_pklarvae6$dist,
-                                     avg_pred = rowSums(df_pklarvae6[, x])/60)
+                                     avg_pred = rowSums(df_pklarvae6[, x])/30)
 saveRDS(df_pklarvae_avg6_miroc585, file = here("data", "df_pklarvae_avg6_miroc585.rds"))
 
 # Plot
@@ -2253,7 +2466,7 @@ df_pkegg_merged1 <- list(df_pkegg_avg1_cesm126, df_pkegg_avg4_cesm585,
 x <- grepl("pred", names(df_pkegg_merged1), fixed = T)
 df_pkegg_final1 <- data.frame(lat = df_pkegg_merged1$lat,
                                  lon = df_pkegg_merged1$lon,
-                                 avg_pred = exp((rowSums(df_pkegg_merged1[, x])/6) + 1))
+                                 avg_pred = (rowSums(df_pkegg_merged1[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final1, "Forecasted Distribution 2015 - 2039")
@@ -2282,7 +2495,7 @@ df_pklarvae_merged1 <- list(df_pklarvae_avg1_cesm126, df_pklarvae_avg4_cesm585,
 x <- grepl("pred", names(df_pklarvae_merged1), fixed = T)
 df_pklarvae_final1 <- data.frame(lat = df_pklarvae_merged1$lat,
                                 lon = df_pklarvae_merged1$lon,
-                                avg_pred = exp((rowSums(df_pklarvae_merged1[, x])/6) + 1))
+                                avg_pred = (rowSums(df_pklarvae_merged1[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pklarvae_final1, "Forecasted Distribution 2015 - 2039")
@@ -2313,7 +2526,7 @@ df_pkegg_merged2 <- list(df_pkegg_avg2_cesm126, df_pkegg_avg5_cesm585,
 x <- grepl("pred", names(df_pkegg_merged2), fixed = T)
 df_pkegg_final2 <- data.frame(lat = df_pkegg_merged2$lat,
                               lon = df_pkegg_merged2$lon,
-                              avg_pred = exp((rowSums(df_pkegg_merged2[, x])/6) + 1))
+                              avg_pred = (rowSums(df_pkegg_merged2[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final2, "Forecasted Distribution 2040 - 2069")
@@ -2342,7 +2555,7 @@ df_pklarvae_merged2 <- list(df_pklarvae_avg2_cesm126, df_pklarvae_avg5_cesm585,
 x <- grepl("pred", names(df_pklarvae_merged2), fixed = T)
 df_pklarvae_final2 <- data.frame(lat = df_pklarvae_merged2$lat,
                               lon = df_pklarvae_merged2$lon,
-                              avg_pred = exp((rowSums(df_pklarvae_merged2[, x])/6) + 1))
+                              avg_pred = (rowSums(df_pklarvae_merged2[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pklarvae_final2, "Forecasted Distribution 2040 - 2069")
@@ -2372,7 +2585,7 @@ df_pkegg_merged3 <- list(df_pkegg_avg3_cesm126, df_pkegg_avg6_cesm585,
 x <- grepl("pred", names(df_pkegg_merged3), fixed = T)
 df_pkegg_final3 <- data.frame(lat = df_pkegg_merged3$lat,
                               lon = df_pkegg_merged3$lon,
-                              avg_pred = exp((rowSums(df_pkegg_merged3[, x])/6) + 1))
+                              avg_pred = (rowSums(df_pkegg_merged3[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final3, "Forecasted Distribution 2070 - 2099")
@@ -2400,7 +2613,7 @@ df_pklarvae_merged3 <- list(df_pklarvae_avg3_cesm126, df_pklarvae_avg6_cesm585,
 x <- grepl("pred", names(df_pklarvae_merged3), fixed = T)
 df_pklarvae_final3 <- data.frame(lat = df_pklarvae_merged3$lat,
                               lon = df_pklarvae_merged3$lon,
-                              avg_pred = exp((rowSums(df_pklarvae_merged3[, x])/6) + 1))
+                              avg_pred = (rowSums(df_pklarvae_merged3[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pklarvae_final3, "Forecasted Distribution 2070 - 2099")
