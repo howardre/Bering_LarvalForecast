@@ -105,17 +105,17 @@ grid_predict <- function(grid, title){
 }
 
 
-egg_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+egg_formula <- gam(catch ~ s(year) +
                      s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
-                     s(lat, lon, by = mean_temp, k = 6),
+                     s(doy, by = mean_temp, k = 6),
                    data = pk_egg,
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+larval_formula <- gam(catch ~ s(year) +
                         s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
@@ -124,7 +124,6 @@ larval_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
                       data = pk_larvae,
                       family = tw(link = 'log'),
                       method = 'REML')
-
 
 ### Bias correction testing ----
 # Average by month for hindcast and historical found in each fish dataset
@@ -181,11 +180,10 @@ get_preds <- function(data, year, date, doy,
   gam <- formula
   
   # Predict on forecasted output
-  grid_extent$pred_untransformed <- predict(gam,
-                                            newdata = grid_extent,
-                                            type = "link")
-  grid_extent$pred_untransformed[grid_extent$dist > 30000] <- NA
-  grid_extent$pred <- exp(grid_extent$pred_untransformed) - 1
+  grid_extent$pred <- predict(gam,
+                              newdata = grid_extent,
+                              type = "response")
+  grid_extent$pred[grid_extent$dist > 30000] <- NA
   
   return(grid_extent)
   
@@ -195,7 +193,7 @@ get_preds <- function(data, year, date, doy,
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
                       list, formula){
-  grids_pkegg <- list()
+  grids <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
     date2 <- paste(j, "-02-01", sep = "")
@@ -204,9 +202,9 @@ pred_loop <- function(range, data, doy,
                       date2, date3,
                       temp_output, salt_output,
                       list, formula)
-    grids_pkegg[[paste("year", j, sep = "")]] <- grid
+    grids[[paste("year", j, sep = "")]] <- grid
   }
-  return(grids_pkegg)
+  return(grids)
 }
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
@@ -623,7 +621,7 @@ saveRDS(df_pkegg_avg1_gfdl126, file = here("data", "df_pkegg_avg1_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n gfdl SSP126")
+grid_predict(df_pkegg_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_gfdl_ssp126_1.jpg'),
