@@ -82,7 +82,8 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(-58.4, 1.3),
+        zlim = c(min(grid$avg_pred, na.rm = T), 
+                 max(grid$avg_pred, na.rm = T)),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -99,7 +100,8 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(-58.4, 1.3),
+             zlim = c(min(grid$avg_pred, na.rm = T), 
+                      max(grid$avg_pred, na.rm = T)),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -110,7 +112,7 @@ egg_formula <- gam(catch ~ s(year) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
-                     s(doy, by = mean_temp, k = 6),
+                     s(lat, lon, by = mean_temp, k = 6),
                    data = pk_egg,
                    family = tw(link = 'log'),
                    method = 'REML')
