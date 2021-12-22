@@ -28,6 +28,7 @@ fhs_larvae <- as.data.frame(filter(readRDS(here('data', 'fhs_larvae.rds')),
                                   lat >= 52 & lat <= 62,
                                   lon >= -176.5 & lon <= -156.5))
 fhs_larvae$mean_temp <- roms_temps$mean[match(fhs_larvae$year, roms_temps$year)]
+fhs_larvae$catch <- fhs_larvae$larvalcatchper10m2 + 1
 
 # Match ROMS output function
 varid_match <- function(data, model_output1, model_output2, list){
@@ -106,7 +107,7 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-egg_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+egg_formula <- gam(catch ~ s(year) +
                      s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
@@ -116,7 +117,7 @@ egg_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(larvalcatchper10m2 + 1 ~ s(year) +
+larval_formula <- gam(catch ~ s(year) +
                         s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
@@ -181,11 +182,10 @@ get_preds <- function(data, year, date, doy,
   gam <- formula
   
   # Predict on forecasted output
-  grid_extent$pred_untransformed <- predict(gam,
-                                            newdata = grid_extent,
-                                            type = "link")
-  grid_extent$pred_untransformed[grid_extent$dist > 30000] <- NA
-  grid_extent$pred <- exp(grid_extent$pred_untransformed) - 1
+  grid_extent$pred <- predict(gam,
+                              newdata = grid_extent,
+                              type = "response")
+  grid_extent$pred[grid_extent$dist > 30000] <- NA
   
   return(grid_extent)
   
@@ -210,7 +210,7 @@ pred_loop <- function(range, data, doy,
 }
 
 
-### flathead Eggs --------------------------------------------------------------------------------------------------------------------------
+### Flathead Eggs --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
@@ -624,7 +624,7 @@ saveRDS(df_fhsegg_avg1_gfdl126, file = here("data", "df_fhsegg_avg1_gfdl126.rds"
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_fhsegg_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n gfdl SSP126")
+grid_predict(df_fhsegg_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/flathead_forecast',
               'flathead_egg_gfdl_ssp126_1.jpg'),
@@ -1285,7 +1285,7 @@ x <- grepl("pred", names(df_fhsegg6), fixed = T)
 df_fhsegg_avg6_miroc585 <- data.frame(lat = df_fhsegg6$lat, 
                                      lon = df_fhsegg6$lon, 
                                      dist = df_fhsegg6$dist,
-                                     avg_pred = rowSums(df_fhsegg6[, x])/60)
+                                     avg_pred = rowSums(df_fhsegg6[, x])/30)
 saveRDS(df_fhsegg_avg6_miroc585, file = here("data", "df_fhsegg_avg6_miroc585.rds"))
 
 # Plot
@@ -1651,7 +1651,7 @@ x <- grepl("pred", names(df_fhslarvae6), fixed = T)
 df_fhslarvae_avg6_cesm585 <- data.frame(lat = df_fhslarvae6$lat, 
                                        lon = df_fhslarvae6$lon, 
                                        dist = df_fhslarvae6$dist,
-                                       avg_pred = rowSums(df_fhslarvae6[, x])/60)
+                                       avg_pred = rowSums(df_fhslarvae6[, x])/30)
 saveRDS(df_fhslarvae_avg6_cesm585, file = here("data", "df_fhslarvae_avg6_cesm585.rds"))
 
 # Plot
@@ -2014,7 +2014,7 @@ x <- grepl("pred", names(df_fhslarvae6), fixed = T)
 df_fhslarvae_avg6_gfdl585 <- data.frame(lat = df_fhslarvae6$lat, 
                                        lon = df_fhslarvae6$lon, 
                                        dist = df_fhslarvae6$dist,
-                                       avg_pred = rowSums(df_fhslarvae6[, x])/60)
+                                       avg_pred = rowSums(df_fhslarvae6[, x])/30)
 saveRDS(df_fhslarvae_avg6_gfdl585, file = here("data", "df_fhslarvae_avg6_gfdl585.rds"))
 
 # Plot
@@ -2377,7 +2377,7 @@ x <- grepl("pred", names(df_fhslarvae6), fixed = T)
 df_fhslarvae_avg6_miroc585 <- data.frame(lat = df_fhslarvae6$lat, 
                                         lon = df_fhslarvae6$lon, 
                                         dist = df_fhslarvae6$dist,
-                                        avg_pred = rowSums(df_fhslarvae6[, x])/60)
+                                        avg_pred = rowSums(df_fhslarvae6[, x])/30)
 saveRDS(df_fhslarvae_avg6_miroc585, file = here("data", "df_fhslarvae_avg6_miroc585.rds"))
 
 # Plot
