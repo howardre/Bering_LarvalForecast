@@ -195,7 +195,7 @@ get_preds <- function(data, year, date, doy,
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
                       list, formula){
-  grids_fhsegg <- list()
+  grids <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
     date2 <- paste(j, "-02-01", sep = "")
@@ -204,9 +204,9 @@ pred_loop <- function(range, data, doy,
                       date2, date3,
                       temp_output, salt_output,
                       list, formula)
-    grids_fhsegg[[paste("year", j, sep = "")]] <- grid
+    grids[[paste("year", j, sep = "")]] <- grid
   }
-  return(grids_fhsegg)
+  return(grids)
 }
 
 
