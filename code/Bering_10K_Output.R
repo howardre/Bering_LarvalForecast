@@ -108,6 +108,49 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+
+# Presentation figure
+windows(width = 8, height = 6, family = "serif")
+tempplot <- temp[, , 5]
+image.plot(lon,
+      lat,
+      tempplot,
+      ylab = "Latitude",
+      col = viridis(100),
+      xlab = "Longitude",
+      main = "February 1, 2015",
+      xlim = c(-180, -155) + 360,
+      ylim = c(54, 64),
+      zlim =  c(-2, 17.5),
+      cex.main = 1.2,
+      cex.lab = 1.1,
+      cex.axis = 1.1)
+maps::map("world2",
+          fill = T,
+          col = "wheat4",
+          add = T)
+image.plot(legend.only = T,
+           col = viridis(100),
+           legend.shrink = 0.2,
+           smallplot = c(.76, .78, .64, .82),
+           legend.cex = 0.8,
+           axis.args = list(cex.axis = 0.8),
+           legend.width = 0.5,
+           legend.mar = 6,
+           zlim = c(-2, 17.5),
+           legend.args = list("Temperature",
+                              side = 2, cex = 1))
+dev.copy(jpeg,
+         'results/Surface_temp_2015.jpg',
+         height = 6,
+         width = 8,
+         res = 200,
+         units = 'in',
+         family = "serif")
+dev.off()
+
+
+
 # Add in pollock data ----
 # Obtain temp values in correspondence of sampled stations from groundfish survey 
 pk_adults_catch <- read_csv(here('data', 'EBS_POLL.csv'))
