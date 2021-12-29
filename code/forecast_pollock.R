@@ -2467,6 +2467,7 @@ x <- grepl("pred", names(df_pkegg_merged1), fixed = T)
 df_pkegg_final1 <- data.frame(lat = df_pkegg_merged1$lat,
                                  lon = df_pkegg_merged1$lon,
                                  avg_pred = (rowSums(df_pkegg_merged1[, x])/6))
+df_pkegg_final1 <- subset(df_pkegg_final1, avg_pred < 622443 | is.na(avg_pred))
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final1, "Forecasted Distribution 2015 - 2039")
