@@ -50,8 +50,8 @@ varid_match <- function(data, model_output1, model_output2, list){
 
 # Function to make maps
 grid_predict <- function(grid, title){
-  nlat = 80
-  nlon = 120
+  nlat = 40
+  nlon = 60
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
   lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
@@ -141,8 +141,8 @@ get_preds <- function(data, year, date, doy,
                       temp_output, salt_output,
                       list, formula){
   # Prediction grid
-  nlat = 80
-  nlon = 120
+  nlat = 40
+  nlon = 60
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   grid_extent <- expand.grid(lond, latd)
@@ -186,6 +186,7 @@ get_preds <- function(data, year, date, doy,
                               newdata = grid_extent,
                               type = "response")
   grid_extent$pred[grid_extent$dist > 30000] <- NA
+  
   
   return(grid_extent)
   
@@ -2393,8 +2394,6 @@ dev.copy(jpeg,
 dev.off()
 
 ### Average Predictions ------------------------------------------------------------------------------------------------------------
-
-
 #### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
 ##### Eggs
 df_akpegg_avg1_cesm126 <- readRDS(here('data', 'df_akpegg_avg1_cesm126.rds'))
