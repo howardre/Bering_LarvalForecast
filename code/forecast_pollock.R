@@ -49,8 +49,8 @@ varid_match <- function(data, model_output1, model_output2, list){
 
 # Function to make maps
 grid_predict <- function(grid, title){
-  nlat = 80
-  nlon = 120
+  nlat = 40
+  nlon = 60
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
   lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
@@ -141,8 +141,8 @@ get_preds <- function(data, year, date, doy,
                       temp_output, salt_output,
                       list, formula){
   # Prediction grid
-  nlat = 80
-  nlon = 120
+  nlat = 40
+  nlon = 60
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   grid_extent <- expand.grid(lond, latd)
@@ -2393,61 +2393,6 @@ dev.off()
 
 ### Average Predictions ------------------------------------------------------------------------------------------------------------
 # Change z axis to make figures
-grid_predict <- function(grid, title){
-  nlat = 80
-  nlon = 120
-  latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
-  lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
-  my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
-                                    "#F5D363", "#EFBA55", "#EAA352",
-                                    "#E68C51", "#E0754F", "#D75C4D",
-                                    "#BB4A48", "#994240", "#763931", 
-                                    "#542D20", "#352311", "#191900")))
-  image(lond,
-        latd,
-        t(matrix(grid$avg_pred,
-                 nrow = length(latd),
-                 ncol = length(lond),
-                 byrow = T)),
-        xlim = c(-176.5, -156.5),
-        ylim = c(52, 62),
-        axes = FALSE,
-        xlab = "",
-        ylab = "")
-  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = "mintcream")
-  par(new = TRUE)
-  image(lond,
-        latd,
-        t(matrix(grid$avg_pred,
-                 nrow = length(latd),
-                 ncol = length(lond),
-                 byrow = T)),
-        col = my_color(100), 
-        ylab = "Latitude",
-        xlab = "Longitude",
-        xlim = c(-176.5, -156.5),
-        ylim = c(52, 62),
-        zlim = c(0, 11961.215),
-        main = title,
-        cex.main = 1.2,
-        cex.lab = 1.1,
-        cex.axis = 1.1)
-  maps::map("worldHires",
-            fill = T,
-            col = "wheat4",
-            add = T)
-  image.plot(legend.only = T,
-             col = my_color(100),
-             legend.shrink = 0.2,
-             smallplot = c(.79, .82, .20, .37),
-             legend.cex = 0.8,
-             axis.args = list(cex.axis = 0.8),
-             legend.width = 0.5,
-             legend.mar = 6,
-             zlim = c(0, 11961.215),
-             legend.args = list("Avg. Predicted \n Occurrence",
-                                side = 2, cex = 1))
-}
 
 #### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
 ##### Eggs
@@ -2467,7 +2412,7 @@ x <- grepl("pred", names(df_pkegg_merged1), fixed = T)
 df_pkegg_final1 <- data.frame(lat = df_pkegg_merged1$lat,
                                  lon = df_pkegg_merged1$lon,
                                  avg_pred = (rowSums(df_pkegg_merged1[, x])/6))
-df_pkegg_final1 <- subset(df_pkegg_final1, avg_pred < 622443 | is.na(avg_pred))
+df_pkegg_final1$avg_pred[df_pkegg_final1$avg_pred > 1e+04] <- NA
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final1, "Forecasted Distribution 2015 - 2039")
@@ -2528,6 +2473,7 @@ x <- grepl("pred", names(df_pkegg_merged2), fixed = T)
 df_pkegg_final2 <- data.frame(lat = df_pkegg_merged2$lat,
                               lon = df_pkegg_merged2$lon,
                               avg_pred = (rowSums(df_pkegg_merged2[, x])/6))
+df_pkegg_final2$avg_pred[df_pkegg_final2$avg_pred > 1e+02] <- NA
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final2, "Forecasted Distribution 2040 - 2069")
@@ -2587,6 +2533,7 @@ x <- grepl("pred", names(df_pkegg_merged3), fixed = T)
 df_pkegg_final3 <- data.frame(lat = df_pkegg_merged3$lat,
                               lon = df_pkegg_merged3$lon,
                               avg_pred = (rowSums(df_pkegg_merged3[, x])/6))
+df_pkegg_final3$avg_pred[df_pkegg_final3$avg_pred > 1] <- NA
 
 windows(width = 6, height = 6, family = "serif")
 grid_predict(df_pkegg_final3, "Forecasted Distribution 2070 - 2099")
