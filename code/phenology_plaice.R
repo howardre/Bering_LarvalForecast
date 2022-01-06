@@ -11,7 +11,7 @@ library(date)
 library(rgdal)
 library(RColorBrewer)
 library(mgcv)
-source(here('code/functions', 'doyance_function.R'))
+source(here('code/functions', 'distance_function.R'))
 
 
 # Load ROMS temperature means and forecast
@@ -38,7 +38,7 @@ varid_match <- function(data, model_output1, model_output2, list){
   for (i in 1:nrow(data)) {
     idx_time <- order(abs(model_output1[[list]][[3]] - data$date[i]))[1]
     data$roms_date[i] <- model_output1[[list]][[3]][idx_time]
-    idx_grid <- order(doyance_function(data$lat[i],
+    idx_grid <- order(distance_function(data$lat[i],
                                         data$lon[i],
                                         c(model_output1[[list]][[2]]),
                                         c(model_output1[[list]][[1]])))[1]
@@ -54,11 +54,6 @@ get_phenology_preds <- function(data, year, date, day,
                               start_date, end_date,
                               temp_output, salt_output,
                               list, formula){
-  # Prediction grid
-  nlat = 40
-  nlon = 60
-  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
-  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   
   # Calculate mean temperature
   time_index <- temp_output[[list]][[3]] >= start_date & temp_output[[list]][[3]] <= end_date
@@ -202,12 +197,11 @@ df_akpegg1 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg1), fixed = T)
-y <- grepl("se", names(df_akpegg1), fixed = T)
 df_akpegg_avg1_cesm126 <- data.frame(lat = df_akpegg1$lat, 
                                      lon = df_akpegg1$lon, 
                                      doy = df_akpegg1$doy,
-                                     avg_pred = rowSums(df_akpegg1[, x])/25,
-                                     avg_se = rowSums(df_akpegg1[, y])/25)
+                                     avg_pred = rowSums(df_akpegg1[, x])/25)
+df_akpegg_avg1_cesm126$avg_se <- df_akpegg_avg1_cesm126$avg_pred / sqrt(25)
 df_akpegg_avg1_cesm126$pred_up <- df_akpegg_avg1_cesm126$avg_pred + 1.96 * df_akpegg_avg1_cesm126$avg_se
 df_akpegg_avg1_cesm126$pred_lw <- df_akpegg_avg1_cesm126$avg_pred - 1.96 * df_akpegg_avg1_cesm126$avg_se
 
@@ -226,30 +220,30 @@ dev.copy(jpeg,
 dev.off()
 
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_cesm_ssp126,
-                           salts_cesm_ssp126, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_cesm_ssp126,
-                           salts_cesm_ssp126, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_cesm_ssp126,
-                           salts_cesm_ssp126, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_cesm_ssp126,
-                           salts_cesm_ssp126, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg2 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -267,12 +261,11 @@ df_akpegg2 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]],
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg2), fixed = T)
-y <- grepl("se", names(df_akpegg2), fixed = T)
 df_akpegg_avg2_cesm126 <- data.frame(lat = df_akpegg2$lat, 
                                      lon = df_akpegg2$lon, 
                                      doy = df_akpegg2$doy,
-                                     avg_pred = rowSums(df_akpegg2[, x])/25,
-                                     avg_se = rowSums(df_akpegg2[, y])/25)
+                                     avg_pred = rowSums(df_akpegg2[, x])/30)
+df_akpegg_avg2_cesm126$avg_se <- df_akpegg_avg2_cesm126$avg_pred / sqrt(30)
 df_akpegg_avg2_cesm126$pred_up <- df_akpegg_avg2_cesm126$avg_pred + 1.96 * df_akpegg_avg2_cesm126$avg_se
 df_akpegg_avg2_cesm126$pred_lw <- df_akpegg_avg2_cesm126$avg_pred - 1.96 * df_akpegg_avg2_cesm126$avg_se
 
@@ -280,7 +273,7 @@ saveRDS(df_akpegg_avg2_cesm126, file = here("data", "df_akpegg_avg2_cesm126_phen
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-phenology_curve(df_akpegg_avg2_cesm126, "Forecasted Phenology 2025 - 2039 \n CESM SSP126")
+phenology_curve(df_akpegg_avg2_cesm126, "Forecasted Phenology 2040 - 2069 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_egg_cesm_ssp126_curve_2.jpg'),
@@ -293,29 +286,29 @@ dev.off()
 
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 12,
-                            egg_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 13,
-                            egg_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 14,
-                            egg_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 15,
-                            egg_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_cesm_ssp126,
-                            salts_cesm_ssp126, 17,
-                            egg_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg3 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -333,12 +326,11 @@ df_akpegg3 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]]
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg3), fixed = T)
-y <- grepl("se", names(df_akpegg3), fixed = T)
 df_akpegg_avg3_cesm126 <- data.frame(lat = df_akpegg3$lat, 
                                      lon = df_akpegg3$lon, 
                                      doy = df_akpegg3$doy,
-                                     avg_pred = rowSums(df_akpegg3[, x])/25,
-                                     avg_se = rowSums(df_akpegg3[, y])/25)
+                                     avg_pred = rowSums(df_akpegg3[, x])/30)
+df_akpegg_avg3_cesm126$avg_se <- df_akpegg_avg3_cesm126$avg_pred / sqrt(30)
 df_akpegg_avg3_cesm126$pred_up <- df_akpegg_avg3_cesm126$avg_pred + 1.96 * df_akpegg_avg3_cesm126$avg_se
 df_akpegg_avg3_cesm126$pred_lw <- df_akpegg_avg3_cesm126$avg_pred - 1.96 * df_akpegg_avg3_cesm126$avg_se
 
@@ -346,7 +338,7 @@ saveRDS(df_akpegg_avg3_cesm126, file = here("data", "df_akpegg_avg3_cesm126_phen
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-phenology_curve(df_akpegg_avg3_cesm126, "Forecasted Phenology 2035 - 2039 \n CESM SSP126")
+phenology_curve(df_akpegg_avg3_cesm126, "Forecasted Phenology 2070 - 2099 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_egg_cesm_ssp126_curve_3.jpg'),
@@ -361,26 +353,26 @@ temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
 salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 1,
-                           egg_formula)
-grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 2,
-                           egg_formula)
+grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 1,
+                                     egg_formula)
+grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 2,
+                                     egg_formula)
 grids_akpegg3 <- pred_loop_phenology(2025:2029, akp_egg, 137,
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 3,
-                           egg_formula)
-grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 4,
-                           egg_formula)
-grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 5,
-                           egg_formula)
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 3,
+                                     egg_formula)
+grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 4,
+                                     egg_formula)
+grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 5,
+                                     egg_formula)
 
 # Combine into one data frame
 df_akpegg4 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]], 
@@ -396,21 +388,20 @@ df_akpegg4 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]],
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_akpegg1), fixed = T)
-y <- grepl("se", names(df_akpegg1), fixed = T)
-df_akpegg_avg1_cesm585 <- data.frame(lat = df_akpegg1$lat, 
-                                     lon = df_akpegg1$lon, 
-                                     doy = df_akpegg1$doy,
-                                     avg_pred = rowSums(df_akpegg1[, x])/25,
-                                     avg_se = rowSums(df_akpegg1[, y])/25)
-df_akpegg_avg1_cesm585$pred_up <- df_akpegg_avg1_cesm585$avg_pred + 1.96 * df_akpegg_avg1_cesm585$avg_se
-df_akpegg_avg1_cesm585$pred_lw <- df_akpegg_avg1_cesm585$avg_pred - 1.96 * df_akpegg_avg1_cesm585$avg_se
+x <- grepl("pred", names(df_akpegg4), fixed = T)
+df_akpegg_avg4_cesm585 <- data.frame(lat = df_akpegg4$lat, 
+                                     lon = df_akpegg4$lon, 
+                                     doy = df_akpegg4$doy,
+                                     avg_pred = rowSums(df_akpegg4[, x])/25)
+df_akpegg_avg4_cesm585$avg_se <- df_akpegg_avg4_cesm585$avg_pred / sqrt(25)
+df_akpegg_avg4_cesm585$pred_up <- df_akpegg_avg4_cesm585$avg_pred + 1.96 * df_akpegg_avg4_cesm585$avg_se
+df_akpegg_avg4_cesm585$pred_lw <- df_akpegg_avg4_cesm585$avg_pred - 1.96 * df_akpegg_avg4_cesm585$avg_se
 
-saveRDS(df_akpegg_avg1_cesm585, file = here("data", "df_akpegg_avg1_cesm585_pheno.rds"))
+saveRDS(df_akpegg_avg4_cesm585, file = here("data", "df_akpegg_avg4_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-phenology_curve(df_akpegg_avg1_cesm585, "Forecasted Phenology 2015 - 2019 \n CESM SSP585")
+phenology_curve(df_akpegg_avg4_cesm585, "Forecasted Phenology 2015 - 2039 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_egg_cesm_ssp585_curve_1.jpg'),
@@ -422,30 +413,30 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_cesm_ssp585,
-                           salts_cesm_ssp585, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg5 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -467,14 +458,18 @@ df_akpegg_avg5_cesm585 <- data.frame(lat = df_akpegg5$lat,
                                      lon = df_akpegg5$lon, 
                                      doy = df_akpegg5$doy,
                                      avg_pred = rowSums(df_akpegg5[, x])/30)
+df_akpegg_avg5_cesm585$avg_se <- df_akpegg_avg5_cesm585$avg_pred / sqrt(30)
+df_akpegg_avg5_cesm585$pred_up <- df_akpegg_avg5_cesm585$avg_pred + 1.96 * df_akpegg_avg5_cesm585$avg_se
+df_akpegg_avg5_cesm585$pred_lw <- df_akpegg_avg5_cesm585$avg_pred - 1.96 * df_akpegg_avg5_cesm585$avg_se
+
 saveRDS(df_akpegg_avg5_cesm585, file = here("data", "df_akpegg_avg5_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg5_cesm585, "Forecasted doyribution 2040 - 2069 \n CESM SSP585")
+phenology_curve(df_akpegg_avg5_cesm585, "Forecasted Phenology 2040 - 2069 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_cesm_ssp585_2.jpg'),
+              'plaice_egg_cesm_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -484,29 +479,29 @@ dev.off()
 
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 12,
-                            egg_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 13,
-                            egg_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 14,
-                            egg_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 15,
-                            egg_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_cesm_ssp585,
-                            salts_cesm_ssp585, 17,
-                            egg_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg6 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -528,14 +523,18 @@ df_akpegg_avg6_cesm585 <- data.frame(lat = df_akpegg6$lat,
                                      lon = df_akpegg6$lon, 
                                      doy = df_akpegg6$doy,
                                      avg_pred = rowSums(df_akpegg6[, x])/30)
+df_akpegg_avg6_cesm585$avg_se <- df_akpegg_avg6_cesm585$avg_pred / sqrt(30)
+df_akpegg_avg6_cesm585$pred_up <- df_akpegg_avg6_cesm585$avg_pred + 1.96 * df_akpegg_avg6_cesm585$avg_se
+df_akpegg_avg6_cesm585$pred_lw <- df_akpegg_avg6_cesm585$avg_pred - 1.96 * df_akpegg_avg6_cesm585$avg_se
+
 saveRDS(df_akpegg_avg6_cesm585, file = here("data", "df_akpegg_avg6_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg6_cesm585, "Forecasted doyribution 2070 - 2099 \n CESM SSP585")
+phenology_curve(df_akpegg_avg6_cesm585, "Forecasted Phenology 2070 - 2099 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_cesm_ssp585_3.jpg'),
+              'plaice_egg_cesm_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -548,26 +547,26 @@ temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
 salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 
 ## 2015 - 2039
-grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 1,
-                           egg_formula)
-grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 2,
-                           egg_formula)
+grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 1,
+                                     egg_formula)
+grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 2,
+                                     egg_formula)
 grids_akpegg3 <- pred_loop_phenology(2025:2029, akp_egg, 137,
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 3,
-                           egg_formula)
-grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 4,
-                           egg_formula)
-grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 5,
-                           egg_formula)
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 3,
+                                     egg_formula)
+grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 4,
+                                     egg_formula)
+grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 5,
+                                     egg_formula)
 
 # Combine into one data frame
 df_akpegg1 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]], 
@@ -588,14 +587,18 @@ df_akpegg_avg1_gfdl126 <- data.frame(lat = df_akpegg1$lat,
                                      lon = df_akpegg1$lon, 
                                      doy = df_akpegg1$doy,
                                      avg_pred = rowSums(df_akpegg1[, x])/25)
+df_akpegg_avg1_gfdl126$avg_se <- df_akpegg_avg1_gfdl126$avg_pred / sqrt(25)
+df_akpegg_avg1_gfdl126$pred_up <- df_akpegg_avg1_gfdl126$avg_pred + 1.96 * df_akpegg_avg1_gfdl126$avg_se
+df_akpegg_avg1_gfdl126$pred_lw <- df_akpegg_avg1_gfdl126$avg_pred - 1.96 * df_akpegg_avg1_gfdl126$avg_se
+
 saveRDS(df_akpegg_avg1_gfdl126, file = here("data", "df_akpegg_avg1_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg1_gfdl126, "Forecasted doyribution 2015 - 2039 \n GFDL SSP126")
+phenology_curve(df_akpegg_avg1_gfdl126, "Forecasted Phenology 2015 - 2039 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp126_1.jpg'),
+              'plaice_egg_gfdl_ssp126_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -604,30 +607,30 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_gfdl_ssp126,
-                           salts_gfdl_ssp126, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg2 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -649,14 +652,18 @@ df_akpegg_avg2_gfdl126 <- data.frame(lat = df_akpegg2$lat,
                                      lon = df_akpegg2$lon, 
                                      doy = df_akpegg2$doy,
                                      avg_pred = rowSums(df_akpegg2[, x])/30)
+df_akpegg_avg2_gfdl126$avg_se <- df_akpegg_avg2_gfdl126$avg_pred / sqrt(30)
+df_akpegg_avg2_gfdl126$pred_up <- df_akpegg_avg2_gfdl126$avg_pred + 1.96 * df_akpegg_avg2_gfdl126$avg_se
+df_akpegg_avg2_gfdl126$pred_lw <- df_akpegg_avg2_gfdl126$avg_pred - 1.96 * df_akpegg_avg2_gfdl126$avg_se
+
 saveRDS(df_akpegg_avg2_gfdl126, file = here("data", "df_akpegg_avg2_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg2_gfdl126, "Forecasted doyribution 2040 - 2069 \n GFDL SSP126")
+phenology_curve(df_akpegg_avg2_gfdl126, "Forecasted Phenology 2040 - 2069 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp126_2.jpg'),
+              'plaice_egg_gfdl_ssp126_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -666,29 +673,29 @@ dev.off()
 
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 12,
-                            egg_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 13,
-                            egg_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 14,
-                            egg_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 15,
-                            egg_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_gfdl_ssp126,
-                            salts_gfdl_ssp126, 17,
-                            egg_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg3 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -710,14 +717,18 @@ df_akpegg_avg3_gfdl126 <- data.frame(lat = df_akpegg3$lat,
                                      lon = df_akpegg3$lon, 
                                      doy = df_akpegg3$doy,
                                      avg_pred = rowSums(df_akpegg3[, x])/30)
+df_akpegg_avg3_gfdl126$avg_se <- df_akpegg_avg3_gfdl126$avg_pred / sqrt(30)
+df_akpegg_avg3_gfdl126$pred_up <- df_akpegg_avg3_gfdl126$avg_pred + 1.96 * df_akpegg_avg3_gfdl126$avg_se
+df_akpegg_avg3_gfdl126$pred_lw <- df_akpegg_avg3_gfdl126$avg_pred - 1.96 * df_akpegg_avg3_gfdl126$avg_se
+
 saveRDS(df_akpegg_avg3_gfdl126, file = here("data", "df_akpegg_avg3_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg3_gfdl126, "Forecasted doyribution 2070 - 2099 \n GFDL SSP126")
+phenology_curve(df_akpegg_avg3_gfdl126, "Forecasted Phenology 2070 - 2099 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp126_3.jpg'),
+              'plaice_egg_gfdl_ssp126_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -729,26 +740,26 @@ temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
 salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 1,
-                           egg_formula)
-grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 2,
-                           egg_formula)
+grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 1,
+                                     egg_formula)
+grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 2,
+                                     egg_formula)
 grids_akpegg3 <- pred_loop_phenology(2025:2029, akp_egg, 137,
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 3,
-                           egg_formula)
-grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 4,
-                           egg_formula)
-grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 5,
-                           egg_formula)
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 3,
+                                     egg_formula)
+grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 4,
+                                     egg_formula)
+grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 5,
+                                     egg_formula)
 
 # Combine into one data frame
 df_akpegg4 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]], 
@@ -769,46 +780,49 @@ df_akpegg_avg4_gfdl585 <- data.frame(lat = df_akpegg4$lat,
                                      lon = df_akpegg4$lon, 
                                      doy = df_akpegg4$doy,
                                      avg_pred = rowSums(df_akpegg4[, x])/25)
+df_akpegg_avg4_gfdl585$avg_se <- df_akpegg_avg4_gfdl585$avg_pred / sqrt(25)
+df_akpegg_avg4_gfdl585$pred_up <- df_akpegg_avg4_gfdl585$avg_pred + 1.96 * df_akpegg_avg4_gfdl585$avg_se
+df_akpegg_avg4_gfdl585$pred_lw <- df_akpegg_avg4_gfdl585$avg_pred - 1.96 * df_akpegg_avg4_gfdl585$avg_se
+
 saveRDS(df_akpegg_avg4_gfdl585, file = here("data", "df_akpegg_avg4_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg4_gfdl585, "Forecasted doyribution 2015 - 2039 \n GFDL SSP585")
+phenology_curve(df_akpegg_avg4_gfdl585, "Forecasted Phenology 2015 - 2039 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp585_1.jpg'),
+              'plaice_egg_gfdl_ssp585_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_gfdl_ssp585,
-                           salts_gfdl_ssp585, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg5 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -830,46 +844,49 @@ df_akpegg_avg5_gfdl585 <- data.frame(lat = df_akpegg5$lat,
                                      lon = df_akpegg5$lon, 
                                      doy = df_akpegg5$doy,
                                      avg_pred = rowSums(df_akpegg5[, x])/30)
+df_akpegg_avg5_gfdl585$avg_se <- df_akpegg_avg5_gfdl585$avg_pred / sqrt(30)
+df_akpegg_avg5_gfdl585$pred_up <- df_akpegg_avg5_gfdl585$avg_pred + 1.96 * df_akpegg_avg5_gfdl585$avg_se
+df_akpegg_avg5_gfdl585$pred_lw <- df_akpegg_avg5_gfdl585$avg_pred - 1.96 * df_akpegg_avg5_gfdl585$avg_se
+
 saveRDS(df_akpegg_avg5_gfdl585, file = here("data", "df_akpegg_avg5_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg5_gfdl585, "Forecasted doyribution 2040 - 2069 \n GFDL SSP585")
+phenology_curve(df_akpegg_avg5_gfdl585, "Forecasted Phenology 2040 - 2069 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp585_2.jpg'),
+              'plaice_egg_gfdl_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 12,
-                            egg_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 13,
-                            egg_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 14,
-                            egg_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 15,
-                            egg_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_gfdl_ssp585,
-                            salts_gfdl_ssp585, 17,
-                            egg_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg6 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -891,14 +908,18 @@ df_akpegg_avg6_gfdl585 <- data.frame(lat = df_akpegg6$lat,
                                      lon = df_akpegg6$lon, 
                                      doy = df_akpegg6$doy,
                                      avg_pred = rowSums(df_akpegg6[, x])/30)
+df_akpegg_avg6_gfdl585$avg_se <- df_akpegg_avg6_gfdl585$avg_pred / sqrt(30)
+df_akpegg_avg6_gfdl585$pred_up <- df_akpegg_avg6_gfdl585$avg_pred + 1.96 * df_akpegg_avg6_gfdl585$avg_se
+df_akpegg_avg6_gfdl585$pred_lw <- df_akpegg_avg6_gfdl585$avg_pred - 1.96 * df_akpegg_avg6_gfdl585$avg_se
+
 saveRDS(df_akpegg_avg6_gfdl585, file = here("data", "df_akpegg_avg6_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg6_gfdl585, "Forecasted doyribution 2070 - 2099 \n GFDL SSP585")
+phenology_curve(df_akpegg_avg6_gfdl585, "Forecasted Phenology 2070 - 2099 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_gfdl_ssp585_3.jpg'),
+              'plaice_egg_gfdl_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -911,26 +932,26 @@ temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
 salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 
 ## 2015 - 2039
-grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 1,
-                           egg_formula)
-grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 2,
-                           egg_formula)
+grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 1,
+                                     egg_formula)
+grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 2,
+                                     egg_formula)
 grids_akpegg3 <- pred_loop_phenology(2025:2029, akp_egg, 137,
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 3,
-                           egg_formula)
-grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 4,
-                           egg_formula)
-grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 5,
-                           egg_formula)
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 3,
+                                     egg_formula)
+grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 4,
+                                     egg_formula)
+grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 5,
+                                     egg_formula)
 
 # Combine into one data frame
 df_akpegg1 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]], 
@@ -948,17 +969,21 @@ df_akpegg1 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]],
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg1), fixed = T)
 df_akpegg_avg1_miroc126 <- data.frame(lat = df_akpegg1$lat, 
-                                      lon = df_akpegg1$lon, 
-                                      doy = df_akpegg1$doy,
-                                      avg_pred = rowSums(df_akpegg1[, x])/25)
+                                     lon = df_akpegg1$lon, 
+                                     doy = df_akpegg1$doy,
+                                     avg_pred = rowSums(df_akpegg1[, x])/25)
+df_akpegg_avg1_miroc126$avg_se <- df_akpegg_avg1_miroc126$avg_pred / sqrt(25)
+df_akpegg_avg1_miroc126$pred_up <- df_akpegg_avg1_miroc126$avg_pred + 1.96 * df_akpegg_avg1_miroc126$avg_se
+df_akpegg_avg1_miroc126$pred_lw <- df_akpegg_avg1_miroc126$avg_pred - 1.96 * df_akpegg_avg1_miroc126$avg_se
+
 saveRDS(df_akpegg_avg1_miroc126, file = here("data", "df_akpegg_avg1_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg1_miroc126, "Forecasted doyribution 2015 - 2039 \n MIROC SSP126")
+phenology_curve(df_akpegg_avg1_miroc126, "Forecasted Phenology 2015 - 2039 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp126_1.jpg'),
+              'plaice_egg_miroc_ssp126_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -967,30 +992,30 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_miroc_ssp126,
-                           salts_miroc_ssp126, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg2 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -1005,53 +1030,55 @@ df_akpegg2 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]],
                    grids_akpegg11[[3]], grids_akpegg11[[4]], grids_akpegg11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
-
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg2), fixed = T)
 df_akpegg_avg2_miroc126 <- data.frame(lat = df_akpegg2$lat, 
                                       lon = df_akpegg2$lon, 
                                       doy = df_akpegg2$doy,
                                       avg_pred = rowSums(df_akpegg2[, x])/30)
+df_akpegg_avg2_miroc126$avg_se <- df_akpegg_avg2_miroc126$avg_pred / sqrt(30)
+df_akpegg_avg2_miroc126$pred_up <- df_akpegg_avg2_miroc126$avg_pred + 1.96 * df_akpegg_avg2_miroc126$avg_se
+df_akpegg_avg2_miroc126$pred_lw <- df_akpegg_avg2_miroc126$avg_pred - 1.96 * df_akpegg_avg2_miroc126$avg_se
+
 saveRDS(df_akpegg_avg2_miroc126, file = here("data", "df_akpegg_avg2_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg2_miroc126, "Forecasted doyribution 2040 - 2069 \n MIROC SSP126")
+phenology_curve(df_akpegg_avg2_miroc126, "Forecasted Phenology 2040 - 2069 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp126_2.jpg'),
+              'plaice_egg_miroc_ssp126_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 12,
-                            egg_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 13,
-                            egg_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 14,
-                            egg_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 15,
-                            egg_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_miroc_ssp126,
-                            salts_miroc_ssp126, 17,
-                            egg_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg3 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -1066,21 +1093,24 @@ df_akpegg3 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]]
                    grids_akpegg17[[3]], grids_akpegg17[[4]], grids_akpegg17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
-
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg3), fixed = T)
 df_akpegg_avg3_miroc126 <- data.frame(lat = df_akpegg3$lat, 
                                       lon = df_akpegg3$lon, 
                                       doy = df_akpegg3$doy,
                                       avg_pred = rowSums(df_akpegg3[, x])/30)
+df_akpegg_avg3_miroc126$avg_se <- df_akpegg_avg3_miroc126$avg_pred / sqrt(30)
+df_akpegg_avg3_miroc126$pred_up <- df_akpegg_avg3_miroc126$avg_pred + 1.96 * df_akpegg_avg3_miroc126$avg_se
+df_akpegg_avg3_miroc126$pred_lw <- df_akpegg_avg3_miroc126$avg_pred - 1.96 * df_akpegg_avg3_miroc126$avg_se
+
 saveRDS(df_akpegg_avg3_miroc126, file = here("data", "df_akpegg_avg3_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg3_miroc126, "Forecasted doyribution 2070 - 2099 \n MIROC SSP126")
+phenology_curve(df_akpegg_avg3_miroc126, "Forecasted Phenology 2070 - 2099 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp126_3.jpg'),
+              'plaice_egg_miroc_ssp126_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1092,30 +1122,30 @@ temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
 salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 1,
-                           egg_formula)
-grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 2,
-                           egg_formula)
+grids_akpegg1 <- pred_loop_phenology(2015:2019, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 1,
+                                     egg_formula)
+grids_akpegg2 <- pred_loop_phenology(2020:2024, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 2,
+                                     egg_formula)
 grids_akpegg3 <- pred_loop_phenology(2025:2029, akp_egg, 137,
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 3,
-                           egg_formula)
-grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 4,
-                           egg_formula)
-grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 5,
-                           egg_formula)
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 3,
+                                     egg_formula)
+grids_akpegg4 <- pred_loop_phenology(2030:2034, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 4,
+                                     egg_formula)
+grids_akpegg5 <- pred_loop_phenology(2035:2039, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 5,
+                                     egg_formula)
 
 # Combine into one data frame
-df_akpegg4 <- list(grids_akpegg1[[1]], grids_akpegg1[[2]], grids_akpegg1[[3]], 
-                   grids_akpegg1[[4]], grids_akpegg1[[5]], grids_akpegg2[[1]], 
+df_akpegg4 <- list(grids_akpegg4[[1]], grids_akpegg4[[2]], grids_akpegg4[[3]], 
+                   grids_akpegg4[[4]], grids_akpegg4[[5]], grids_akpegg2[[1]], 
                    grids_akpegg2[[2]], grids_akpegg2[[3]], grids_akpegg2[[4]],
                    grids_akpegg2[[5]], grids_akpegg3[[1]], grids_akpegg3[[2]], 
                    grids_akpegg3[[3]], grids_akpegg3[[4]], grids_akpegg3[[5]],
@@ -1132,14 +1162,18 @@ df_akpegg_avg4_miroc585 <- data.frame(lat = df_akpegg4$lat,
                                       lon = df_akpegg4$lon, 
                                       doy = df_akpegg4$doy,
                                       avg_pred = rowSums(df_akpegg4[, x])/25)
+df_akpegg_avg4_miroc585$avg_se <- df_akpegg_avg4_miroc585$avg_pred / sqrt(25)
+df_akpegg_avg4_miroc585$pred_up <- df_akpegg_avg4_miroc585$avg_pred + 1.96 * df_akpegg_avg4_miroc585$avg_se
+df_akpegg_avg4_miroc585$pred_lw <- df_akpegg_avg4_miroc585$avg_pred - 1.96 * df_akpegg_avg4_miroc585$avg_se
+
 saveRDS(df_akpegg_avg4_miroc585, file = here("data", "df_akpegg_avg4_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg4_miroc585, "Forecasted doyribution 2015 - 2039 \n MIROC SSP585")
+phenology_curve(df_akpegg_avg4_miroc585, "Forecasted Phenology 2015 - 2039 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp585_1.jpg'),
+              'plaice_egg_miroc_ssp585_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1148,30 +1182,30 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 6,
-                           egg_formula)
-grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 7,
-                           egg_formula)
-grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 8,
-                           egg_formula)
-grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137, 
-                           temps_miroc_ssp585,
-                           salts_miroc_ssp585, 9,
-                           egg_formula)
-grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137, 
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 10,
-                            egg_formula)
-grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137, 
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 11,
-                            egg_formula)
+grids_akpegg6 <- pred_loop_phenology(2040:2044, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 6,
+                                     egg_formula)
+grids_akpegg7 <- pred_loop_phenology(2045:2049, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 7,
+                                     egg_formula)
+grids_akpegg8 <- pred_loop_phenology(2050:2054, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 8,
+                                     egg_formula)
+grids_akpegg9 <- pred_loop_phenology(2055:2059, akp_egg, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 9,
+                                     egg_formula)
+grids_akpegg10 <- pred_loop_phenology(2060:2064, akp_egg, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 10,
+                                      egg_formula)
+grids_akpegg11 <- pred_loop_phenology(2065:2069, akp_egg, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 11,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg5 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]], 
@@ -1186,53 +1220,55 @@ df_akpegg5 <- list(grids_akpegg6[[1]], grids_akpegg6[[2]], grids_akpegg6[[3]],
                    grids_akpegg11[[3]], grids_akpegg11[[4]], grids_akpegg11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
-
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg5), fixed = T)
 df_akpegg_avg5_miroc585 <- data.frame(lat = df_akpegg5$lat, 
                                       lon = df_akpegg5$lon, 
                                       doy = df_akpegg5$doy,
                                       avg_pred = rowSums(df_akpegg5[, x])/30)
+df_akpegg_avg5_miroc585$avg_se <- df_akpegg_avg5_miroc585$avg_pred / sqrt(30)
+df_akpegg_avg5_miroc585$pred_up <- df_akpegg_avg5_miroc585$avg_pred + 1.96 * df_akpegg_avg5_miroc585$avg_se
+df_akpegg_avg5_miroc585$pred_lw <- df_akpegg_avg5_miroc585$avg_pred - 1.96 * df_akpegg_avg5_miroc585$avg_se
+
 saveRDS(df_akpegg_avg5_miroc585, file = here("data", "df_akpegg_avg5_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg5_miroc585, "Forecasted doyribution 2040 - 2069 \n MIROC SSP585")
+phenology_curve(df_akpegg_avg5_miroc585, "Forecasted Phenology 2040 - 2069 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp585_2.jpg'),
+              'plaice_egg_miroc_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akpegg12 <- pred_loop_phenology(2070:2074, akp_egg, 137,
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 12,
-                            egg_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 12,
+                                      egg_formula)
 grids_akpegg13 <- pred_loop_phenology(2075:2079, akp_egg, 137,
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 13,
-                            egg_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 13,
+                                      egg_formula)
 grids_akpegg14 <- pred_loop_phenology(2080:2084, akp_egg, 137,
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 14,
-                            egg_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 14,
+                                      egg_formula)
 grids_akpegg15 <- pred_loop_phenology(2085:2089, akp_egg, 137,
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 15,
-                            egg_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 15,
+                                      egg_formula)
 grids_akpegg16 <- pred_loop_phenology(2090:2094, akp_egg, 137,
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 16,
-                            egg_formula)
-grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137, 
-                            temps_miroc_ssp585,
-                            salts_miroc_ssp585, 17,
-                            egg_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 16,
+                                      egg_formula)
+grids_akpegg17 <- pred_loop_phenology(2095:2099, akp_egg, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 17,
+                                      egg_formula)
 
 # Combine into one data frame
 df_akpegg6 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]], 
@@ -1247,27 +1283,29 @@ df_akpegg6 <- list(grids_akpegg12[[1]], grids_akpegg12[[2]], grids_akpegg12[[3]]
                    grids_akpegg17[[3]], grids_akpegg17[[4]], grids_akpegg17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
-
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akpegg6), fixed = T)
 df_akpegg_avg6_miroc585 <- data.frame(lat = df_akpegg6$lat, 
                                       lon = df_akpegg6$lon, 
                                       doy = df_akpegg6$doy,
                                       avg_pred = rowSums(df_akpegg6[, x])/30)
+df_akpegg_avg6_miroc585$avg_se <- df_akpegg_avg6_miroc585$avg_pred / sqrt(30)
+df_akpegg_avg6_miroc585$pred_up <- df_akpegg_avg6_miroc585$avg_pred + 1.96 * df_akpegg_avg6_miroc585$avg_se
+df_akpegg_avg6_miroc585$pred_lw <- df_akpegg_avg6_miroc585$avg_pred - 1.96 * df_akpegg_avg6_miroc585$avg_se
+
 saveRDS(df_akpegg_avg6_miroc585, file = here("data", "df_akpegg_avg6_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_avg6_miroc585, "Forecasted doyribution 2070 - 2099 \n MIROC SSP585")
+phenology_curve(df_akpegg_avg6_miroc585, "Forecasted Phenology 2070 - 2099 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_miroc_ssp585_3.jpg'),
+              'plaice_egg_miroc_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
-
 
 
 ### Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -2378,10 +2416,15 @@ df_akpegg_merged1 <- list(df_akpegg_avg1_cesm126, df_akpegg_avg4_cesm585,
 x <- grepl("pred", names(df_akpegg_merged1), fixed = T)
 df_akpegg_final1 <- data.frame(lat = df_akpegg_merged1$lat,
                                lon = df_akpegg_merged1$lon,
+                               doy = df_akpegg_merged1$doy,
                                avg_pred = (rowSums(df_akpegg_merged1[, x])/6))
+df_akpegg_final1$avg_se <- df_akpegg_final1$avg_pred / sqrt(6 * 25)
+df_akpegg_final1$pred_up <- df_akpegg_final1$avg_pred + 1.96 * df_akpegg_final1$avg_se
+df_akpegg_final1$pred_lw <- df_akpegg_final1$avg_pred - 1.96 * df_akpegg_final1$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_final1, "Forecasted doyribution 2015 - 2039")
+phenology_curve(df_akpegg_final1, "Forecasted Phenology 2015 - 2039")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_egg_avg1.jpg'),
