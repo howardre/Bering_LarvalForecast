@@ -246,7 +246,7 @@ varid_match <- function(data, model_output1, model_output2,
     data$roms_salt_hist_miroc[i] <- c(model_output8[[list]][[4]][, , idx_time])[idx_grid]
   }
   return(data)
-} # currently an issue with matching to specific lat/lons
+} 
 
 ### Yellowfin Sole ----
 # change to lowercase
@@ -400,7 +400,7 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 
 # create dataframes of hindcast, historical, and forecast
 temp_vec <- as.vector(temps_cesm_ssp126[[1]][[4]])
-temp_mat <- matrix(temp_vec, nrow = 182*258, ncol = 261)
+temp_mat <- matrix(temp_vec, nrow = 182 * 258, ncol = 261)
 lonlat <- as.matrix(expand.grid(temps_cesm_ssp126[[1]][[1]], temps_cesm_ssp126[[1]][[2]]))
 temp_df <- data.frame(cbind(lonlat, temp_mat))
 
