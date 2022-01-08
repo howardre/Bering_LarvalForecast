@@ -107,8 +107,7 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-egg_formula <- gam(catch ~ s(year) +
-                     s(doy, k = 8) +
+egg_formula <- gam(catch ~ s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
@@ -117,8 +116,7 @@ egg_formula <- gam(catch ~ s(year) +
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(catch ~ s(year) +
-                        s(doy, k = 8) +
+larval_formula <- gam(catch ~ s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
                         s(roms_salinity, k = 6) +
@@ -159,7 +157,6 @@ get_preds <- function(data, year, date, doy,
   }
   
   # Assign a within sample year and doy to the grid data
-  grid_extent$year <- year
   grid_extent$date <- rep(as.Date(date),
                           length(grid_extent))
   grid_extent$doy <- rep(doy, length(grid_extent))
