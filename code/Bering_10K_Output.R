@@ -108,23 +108,22 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-
-# Presentation figure
-windows(width = 8, height = 6, family = "serif")
-tempplot <- temp[, , 5]
+# Function for presentation figure
+annual_temps <- function(number, month){
+tempplot <- temp[, , number]
 image.plot(lon,
-      lat,
-      tempplot,
-      ylab = "Latitude",
-      col = viridis(100),
-      xlab = "Longitude",
-      main = "February 1, 2015",
-      xlim = c(-180, -155) + 360,
-      ylim = c(54, 64),
-      zlim =  c(-2, 17.5),
-      cex.main = 1.2,
-      cex.lab = 1.1,
-      cex.axis = 1.1)
+           lat,
+           tempplot,
+           ylab = "Latitude",
+           col = viridis(100),
+           xlab = "Longitude",
+           main = "Annual Temperature Change in the Bering Sea",
+           xlim = c(-180, -155) + 360,
+           ylim = c(54, 64),
+           zlim =  c(-2, 17.5),
+           cex.main = 1.2,
+           cex.lab = 1.1,
+           cex.axis = 1.1)
 maps::map("world2",
           fill = T,
           col = "wheat4",
@@ -141,13 +140,42 @@ image.plot(legend.only = T,
            legend.args = list("Temperature",
                               side = 2, cex = 1))
 dev.copy(jpeg,
-         'results/Surface_temp_2015.jpg',
+         paste('results/Surface_temp_', month, '_2015.jpg', sep = ''),
          height = 6,
          width = 8,
          res = 200,
          units = 'in',
          family = "serif")
 dev.off()
+}
+
+# Presentation figure
+# 1 = Jan, 5 = Feb, 9 = Mar, 14 = Apr, 18 = May, 23 = June
+# 27 = July, 31 = Aug, 36 = Sept, 40 = Oct, 44 = Nov, 48 = Dec
+windows(height = 6, width = 8, family = "serif")
+annual_temps(1, '01')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(5, '02')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(9, '03')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(14, '04')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(18, '05')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(23, '06')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(27, '07')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(31, '08')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(36, '09')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(40, '10')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(44, '11')
+windows(height = 6, width = 8, family = "serif")
+annual_temps(48, '12')
 
 
 
