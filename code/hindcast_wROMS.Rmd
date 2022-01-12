@@ -40,41 +40,49 @@ pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
+pk_egg$catch <- pk_egg$catch
 
 pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
+pk_larvae$catch <- pk_larvae$catch
 
 fhs_egg <- as.data.frame(filter(readRDS(here('data', 'fhs_egg.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 fhs_egg$mean_temp <- roms_temps$mean[match(fhs_egg$year, roms_temps$year)]
+fhs_egg$catch <- fhs_egg$catch
 
 fhs_larvae <- as.data.frame(filter(readRDS(here('data', 'fhs_larvae.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 fhs_larvae$mean_temp <- roms_temps$mean[match(fhs_larvae$year, roms_temps$year)]
+fhs_larvae$catch <- fhs_larvae$catch
 
 yfs_egg <- as.data.frame(filter(readRDS(here('data', 'yfs_egg.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 yfs_egg$mean_temp <- roms_temps$mean[match(yfs_egg$year, roms_temps$year)]
+yfs_egg$catch <- yfs_egg$catch
 
 yfs_larvae <- as.data.frame(filter(readRDS(here('data', 'yfs_larvae.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 yfs_larvae$mean_temp <- roms_temps$mean[match(yfs_larvae$year, roms_temps$year)]
+yfs_larvae$catch <- yfs_larvae$catch
 
 akp_egg <- as.data.frame(filter(readRDS(here('data', 'akp_egg.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 akp_egg$mean_temp <- roms_temps$mean[match(akp_egg$year, roms_temps$year)]
+akp_egg$catch <- akp_egg$catch
 
 akp_larvae <- as.data.frame(filter(readRDS(here('data', 'akp_larvae.rds')),
                  lat >= 52 & lat <= 62,
                   lon >= -176.5 & lon <= -156.5))
 akp_larvae$mean_temp <- roms_temps$mean[match(akp_larvae$year, roms_temps$year)]
+akp_larvae$catch <- akp_larvae$catch
 
 # Colors
 contour_col <- rgb(0, 0, 255, max = 255, alpha = 0, names = "white")
@@ -89,13 +97,13 @@ jet.colors = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
 Base models: Currently using only presence in a Gaussian GAM, may switch to Tweedie With Gaussian, multiplication by binomial GAM required (two-stage)
 ```{r}
 # Gaussian
-pk_egg_base <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_base <- gam(log(catch) ~ factor(year) +
                      s(doy) +
                      s(lon, lat),
                    data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
 summary(pk_egg_base)
 
-pk_larvae_base <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_base <- gam(log(catch) ~ factor(year) +
                      s(doy) +
                      s(lon, lat),
                    data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
@@ -108,7 +116,7 @@ summary(pk_larvae_base)
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-pk_egg_phenology <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) + 
+pk_egg_phenology <- gam(log(catch) ~ factor(year) + 
                           s(doy) +
                           s(lon, lat) + 
                           s(doy, by = factor(year)), 
@@ -117,7 +125,7 @@ summary(pk_egg_phenology)
 AIC(pk_egg_phenology)
 # AIC: 8713
 
-pk_egg_geography <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_geography <- gam(log(catch) ~ factor(year) +
                           s(lon, lat) +
                           s(lon, lat, by = factor(year)) +
                           s(doy), 
@@ -149,7 +157,7 @@ range(pk_egg$mean_temp)
 
 # This will again use the presence GAM from the two stage models
 # create variable phenology model by adding doy*sst
-pk_egg_month1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_month1 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -164,7 +172,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_month1)
 
 
-pk_egg_month2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_month2 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -180,7 +188,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_month2)
 
 
-pk_egg_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_month3 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity),
@@ -194,7 +202,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_month3)
 
 
-pk_egg_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_month4 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -210,7 +218,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_month4)
 
 
-pk_egg_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_month5 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -250,7 +258,7 @@ Geography Compare formulations with temp/salinity smooth terms
 ```{r}
 # Create variable geography using space*sst
 # Compare to the first three phenology models for model selection
-pk_egg_space1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_space1 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -266,7 +274,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_space1)
 
 
-pk_egg_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_egg_space2 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -485,14 +493,14 @@ Currently using only presence in a Gaussian GAM, may switch to Tweedie
 With Gaussian, multiplication by binomial GAM required (two-stage)
 ```{r}
 # Gaussian
-pk_larvae_base <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_base <- gam(log(catch) ~ factor(year) +
                      s(doy) +
                      s(lon, lat),
                    data = pk_larvae[pk_larvae$larvalcatchper10m2 > 0, ])
 summary(pk_larvae_base)
 
 # Tweedie
-pk_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_larvae_base_t <- gam(catch ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
                     data = pk_larvae,
@@ -504,7 +512,7 @@ summary(pk_larvae_base_t)
 Models with flexible phenology or geography
 Note variable coefficient by year for each
 ```{r}
-pk_larvae_phenology <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) + 
+pk_larvae_phenology <- gam(log(catch) ~ factor(year) + 
                              s(lon, lat) +
                              s(doy) +
                              s(doy, by = factor(year)), 
@@ -513,7 +521,7 @@ summary(pk_larvae_phenology)
 AIC(pk_larvae_phenology)
 # AIC: 7501
 
-pk_larvae_geography <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_geography <- gam(log(catch) ~ factor(year) +
                              s(lon, lat) +
                              s(lon, lat, by = factor(year)) +
                              s(doy), 
@@ -549,7 +557,7 @@ range(pk_larvae$mean_temp)
 
 # This will again use the presence GAM from the two stage models
 # create variable phenology model by adding doy*sst
-pk_larvae_month1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_month1 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -564,7 +572,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_larvae_month1)
 
 
-pk_larvae_month2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_month2 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -580,7 +588,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_larvae_month2)
 
 
-pk_larvae_month3 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_month3 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity),
@@ -594,7 +602,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_larvae_month3)
 
 
-pk_larvae_month4 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_month4 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -610,7 +618,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_larvae_month4)
 
 
-pk_larvae_month5 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_month5 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -651,7 +659,7 @@ Compare formulations with temp/salinity smooth terms
 ```{r}
 # Create variable geography using space*sst
 # Compare to the first three phenology models for model selection
-pk_larvae_space1 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_space1 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -667,7 +675,7 @@ par(mfrow = c(2, 2))
 gam.check(pk_larvae_space1)
 
 
-pk_larvae_space2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
+pk_larvae_space2 <- gam(log(catch) ~ factor(year) +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, roms_salinity) +
@@ -887,7 +895,7 @@ dev.off()
 Base models
 ```{r}
 # Tweedie
-pk_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_egg_base_t <- gam(catch ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
                     data = pk_egg,
@@ -895,7 +903,7 @@ pk_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                     method = 'REML')
 summary(pk_egg_base_t)
 
-pk_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_larvae_base_t <- gam(catch ~ factor(year) +
                        s(lon, lat) + 
                        s(doy),
                     data = pk_larvae,
@@ -909,7 +917,7 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-pk_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_egg_phenology_t <- gam(catch ~ factor(year) +
                             s(doy) +
                             s(lon, lat) +
                             s(doy, by = factor(year)),
@@ -920,7 +928,7 @@ summary(pk_egg_phenology_t)
 AIC(pk_egg_phenology_t)
 # AIC: 33996
 
-pk_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_egg_geography_t <- gam(catch ~ factor(year) +
                             s(lon, lat) +
                             s(lon, lat, by = factor(year)) +
                             s(doy),
@@ -1039,7 +1047,7 @@ Create two panel plot Map of distribution & phenology curves with +1 temperature
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Hindcast")
 legend(50,
        6,
        legend = c('Mean SST', '+ 1C'),
@@ -1050,7 +1058,7 @@ legend(50,
        cex = 1.2)
 dev.copy(jpeg,
          here('results/pollock_hindcast',
-         'pollock_egg_vc_t.jpg'),
+         'pollock_egg_vc_t_presentation.jpg'),
          height = 3.5,
          width = 10,
          res = 200,
@@ -1098,7 +1106,7 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-pk_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_larvae_phenology_t <- gam(catch ~ factor(year) +
                                s(doy) +
                                s(lon, lat) +
                                s(doy, by = factor(year)),
@@ -1109,7 +1117,7 @@ summary(pk_larvae_phenology_t)
 AIC(pk_larvae_phenology_t)
 # AIC: 32891
 
-pk_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+pk_larvae_geography_t <- gam(catch ~ factor(year) +
                                s(lon, lat) +
                                s(lon, lat, by = factor(year)) +
                                s(doy),
@@ -1282,7 +1290,7 @@ dev.off()
 #### Flathead Sole
 ### Tweedie
 ```{r}
-fhs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_egg_base_t <- gam(catch ~ factor(year) +
                         s(lon, lat) +
                         s(doy),
                       data = fhs_egg,
@@ -1290,7 +1298,7 @@ fhs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                       method = 'REML')
 summary(fhs_egg_base_t)
 
-fhs_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_larvae_base_t <- gam(catch ~ factor(year) +
                            s(lon, lat) +
                            s(doy),
                          data = fhs_larvae,
@@ -1305,7 +1313,7 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-fhs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_egg_phenology_t <- gam(catch ~ factor(year) +
                              s(doy) +
                              s(lon, lat) +
                              s(doy, by = factor(year)),
@@ -1316,7 +1324,7 @@ summary(fhs_egg_phenology_t)
 AIC(fhs_egg_phenology_t)
 # AIC: 9907
 
-fhs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_egg_geography_t <- gam(catch ~ factor(year) +
                              s(lon, lat) +
                              s(lon, lat, by = factor(year)) +
                              s(doy),
@@ -1494,7 +1502,7 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-fhs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_larvae_phenology_t <- gam(catch ~ factor(year) +
                                 s(doy) +
                                 s(lon, lat) +
                                 s(doy, by = factor(year)),
@@ -1505,7 +1513,7 @@ summary(fhs_larvae_phenology_t)
 AIC(fhs_larvae_phenology_t)
 # AIC: 22747
 
-fhs_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+fhs_larvae_geography_t <- gam(catch ~ factor(year) +
                                 s(lon, lat) +
                                 s(lon, lat, by = factor(year)) +
                                 s(doy),
@@ -1679,7 +1687,7 @@ dev.off()
 #### Yellowfin Sole
 ### Tweedie
 ```{r}
-yfs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_egg_base_t <- gam(catch ~ factor(year) +
                         s(lon, lat) +
                         s(doy),
                       data = yfs_egg,
@@ -1687,7 +1695,7 @@ yfs_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                       method = 'REML')
 summary(yfs_egg_base_t)
 
-yfs_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_larvae_base_t <- gam(catch ~ factor(year) +
                            s(lon, lat) +
                            s(doy),
                          data = yfs_larvae,
@@ -1702,7 +1710,7 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-yfs_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_egg_phenology_t <- gam(catch ~ factor(year) +
                              s(doy) +
                              s(lon, lat) +
                              s(doy, by = factor(year)),
@@ -1713,7 +1721,7 @@ summary(yfs_egg_phenology_t)
 AIC(yfs_egg_phenology_t)
 # AIC: 1586
 
-yfs_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_egg_geography_t <- gam(catch ~ factor(year) +
                              s(lon, lat) +
                              s(lon, lat, by = factor(year)) +
                              s(doy),
@@ -1891,7 +1899,7 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-yfs_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_larvae_phenology_t <- gam(catch ~ factor(year) +
                                 s(doy) +
                                 s(lon, lat) +
                                 s(doy, by = factor(year)),
@@ -1902,7 +1910,7 @@ summary(yfs_larvae_phenology_t)
 AIC(yfs_larvae_phenology_t)
 # AIC: 8269
 
-yfs_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+yfs_larvae_geography_t <- gam(catch ~ factor(year) +
                                 s(lon, lat) +
                                 s(lon, lat, by = factor(year)) +
                                 s(doy),
@@ -2077,7 +2085,7 @@ dev.off()
 #### Alaska Plaice
 ### Tweedie
 ```{r}
-akp_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_egg_base_t <- gam(catch ~ factor(year) +
                         s(lon, lat) +
                         s(doy),
                       data = akp_egg,
@@ -2085,7 +2093,7 @@ akp_egg_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
                       method =  'REML')
 summary(akp_egg_base_t)
 
-akp_larvae_base_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_larvae_base_t <- gam(catch ~ factor(year) +
                            s(lon, lat) +
                            s(doy),
                          data = akp_larvae,
@@ -2100,7 +2108,7 @@ Models with flexible phenology or geography
 Note variable coefficient by year for each
 This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
-akp_egg_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_egg_phenology_t <- gam(catch ~ factor(year) +
                              s(doy) +
                              s(lon, lat) +
                              s(doy, by = factor(year)),
@@ -2111,7 +2119,7 @@ summary(akp_egg_phenology_t)
 AIC(akp_egg_phenology_t)
 # AIC: 13892
 
-akp_egg_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_egg_geography_t <- gam(catch ~ factor(year) +
                              s(lon, lat) +
                              s(lon, lat, by = factor(year)) +
                              s(doy),
@@ -2294,7 +2302,7 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-akp_larvae_phenology_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_larvae_phenology_t <- gam(catch ~ factor(year) +
                                 s(doy) +
                                 s(lon, lat) +
                                 s(doy, by = factor(year)),
@@ -2305,7 +2313,7 @@ summary(akp_larvae_phenology_t)
 AIC(akp_larvae_phenology_t)
 # AIC: 6035
 
-akp_larvae_geography_t <- gam(larvalcatchper10m2 + 1 ~ factor(year) +
+akp_larvae_geography_t <- gam(catch ~ factor(year) +
                                 s(lon, lat) +
                                 s(lon, lat, by = factor(year)) +
                                 s(doy),
