@@ -85,8 +85,7 @@ get_phenology_preds <- function(data, year, date, day,
 }
 
 
-egg_formula <- gam(catch ~ s(year) +
-                     s(doy, k = 8) +
+egg_formula <- gam(catch ~ s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
@@ -95,8 +94,7 @@ egg_formula <- gam(catch ~ s(year) +
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(catch ~ s(year) +
-                        s(doy, k = 8) +
+larval_formula <- gam(catch ~ s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
                         s(roms_salinity, k = 6) +
@@ -123,7 +121,7 @@ pred_loop_phenology <- function(range, data, day,
   return(grids)
 }
 
-# Function to make maps
+# Function to make curve
 phenology_curve <- function(grid, title){
   plot(grid$doy,
        grid$avg_pred,
@@ -1316,114 +1314,121 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 
 ## 2015 - 2039
 grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 2,
-                              larval_formula)
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 5,
-                              larval_formula)
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 5,
+                                     larval_formula)
 
 # Combine into one data frame
 df_akplarvae1 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+                   grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae1), fixed = T)
 df_akplarvae_avg1_cesm126 <- data.frame(lat = df_akplarvae1$lat, 
-                                        lon = df_akplarvae1$lon, 
-                                        doy = df_akplarvae1$doy,
-                                        avg_pred = rowSums(df_akplarvae1[, x])/25)
+                                     lon = df_akplarvae1$lon, 
+                                     doy = df_akplarvae1$doy,
+                                     avg_pred = rowSums(df_akplarvae1[, x])/25)
+df_akplarvae_avg1_cesm126$avg_se <- df_akplarvae_avg1_cesm126$avg_pred / sqrt(25)
+df_akplarvae_avg1_cesm126$pred_up <- df_akplarvae_avg1_cesm126$avg_pred + 1.96 * df_akplarvae_avg1_cesm126$avg_se
+df_akplarvae_avg1_cesm126$pred_lw <- df_akplarvae_avg1_cesm126$avg_pred - 1.96 * df_akplarvae_avg1_cesm126$avg_se
+
 saveRDS(df_akplarvae_avg1_cesm126, file = here("data", "df_akplarvae_avg1_cesm126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg1_cesm126, "Forecasted doyribution 2015 - 2039 \n CESM SSP126")
+phenology_curve(df_akplarvae_avg1_cesm126, "Forecasted Phenology 2015 - 2039 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp126_1.jpg'),
+              'plaice_larvae_cesm_ssp126_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_cesm_ssp126,
-                              salts_cesm_ssp126, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_cesm_ssp126,
+                                     salts_cesm_ssp126, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae2 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae2), fixed = T)
 df_akplarvae_avg2_cesm126 <- data.frame(lat = df_akplarvae2$lat, 
-                                        lon = df_akplarvae2$lon, 
-                                        doy = df_akplarvae2$doy,
-                                        avg_pred = rowSums(df_akplarvae2[, x])/30)
+                                     lon = df_akplarvae2$lon, 
+                                     doy = df_akplarvae2$doy,
+                                     avg_pred = rowSums(df_akplarvae2[, x])/30)
+df_akplarvae_avg2_cesm126$avg_se <- df_akplarvae_avg2_cesm126$avg_pred / sqrt(30)
+df_akplarvae_avg2_cesm126$pred_up <- df_akplarvae_avg2_cesm126$avg_pred + 1.96 * df_akplarvae_avg2_cesm126$avg_se
+df_akplarvae_avg2_cesm126$pred_lw <- df_akplarvae_avg2_cesm126$avg_pred - 1.96 * df_akplarvae_avg2_cesm126$avg_se
+
 saveRDS(df_akplarvae_avg2_cesm126, file = here("data", "df_akplarvae_avg2_cesm126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg2_cesm126, "Forecasted doyribution 2040 - 2069 \n CESM SSP126")
+phenology_curve(df_akplarvae_avg2_cesm126, "Forecasted Phenology 2040 - 2069 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp126_2.jpg'),
+              'plaice_larvae_cesm_ssp126_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1433,58 +1438,62 @@ dev.off()
 
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 12,
-                               larval_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 13,
-                               larval_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 14,
-                               larval_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 15,
-                               larval_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 17,
-                               larval_formula)
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_cesm_ssp126,
+                                      salts_cesm_ssp126, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae3 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae3), fixed = T)
 df_akplarvae_avg3_cesm126 <- data.frame(lat = df_akplarvae3$lat, 
-                                        lon = df_akplarvae3$lon, 
-                                        doy = df_akplarvae3$doy,
-                                        avg_pred = rowSums(df_akplarvae3[, x])/30)
+                                     lon = df_akplarvae3$lon, 
+                                     doy = df_akplarvae3$doy,
+                                     avg_pred = rowSums(df_akplarvae3[, x])/30)
+df_akplarvae_avg3_cesm126$avg_se <- df_akplarvae_avg3_cesm126$avg_pred / sqrt(30)
+df_akplarvae_avg3_cesm126$pred_up <- df_akplarvae_avg3_cesm126$avg_pred + 1.96 * df_akplarvae_avg3_cesm126$avg_se
+df_akplarvae_avg3_cesm126$pred_lw <- df_akplarvae_avg3_cesm126$avg_pred - 1.96 * df_akplarvae_avg3_cesm126$avg_se
+
 saveRDS(df_akplarvae_avg3_cesm126, file = here("data", "df_akplarvae_avg3_cesm126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg3_cesm126, "Forecasted doyribution 2070 - 2099 \n CESM SSP126")
+phenology_curve(df_akplarvae_avg3_cesm126, "Forecasted Phenology 2070 - 2099 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp126_3.jpg'),
+              'plaice_larvae_cesm_ssp126_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1496,54 +1505,58 @@ temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
 salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 2,
-                              larval_formula)
+grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 5,
-                              larval_formula)
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 5,
+                                     larval_formula)
 
 # Combine into one data frame
 df_akplarvae4 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+                   grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae4), fixed = T)
 df_akplarvae_avg4_cesm585 <- data.frame(lat = df_akplarvae4$lat, 
-                                        lon = df_akplarvae4$lon, 
-                                        doy = df_akplarvae4$doy,
-                                        avg_pred = rowSums(df_akplarvae4[, x])/25)
+                                     lon = df_akplarvae4$lon, 
+                                     doy = df_akplarvae4$doy,
+                                     avg_pred = rowSums(df_akplarvae4[, x])/25)
+df_akplarvae_avg4_cesm585$avg_se <- df_akplarvae_avg4_cesm585$avg_pred / sqrt(25)
+df_akplarvae_avg4_cesm585$pred_up <- df_akplarvae_avg4_cesm585$avg_pred + 1.96 * df_akplarvae_avg4_cesm585$avg_se
+df_akplarvae_avg4_cesm585$pred_lw <- df_akplarvae_avg4_cesm585$avg_pred - 1.96 * df_akplarvae_avg4_cesm585$avg_se
+
 saveRDS(df_akplarvae_avg4_cesm585, file = here("data", "df_akplarvae_avg4_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg4_cesm585, "Forecasted doyribution 2015 - 2039 \n CESM SSP585")
+phenology_curve(df_akplarvae_avg4_cesm585, "Forecasted Phenology 2015 - 2039 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp585_1.jpg'),
+              'plaice_larvae_cesm_ssp585_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1552,59 +1565,63 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_cesm_ssp585,
-                              salts_cesm_ssp585, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_cesm_ssp585,
+                                     salts_cesm_ssp585, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae5 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae5), fixed = T)
 df_akplarvae_avg5_cesm585 <- data.frame(lat = df_akplarvae5$lat, 
-                                        lon = df_akplarvae5$lon, 
-                                        doy = df_akplarvae5$doy,
-                                        avg_pred = rowSums(df_akplarvae5[, x])/30)
+                                     lon = df_akplarvae5$lon, 
+                                     doy = df_akplarvae5$doy,
+                                     avg_pred = rowSums(df_akplarvae5[, x])/30)
+df_akplarvae_avg5_cesm585$avg_se <- df_akplarvae_avg5_cesm585$avg_pred / sqrt(30)
+df_akplarvae_avg5_cesm585$pred_up <- df_akplarvae_avg5_cesm585$avg_pred + 1.96 * df_akplarvae_avg5_cesm585$avg_se
+df_akplarvae_avg5_cesm585$pred_lw <- df_akplarvae_avg5_cesm585$avg_pred - 1.96 * df_akplarvae_avg5_cesm585$avg_se
+
 saveRDS(df_akplarvae_avg5_cesm585, file = here("data", "df_akplarvae_avg5_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg5_cesm585, "Forecasted doyribution 2040 - 2069 \n CESM SSP585")
+phenology_curve(df_akplarvae_avg5_cesm585, "Forecasted Phenology 2040 - 2069 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp585_2.jpg'),
+              'plaice_larvae_cesm_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1614,58 +1631,62 @@ dev.off()
 
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 12,
-                               larval_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 13,
-                               larval_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 14,
-                               larval_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 15,
-                               larval_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 17,
-                               larval_formula)
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_cesm_ssp585,
+                                      salts_cesm_ssp585, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae6 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae6), fixed = T)
 df_akplarvae_avg6_cesm585 <- data.frame(lat = df_akplarvae6$lat, 
-                                        lon = df_akplarvae6$lon, 
-                                        doy = df_akplarvae6$doy,
-                                        avg_pred = rowSums(df_akplarvae6[, x])/30)
+                                     lon = df_akplarvae6$lon, 
+                                     doy = df_akplarvae6$doy,
+                                     avg_pred = rowSums(df_akplarvae6[, x])/30)
+df_akplarvae_avg6_cesm585$avg_se <- df_akplarvae_avg6_cesm585$avg_pred / sqrt(30)
+df_akplarvae_avg6_cesm585$pred_up <- df_akplarvae_avg6_cesm585$avg_pred + 1.96 * df_akplarvae_avg6_cesm585$avg_se
+df_akplarvae_avg6_cesm585$pred_lw <- df_akplarvae_avg6_cesm585$avg_pred - 1.96 * df_akplarvae_avg6_cesm585$avg_se
+
 saveRDS(df_akplarvae_avg6_cesm585, file = here("data", "df_akplarvae_avg6_cesm585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg6_cesm585, "Forecasted doyribution 2070 - 2099 \n CESM SSP585")
+phenology_curve(df_akplarvae_avg6_cesm585, "Forecasted Phenology 2070 - 2099 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_cesm_ssp585_3.jpg'),
+              'plaice_larvae_cesm_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1678,54 +1699,58 @@ temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
 salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 
 ## 2015 - 2039
-grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 2,
-                              larval_formula)
+grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 5,
-                              larval_formula)
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 5,
+                                     larval_formula)
 
 # Combine into one data frame
 df_akplarvae1 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+                   grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae1), fixed = T)
 df_akplarvae_avg1_gfdl126 <- data.frame(lat = df_akplarvae1$lat, 
-                                        lon = df_akplarvae1$lon, 
-                                        doy = df_akplarvae1$doy,
-                                        avg_pred = rowSums(df_akplarvae1[, x])/25)
+                                     lon = df_akplarvae1$lon, 
+                                     doy = df_akplarvae1$doy,
+                                     avg_pred = rowSums(df_akplarvae1[, x])/25)
+df_akplarvae_avg1_gfdl126$avg_se <- df_akplarvae_avg1_gfdl126$avg_pred / sqrt(25)
+df_akplarvae_avg1_gfdl126$pred_up <- df_akplarvae_avg1_gfdl126$avg_pred + 1.96 * df_akplarvae_avg1_gfdl126$avg_se
+df_akplarvae_avg1_gfdl126$pred_lw <- df_akplarvae_avg1_gfdl126$avg_pred - 1.96 * df_akplarvae_avg1_gfdl126$avg_se
+
 saveRDS(df_akplarvae_avg1_gfdl126, file = here("data", "df_akplarvae_avg1_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg1_gfdl126, "Forecasted doyribution 2015 - 2039 \n GFDL SSP126")
+phenology_curve(df_akplarvae_avg1_gfdl126, "Forecasted Phenology 2015 - 2039 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp126_1.jpg'),
+              'plaice_larvae_gfdl_ssp126_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1734,59 +1759,63 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_gfdl_ssp126,
-                              salts_gfdl_ssp126, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_gfdl_ssp126,
+                                     salts_gfdl_ssp126, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae2 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae2), fixed = T)
 df_akplarvae_avg2_gfdl126 <- data.frame(lat = df_akplarvae2$lat, 
-                                        lon = df_akplarvae2$lon, 
-                                        doy = df_akplarvae2$doy,
-                                        avg_pred = rowSums(df_akplarvae2[, x])/30)
+                                     lon = df_akplarvae2$lon, 
+                                     doy = df_akplarvae2$doy,
+                                     avg_pred = rowSums(df_akplarvae2[, x])/30)
+df_akplarvae_avg2_gfdl126$avg_se <- df_akplarvae_avg2_gfdl126$avg_pred / sqrt(30)
+df_akplarvae_avg2_gfdl126$pred_up <- df_akplarvae_avg2_gfdl126$avg_pred + 1.96 * df_akplarvae_avg2_gfdl126$avg_se
+df_akplarvae_avg2_gfdl126$pred_lw <- df_akplarvae_avg2_gfdl126$avg_pred - 1.96 * df_akplarvae_avg2_gfdl126$avg_se
+
 saveRDS(df_akplarvae_avg2_gfdl126, file = here("data", "df_akplarvae_avg2_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg2_gfdl126, "Forecasted doyribution 2040 - 2069 \n GFDL SSP126")
+phenology_curve(df_akplarvae_avg2_gfdl126, "Forecasted Phenology 2040 - 2069 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp126_2.jpg'),
+              'plaice_larvae_gfdl_ssp126_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1796,58 +1825,62 @@ dev.off()
 
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 12,
-                               larval_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 13,
-                               larval_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 14,
-                               larval_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 15,
-                               larval_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 17,
-                               larval_formula)
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_gfdl_ssp126,
+                                      salts_gfdl_ssp126, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae3 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae3), fixed = T)
 df_akplarvae_avg3_gfdl126 <- data.frame(lat = df_akplarvae3$lat, 
-                                        lon = df_akplarvae3$lon, 
-                                        doy = df_akplarvae3$doy,
-                                        avg_pred = rowSums(df_akplarvae3[, x])/30)
+                                     lon = df_akplarvae3$lon, 
+                                     doy = df_akplarvae3$doy,
+                                     avg_pred = rowSums(df_akplarvae3[, x])/30)
+df_akplarvae_avg3_gfdl126$avg_se <- df_akplarvae_avg3_gfdl126$avg_pred / sqrt(30)
+df_akplarvae_avg3_gfdl126$pred_up <- df_akplarvae_avg3_gfdl126$avg_pred + 1.96 * df_akplarvae_avg3_gfdl126$avg_se
+df_akplarvae_avg3_gfdl126$pred_lw <- df_akplarvae_avg3_gfdl126$avg_pred - 1.96 * df_akplarvae_avg3_gfdl126$avg_se
+
 saveRDS(df_akplarvae_avg3_gfdl126, file = here("data", "df_akplarvae_avg3_gfdl126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg3_gfdl126, "Forecasted doyribution 2070 - 2099 \n GFDL SSP126")
+phenology_curve(df_akplarvae_avg3_gfdl126, "Forecasted Phenology 2070 - 2099 \n GFDL SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp126_3.jpg'),
+              'plaice_larvae_gfdl_ssp126_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -1859,176 +1892,186 @@ temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
 salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 2,
-                              larval_formula)
+grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 5,
-                              larval_formula)
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 5,
+                                     larval_formula)
 
 # Combine into one data frame
 df_akplarvae4 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+                   grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae4), fixed = T)
 df_akplarvae_avg4_gfdl585 <- data.frame(lat = df_akplarvae4$lat, 
-                                        lon = df_akplarvae4$lon, 
-                                        doy = df_akplarvae4$doy,
-                                        avg_pred = rowSums(df_akplarvae4[, x])/25)
+                                     lon = df_akplarvae4$lon, 
+                                     doy = df_akplarvae4$doy,
+                                     avg_pred = rowSums(df_akplarvae4[, x])/25)
+df_akplarvae_avg4_gfdl585$avg_se <- df_akplarvae_avg4_gfdl585$avg_pred / sqrt(25)
+df_akplarvae_avg4_gfdl585$pred_up <- df_akplarvae_avg4_gfdl585$avg_pred + 1.96 * df_akplarvae_avg4_gfdl585$avg_se
+df_akplarvae_avg4_gfdl585$pred_lw <- df_akplarvae_avg4_gfdl585$avg_pred - 1.96 * df_akplarvae_avg4_gfdl585$avg_se
+
 saveRDS(df_akplarvae_avg4_gfdl585, file = here("data", "df_akplarvae_avg4_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg4_gfdl585, "Forecasted doyribution 2015 - 2039 \n GFDL SSP585")
+phenology_curve(df_akplarvae_avg4_gfdl585, "Forecasted Phenology 2015 - 2039 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp585_1.jpg'),
+              'plaice_larvae_gfdl_ssp585_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_gfdl_ssp585,
-                              salts_gfdl_ssp585, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_gfdl_ssp585,
+                                     salts_gfdl_ssp585, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae5 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae5), fixed = T)
 df_akplarvae_avg5_gfdl585 <- data.frame(lat = df_akplarvae5$lat, 
-                                        lon = df_akplarvae5$lon, 
-                                        doy = df_akplarvae5$doy,
-                                        avg_pred = rowSums(df_akplarvae5[, x])/30)
+                                     lon = df_akplarvae5$lon, 
+                                     doy = df_akplarvae5$doy,
+                                     avg_pred = rowSums(df_akplarvae5[, x])/30)
+df_akplarvae_avg5_gfdl585$avg_se <- df_akplarvae_avg5_gfdl585$avg_pred / sqrt(30)
+df_akplarvae_avg5_gfdl585$pred_up <- df_akplarvae_avg5_gfdl585$avg_pred + 1.96 * df_akplarvae_avg5_gfdl585$avg_se
+df_akplarvae_avg5_gfdl585$pred_lw <- df_akplarvae_avg5_gfdl585$avg_pred - 1.96 * df_akplarvae_avg5_gfdl585$avg_se
+
 saveRDS(df_akplarvae_avg5_gfdl585, file = here("data", "df_akplarvae_avg5_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg5_gfdl585, "Forecasted doyribution 2040 - 2069 \n GFDL SSP585")
+phenology_curve(df_akplarvae_avg5_gfdl585, "Forecasted Phenology 2040 - 2069 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp585_2.jpg'),
+              'plaice_larvae_gfdl_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 12,
-                               larval_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 13,
-                               larval_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 14,
-                               larval_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 15,
-                               larval_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 17,
-                               larval_formula)
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_gfdl_ssp585,
+                                      salts_gfdl_ssp585, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae6 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae6), fixed = T)
 df_akplarvae_avg6_gfdl585 <- data.frame(lat = df_akplarvae6$lat, 
-                                        lon = df_akplarvae6$lon, 
-                                        doy = df_akplarvae6$doy,
-                                        avg_pred = rowSums(df_akplarvae6[, x])/30)
+                                     lon = df_akplarvae6$lon, 
+                                     doy = df_akplarvae6$doy,
+                                     avg_pred = rowSums(df_akplarvae6[, x])/30)
+df_akplarvae_avg6_gfdl585$avg_se <- df_akplarvae_avg6_gfdl585$avg_pred / sqrt(30)
+df_akplarvae_avg6_gfdl585$pred_up <- df_akplarvae_avg6_gfdl585$avg_pred + 1.96 * df_akplarvae_avg6_gfdl585$avg_se
+df_akplarvae_avg6_gfdl585$pred_lw <- df_akplarvae_avg6_gfdl585$avg_pred - 1.96 * df_akplarvae_avg6_gfdl585$avg_se
+
 saveRDS(df_akplarvae_avg6_gfdl585, file = here("data", "df_akplarvae_avg6_gfdl585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg6_gfdl585, "Forecasted doyribution 2070 - 2099 \n GFDL SSP585")
+phenology_curve(df_akplarvae_avg6_gfdl585, "Forecasted Phenology 2070 - 2099 \n GFDL SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_gfdl_ssp585_3.jpg'),
+              'plaice_larvae_gfdl_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2041,54 +2084,58 @@ temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
 salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 
 ## 2015 - 2039
-grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 2,
-                              larval_formula)
+grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 5,
-                              larval_formula)
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 5,
+                                     larval_formula)
 
 # Combine into one data frame
 df_akplarvae1 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+                   grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae1), fixed = T)
 df_akplarvae_avg1_miroc126 <- data.frame(lat = df_akplarvae1$lat, 
-                                         lon = df_akplarvae1$lon, 
-                                         doy = df_akplarvae1$doy,
-                                         avg_pred = rowSums(df_akplarvae1[, x])/25)
+                                      lon = df_akplarvae1$lon, 
+                                      doy = df_akplarvae1$doy,
+                                      avg_pred = rowSums(df_akplarvae1[, x])/25)
+df_akplarvae_avg1_miroc126$avg_se <- df_akplarvae_avg1_miroc126$avg_pred / sqrt(25)
+df_akplarvae_avg1_miroc126$pred_up <- df_akplarvae_avg1_miroc126$avg_pred + 1.96 * df_akplarvae_avg1_miroc126$avg_se
+df_akplarvae_avg1_miroc126$pred_lw <- df_akplarvae_avg1_miroc126$avg_pred - 1.96 * df_akplarvae_avg1_miroc126$avg_se
+
 saveRDS(df_akplarvae_avg1_miroc126, file = here("data", "df_akplarvae_avg1_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg1_miroc126, "Forecasted doyribution 2015 - 2039 \n MIROC SSP126")
+phenology_curve(df_akplarvae_avg1_miroc126, "Forecasted Phenology 2015 - 2039 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp126_1.jpg'),
+              'plaice_larvae_miroc_ssp126_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2097,120 +2144,125 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_miroc_ssp126,
-                              salts_miroc_ssp126, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_miroc_ssp126,
+                                     salts_miroc_ssp126, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae2 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
-
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae2), fixed = T)
 df_akplarvae_avg2_miroc126 <- data.frame(lat = df_akplarvae2$lat, 
-                                         lon = df_akplarvae2$lon, 
-                                         doy = df_akplarvae2$doy,
-                                         avg_pred = rowSums(df_akplarvae2[, x])/30)
+                                      lon = df_akplarvae2$lon, 
+                                      doy = df_akplarvae2$doy,
+                                      avg_pred = rowSums(df_akplarvae2[, x])/30)
+df_akplarvae_avg2_miroc126$avg_se <- df_akplarvae_avg2_miroc126$avg_pred / sqrt(30)
+df_akplarvae_avg2_miroc126$pred_up <- df_akplarvae_avg2_miroc126$avg_pred + 1.96 * df_akplarvae_avg2_miroc126$avg_se
+df_akplarvae_avg2_miroc126$pred_lw <- df_akplarvae_avg2_miroc126$avg_pred - 1.96 * df_akplarvae_avg2_miroc126$avg_se
+
 saveRDS(df_akplarvae_avg2_miroc126, file = here("data", "df_akplarvae_avg2_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg2_miroc126, "Forecasted doyribution 2040 - 2069 \n MIROC SSP126")
+phenology_curve(df_akplarvae_avg2_miroc126, "Forecasted Phenology 2040 - 2069 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp126_2.jpg'),
+              'plaice_larvae_miroc_ssp126_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 12,
-                               larval_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 13,
-                               larval_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 14,
-                               larval_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 15,
-                               larval_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 17,
-                               larval_formula)
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_miroc_ssp126,
+                                      salts_miroc_ssp126, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae3 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
-
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae3), fixed = T)
 df_akplarvae_avg3_miroc126 <- data.frame(lat = df_akplarvae3$lat, 
-                                         lon = df_akplarvae3$lon, 
-                                         doy = df_akplarvae3$doy,
-                                         avg_pred = rowSums(df_akplarvae3[, x])/30)
+                                      lon = df_akplarvae3$lon, 
+                                      doy = df_akplarvae3$doy,
+                                      avg_pred = rowSums(df_akplarvae3[, x])/30)
+df_akplarvae_avg3_miroc126$avg_se <- df_akplarvae_avg3_miroc126$avg_pred / sqrt(30)
+df_akplarvae_avg3_miroc126$pred_up <- df_akplarvae_avg3_miroc126$avg_pred + 1.96 * df_akplarvae_avg3_miroc126$avg_se
+df_akplarvae_avg3_miroc126$pred_lw <- df_akplarvae_avg3_miroc126$avg_pred - 1.96 * df_akplarvae_avg3_miroc126$avg_se
+
 saveRDS(df_akplarvae_avg3_miroc126, file = here("data", "df_akplarvae_avg3_miroc126_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg3_miroc126, "Forecasted doyribution 2070 - 2099 \n MIROC SSP126")
+phenology_curve(df_akplarvae_avg3_miroc126, "Forecasted Phenology 2070 - 2099 \n MIROC SSP126")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp126_3.jpg'),
+              'plaice_larvae_miroc_ssp126_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2222,54 +2274,58 @@ temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
 salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 
 ## 2015 - 2039
-grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 1,
-                              larval_formula)
-grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 2,
-                              larval_formula)
+grids_akplarvae1 <- pred_loop_phenology(2015:2019, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 1,
+                                     larval_formula)
+grids_akplarvae2 <- pred_loop_phenology(2020:2024, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 2,
+                                     larval_formula)
 grids_akplarvae3 <- pred_loop_phenology(2025:2029, akp_larvae, 137,
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 3,
-                              larval_formula)
-grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 4,
-                              larval_formula)
-grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 5,
-                              larval_formula)
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 3,
+                                     larval_formula)
+grids_akplarvae4 <- pred_loop_phenology(2030:2034, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 4,
+                                     larval_formula)
+grids_akplarvae5 <- pred_loop_phenology(2035:2039, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 5,
+                                     larval_formula)
 
 # Combine into one data frame
-df_akplarvae4 <- list(grids_akplarvae1[[1]], grids_akplarvae1[[2]], grids_akplarvae1[[3]], 
-                      grids_akplarvae1[[4]], grids_akplarvae1[[5]], grids_akplarvae2[[1]], 
-                      grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
-                      grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
-                      grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
-                      grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
-                      grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
-                      grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
-                      grids_akplarvae5[[5]]) %>%
+df_akplarvae4 <- list(grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae2[[1]], 
+                   grids_akplarvae2[[2]], grids_akplarvae2[[3]], grids_akplarvae2[[4]],
+                   grids_akplarvae2[[5]], grids_akplarvae3[[1]], grids_akplarvae3[[2]], 
+                   grids_akplarvae3[[3]], grids_akplarvae3[[4]], grids_akplarvae3[[5]],
+                   grids_akplarvae4[[1]], grids_akplarvae4[[2]], grids_akplarvae4[[3]], 
+                   grids_akplarvae4[[4]], grids_akplarvae4[[5]], grids_akplarvae5[[1]], 
+                   grids_akplarvae5[[2]], grids_akplarvae5[[3]], grids_akplarvae5[[4]],
+                   grids_akplarvae5[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
 
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae4), fixed = T)
 df_akplarvae_avg4_miroc585 <- data.frame(lat = df_akplarvae4$lat, 
-                                         lon = df_akplarvae4$lon, 
-                                         doy = df_akplarvae4$doy,
-                                         avg_pred = rowSums(df_akplarvae4[, x])/25)
+                                      lon = df_akplarvae4$lon, 
+                                      doy = df_akplarvae4$doy,
+                                      avg_pred = rowSums(df_akplarvae4[, x])/25)
+df_akplarvae_avg4_miroc585$avg_se <- df_akplarvae_avg4_miroc585$avg_pred / sqrt(25)
+df_akplarvae_avg4_miroc585$pred_up <- df_akplarvae_avg4_miroc585$avg_pred + 1.96 * df_akplarvae_avg4_miroc585$avg_se
+df_akplarvae_avg4_miroc585$pred_lw <- df_akplarvae_avg4_miroc585$avg_pred - 1.96 * df_akplarvae_avg4_miroc585$avg_se
+
 saveRDS(df_akplarvae_avg4_miroc585, file = here("data", "df_akplarvae_avg4_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg4_miroc585, "Forecasted doyribution 2015 - 2039 \n MIROC SSP585")
+phenology_curve(df_akplarvae_avg4_miroc585, "Forecasted Phenology 2015 - 2039 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp585_1.jpg'),
+              'plaice_larvae_miroc_ssp585_curve_1.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2278,120 +2334,125 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 6,
-                              larval_formula)
-grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 7,
-                              larval_formula)
-grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 8,
-                              larval_formula)
-grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137, 
-                              temps_miroc_ssp585,
-                              salts_miroc_ssp585, 9,
-                              larval_formula)
-grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 10,
-                               larval_formula)
-grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 11,
-                               larval_formula)
+grids_akplarvae6 <- pred_loop_phenology(2040:2044, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 6,
+                                     larval_formula)
+grids_akplarvae7 <- pred_loop_phenology(2045:2049, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 7,
+                                     larval_formula)
+grids_akplarvae8 <- pred_loop_phenology(2050:2054, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 8,
+                                     larval_formula)
+grids_akplarvae9 <- pred_loop_phenology(2055:2059, akp_larvae, 137,
+                                     temps_miroc_ssp585,
+                                     salts_miroc_ssp585, 9,
+                                     larval_formula)
+grids_akplarvae10 <- pred_loop_phenology(2060:2064, akp_larvae, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 10,
+                                      larval_formula)
+grids_akplarvae11 <- pred_loop_phenology(2065:2069, akp_larvae, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 11,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae5 <- list(grids_akplarvae6[[1]], grids_akplarvae6[[2]], grids_akplarvae6[[3]], 
-                      grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
-                      grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
-                      grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
-                      grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
-                      grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
-                      grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
-                      grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
-                      grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
-                      grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
+                   grids_akplarvae6[[4]], grids_akplarvae6[[5]], grids_akplarvae7[[1]], 
+                   grids_akplarvae7[[2]], grids_akplarvae7[[3]], grids_akplarvae7[[4]],
+                   grids_akplarvae7[[5]], grids_akplarvae8[[1]], grids_akplarvae8[[2]], 
+                   grids_akplarvae8[[3]], grids_akplarvae8[[4]], grids_akplarvae8[[5]],
+                   grids_akplarvae9[[1]], grids_akplarvae9[[2]], grids_akplarvae9[[3]], 
+                   grids_akplarvae9[[4]], grids_akplarvae9[[5]], grids_akplarvae10[[1]], 
+                   grids_akplarvae10[[2]], grids_akplarvae10[[3]], grids_akplarvae10[[4]],
+                   grids_akplarvae11[[5]], grids_akplarvae11[[1]], grids_akplarvae11[[2]],
+                   grids_akplarvae11[[3]], grids_akplarvae11[[4]], grids_akplarvae11[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
-
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae5), fixed = T)
 df_akplarvae_avg5_miroc585 <- data.frame(lat = df_akplarvae5$lat, 
-                                         lon = df_akplarvae5$lon, 
-                                         doy = df_akplarvae5$doy,
-                                         avg_pred = rowSums(df_akplarvae5[, x])/30)
+                                      lon = df_akplarvae5$lon, 
+                                      doy = df_akplarvae5$doy,
+                                      avg_pred = rowSums(df_akplarvae5[, x])/30)
+df_akplarvae_avg5_miroc585$avg_se <- df_akplarvae_avg5_miroc585$avg_pred / sqrt(30)
+df_akplarvae_avg5_miroc585$pred_up <- df_akplarvae_avg5_miroc585$avg_pred + 1.96 * df_akplarvae_avg5_miroc585$avg_se
+df_akplarvae_avg5_miroc585$pred_lw <- df_akplarvae_avg5_miroc585$avg_pred - 1.96 * df_akplarvae_avg5_miroc585$avg_se
+
 saveRDS(df_akplarvae_avg5_miroc585, file = here("data", "df_akplarvae_avg5_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg5_miroc585, "Forecasted doyribution 2040 - 2069 \n MIROC SSP585")
+phenology_curve(df_akplarvae_avg5_miroc585, "Forecasted Phenology 2040 - 2069 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp585_2.jpg'),
+              'plaice_larvae_miroc_ssp585_curve_2.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
 
-
 ## 2070 - 2099
 grids_akplarvae12 <- pred_loop_phenology(2070:2074, akp_larvae, 137,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 12,
-                               larval_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 12,
+                                      larval_formula)
 grids_akplarvae13 <- pred_loop_phenology(2075:2079, akp_larvae, 137,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 13,
-                               larval_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 13,
+                                      larval_formula)
 grids_akplarvae14 <- pred_loop_phenology(2080:2084, akp_larvae, 137,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 14,
-                               larval_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 14,
+                                      larval_formula)
 grids_akplarvae15 <- pred_loop_phenology(2085:2089, akp_larvae, 137,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 15,
-                               larval_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 15,
+                                      larval_formula)
 grids_akplarvae16 <- pred_loop_phenology(2090:2094, akp_larvae, 137,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 16,
-                               larval_formula)
-grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 17,
-                               larval_formula)
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 16,
+                                      larval_formula)
+grids_akplarvae17 <- pred_loop_phenology(2095:2099, akp_larvae, 137,
+                                      temps_miroc_ssp585,
+                                      salts_miroc_ssp585, 17,
+                                      larval_formula)
 
 # Combine into one data frame
 df_akplarvae6 <- list(grids_akplarvae12[[1]], grids_akplarvae12[[2]], grids_akplarvae12[[3]], 
-                      grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
-                      grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
-                      grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
-                      grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
-                      grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
-                      grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
-                      grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
-                      grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
-                      grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
+                   grids_akplarvae12[[4]], grids_akplarvae12[[5]], grids_akplarvae13[[1]], 
+                   grids_akplarvae13[[2]], grids_akplarvae13[[3]], grids_akplarvae13[[4]],
+                   grids_akplarvae13[[5]], grids_akplarvae14[[1]], grids_akplarvae14[[2]], 
+                   grids_akplarvae14[[3]], grids_akplarvae14[[4]], grids_akplarvae14[[5]],
+                   grids_akplarvae15[[1]], grids_akplarvae15[[2]], grids_akplarvae15[[3]], 
+                   grids_akplarvae15[[4]], grids_akplarvae15[[5]], grids_akplarvae16[[1]], 
+                   grids_akplarvae16[[2]], grids_akplarvae16[[3]], grids_akplarvae16[[4]],
+                   grids_akplarvae17[[5]], grids_akplarvae17[[1]], grids_akplarvae17[[2]],
+                   grids_akplarvae17[[3]], grids_akplarvae17[[4]], grids_akplarvae17[[5]]) %>%
   reduce(inner_join, by = c("lon", "lat", "doy")) 
-
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_akplarvae6), fixed = T)
 df_akplarvae_avg6_miroc585 <- data.frame(lat = df_akplarvae6$lat, 
-                                         lon = df_akplarvae6$lon, 
-                                         doy = df_akplarvae6$doy,
-                                         avg_pred = rowSums(df_akplarvae6[, x])/30)
+                                      lon = df_akplarvae6$lon, 
+                                      doy = df_akplarvae6$doy,
+                                      avg_pred = rowSums(df_akplarvae6[, x])/30)
+df_akplarvae_avg6_miroc585$avg_se <- df_akplarvae_avg6_miroc585$avg_pred / sqrt(30)
+df_akplarvae_avg6_miroc585$pred_up <- df_akplarvae_avg6_miroc585$avg_pred + 1.96 * df_akplarvae_avg6_miroc585$avg_se
+df_akplarvae_avg6_miroc585$pred_lw <- df_akplarvae_avg6_miroc585$avg_pred - 1.96 * df_akplarvae_avg6_miroc585$avg_se
+
 saveRDS(df_akplarvae_avg6_miroc585, file = here("data", "df_akplarvae_avg6_miroc585_pheno.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_avg6_miroc585, "Forecasted doyribution 2070 - 2099 \n MIROC SSP585")
+phenology_curve(df_akplarvae_avg6_miroc585, "Forecasted Phenology 2070 - 2099 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_miroc_ssp585_3.jpg'),
+              'plaice_larvae_miroc_ssp585_curve_3.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2418,7 +2479,7 @@ df_akpegg_final1 <- data.frame(lat = df_akpegg_merged1$lat,
                                lon = df_akpegg_merged1$lon,
                                doy = df_akpegg_merged1$doy,
                                avg_pred = (rowSums(df_akpegg_merged1[, x])/6))
-df_akpegg_final1$avg_se <- df_akpegg_final1$avg_pred / sqrt(6 * 25)
+df_akpegg_final1$avg_se <- df_akpegg_final1$avg_pred / sqrt(6)
 df_akpegg_final1$pred_up <- df_akpegg_final1$avg_pred + 1.96 * df_akpegg_final1$avg_se
 df_akpegg_final1$pred_lw <- df_akpegg_final1$avg_pred - 1.96 * df_akpegg_final1$avg_se
 
@@ -2427,7 +2488,7 @@ windows(width = 6, height = 6, family = "serif")
 phenology_curve(df_akpegg_final1, "Forecasted Phenology 2015 - 2039")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_avg1.jpg'),
+              'plaice_egg_avg1_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2449,14 +2510,19 @@ df_akplarvae_merged1 <- list(df_akplarvae_avg1_cesm126, df_akplarvae_avg4_cesm58
 
 x <- grepl("pred", names(df_akplarvae_merged1), fixed = T)
 df_akplarvae_final1 <- data.frame(lat = df_akplarvae_merged1$lat,
-                                  lon = df_akplarvae_merged1$lon,
-                                  avg_pred = (rowSums(df_akplarvae_merged1[, x])/6))
+                               lon = df_akplarvae_merged1$lon,
+                               doy = df_akplarvae_merged1$doy,
+                               avg_pred = (rowSums(df_akplarvae_merged1[, x])/6))
+df_akplarvae_final1$avg_se <- df_akplarvae_final1$avg_pred / sqrt(6)
+df_akplarvae_final1$pred_up <- df_akplarvae_final1$avg_pred + 1.96 * df_akplarvae_final1$avg_se
+df_akplarvae_final1$pred_lw <- df_akplarvae_final1$avg_pred - 1.96 * df_akplarvae_final1$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_final1, "Forecasted doyribution 2015 - 2039")
+phenology_curve(df_akplarvae_final1, "Forecasted Phenology 2015 - 2039")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_avg1.jpg'),
+              'plaice_larvae_avg1_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2481,13 +2547,18 @@ df_akpegg_merged2 <- list(df_akpegg_avg2_cesm126, df_akpegg_avg5_cesm585,
 x <- grepl("pred", names(df_akpegg_merged2), fixed = T)
 df_akpegg_final2 <- data.frame(lat = df_akpegg_merged2$lat,
                                lon = df_akpegg_merged2$lon,
+                               doy = df_akpegg_merged2$doy,
                                avg_pred = (rowSums(df_akpegg_merged2[, x])/6))
+df_akpegg_final2$avg_se <- df_akpegg_final2$avg_pred / sqrt(6)
+df_akpegg_final2$pred_up <- df_akpegg_final2$avg_pred + 1.96 * df_akpegg_final2$avg_se
+df_akpegg_final2$pred_lw <- df_akpegg_final2$avg_pred - 1.96 * df_akpegg_final2$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_final2, "Forecasted doyribution 2040 - 2069")
+phenology_curve(df_akpegg_final2, "Forecasted Phenology 2040 - 2069")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_avg2.jpg'),
+              'plaice_egg_avg2_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2509,20 +2580,24 @@ df_akplarvae_merged2 <- list(df_akplarvae_avg2_cesm126, df_akplarvae_avg5_cesm58
 
 x <- grepl("pred", names(df_akplarvae_merged2), fixed = T)
 df_akplarvae_final2 <- data.frame(lat = df_akplarvae_merged2$lat,
-                                  lon = df_akplarvae_merged2$lon,
-                                  avg_pred = (rowSums(df_akplarvae_merged2[, x])/6))
+                               lon = df_akplarvae_merged2$lon,
+                               doy = df_akplarvae_merged2$doy,
+                               avg_pred = (rowSums(df_akplarvae_merged2[, x])/6))
+df_akplarvae_final2$avg_se <- df_akplarvae_final2$avg_pred / sqrt(6)
+df_akplarvae_final2$pred_up <- df_akplarvae_final2$avg_pred + 1.96 * df_akplarvae_final2$avg_se
+df_akplarvae_final2$pred_lw <- df_akplarvae_final2$avg_pred - 1.96 * df_akplarvae_final2$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_final2, "Forecasted doyribution 2040 - 2069")
+phenology_curve(df_akplarvae_final2, "Forecasted Phenology 2040 - 2069")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_avg2.jpg'),
+              'plaice_larvae_avg2_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
-
 
 #### 2070-2099----------------------------------------------------------------------------------------------------------------------
 df_akpegg_avg3_cesm126 <- readRDS(here('data', 'df_akpegg_avg3_cesm126_pheno.rds'))
@@ -2540,13 +2615,18 @@ df_akpegg_merged3 <- list(df_akpegg_avg3_cesm126, df_akpegg_avg6_cesm585,
 x <- grepl("pred", names(df_akpegg_merged3), fixed = T)
 df_akpegg_final3 <- data.frame(lat = df_akpegg_merged3$lat,
                                lon = df_akpegg_merged3$lon,
+                               doy = df_akpegg_merged3$doy,
                                avg_pred = (rowSums(df_akpegg_merged3[, x])/6))
+df_akpegg_final3$avg_se <- df_akpegg_final3$avg_pred / sqrt(6)
+df_akpegg_final3$pred_up <- df_akpegg_final3$avg_pred + 1.96 * df_akpegg_final3$avg_se
+df_akpegg_final3$pred_lw <- df_akpegg_final3$avg_pred - 1.96 * df_akpegg_final3$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akpegg_final3, "Forecasted doyribution 2070 - 2099")
+phenology_curve(df_akpegg_final3, "Forecasted Phenology 2070 - 2099")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_egg_avg3.jpg'),
+              'plaice_egg_avg3_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
@@ -2567,14 +2647,19 @@ df_akplarvae_merged3 <- list(df_akplarvae_avg3_cesm126, df_akplarvae_avg6_cesm58
 
 x <- grepl("pred", names(df_akplarvae_merged3), fixed = T)
 df_akplarvae_final3 <- data.frame(lat = df_akplarvae_merged3$lat,
-                                  lon = df_akplarvae_merged3$lon,
-                                  avg_pred = (rowSums(df_akplarvae_merged3[, x])/6))
+                               lon = df_akplarvae_merged3$lon,
+                               doy = df_akplarvae_merged3$doy,
+                               avg_pred = (rowSums(df_akplarvae_merged3[, x])/6))
+df_akplarvae_final3$avg_se <- df_akplarvae_final3$avg_pred / sqrt(6)
+df_akplarvae_final3$pred_up <- df_akplarvae_final3$avg_pred + 1.96 * df_akplarvae_final3$avg_se
+df_akplarvae_final3$pred_lw <- df_akplarvae_final3$avg_pred - 1.96 * df_akplarvae_final3$avg_se
+
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_akplarvae_final3, "Forecasted doyribution 2070 - 2099")
+phenology_curve(df_akplarvae_final3, "Forecasted Phenology 2070 - 2099")
 dev.copy(jpeg,
          here('results/plaice_forecast',
-              'plaice_larvae_avg3.jpg'),
+              'plaice_larvae_avg3_curve.jpg'),
          height = 6,
          width = 6,
          res = 200,
