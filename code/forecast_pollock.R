@@ -108,7 +108,8 @@ grid_predict <- function(grid, title){
 }
 
 
-egg_formula <- gam(catch ~ s(doy, k = 8) +
+egg_formula <- gam(catch ~ factor(year) +
+                     s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
@@ -117,7 +118,8 @@ egg_formula <- gam(catch ~ s(doy, k = 8) +
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(catch ~ s(doy, k = 8) +
+larval_formula <- gam(catch ~ factor(year) +
+                        s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
                         s(roms_salinity, k = 6) +
@@ -158,6 +160,7 @@ get_preds <- function(data, year, date, doy,
   }
   
   # Assign a within sample year and doy to the grid data
+  grid_extent$year <- year
   grid_extent$date <- rep(as.Date(date),
                           length(grid_extent))
   grid_extent$doy <- rep(doy, length(grid_extent))
@@ -192,13 +195,13 @@ get_preds <- function(data, year, date, doy,
 # Function to loop through years
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
-                      list, formula){
+                      list, formula, year){
   grids <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
     date2 <- paste(j, "-02-01", sep = "")
     date3 <- paste(j, "-04-30", sep = "")
-    grid <- get_preds(data, j, date1, doy,
+    grid <- get_preds(data, year, date1, doy,
                       date2, date3,
                       temp_output, salt_output,
                       list, formula)
@@ -217,23 +220,23 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -273,27 +276,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 10,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -334,27 +337,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -390,6 +393,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp126)
+rm(salts_cesm_ssp126)
+
 ##### CESM 585 -----------------------------------------------------------------------------------------------------------------
 temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
 salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
@@ -398,23 +404,23 @@ salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -454,27 +460,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -515,27 +521,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -571,6 +577,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp585)
+rm(salts_cesm_ssp585)
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
@@ -580,23 +588,23 @@ salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -636,27 +644,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 10,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -697,27 +705,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -753,6 +761,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp126)
+rm(salts_gfdl_ssp126)
+
 ##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
 salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
@@ -761,23 +772,23 @@ salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -817,27 +828,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -878,27 +889,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -934,6 +945,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp585)
+rm(salts_gfdl_ssp585)
+
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
@@ -943,23 +957,23 @@ salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg1 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -999,27 +1013,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 10,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg2 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -1060,27 +1074,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg3 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -1116,6 +1130,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_miroc_ssp126)
+rm(salts_miroc_ssp126)
+
 ##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
 salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
@@ -1124,23 +1141,23 @@ salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 grids_pkegg1 <- pred_loop(2015:2019, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg2 <- pred_loop(2020:2024, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg3 <- pred_loop(2025:2029, pk_egg, 130,
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg4 <- pred_loop(2030:2034, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg5 <- pred_loop(2035:2039, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg4 <- list(grids_pkegg1[[1]], grids_pkegg1[[2]], grids_pkegg1[[3]], 
@@ -1180,27 +1197,27 @@ dev.off()
 grids_pkegg6 <- pred_loop(2040:2044, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg7 <- pred_loop(2045:2049, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg8 <- pred_loop(2050:2054, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg9 <- pred_loop(2055:2059, pk_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 1999)
 grids_pkegg10 <- pred_loop(2060:2064, pk_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg11 <- pred_loop(2065:2069, pk_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg5 <- list(grids_pkegg6[[1]], grids_pkegg6[[2]], grids_pkegg6[[3]], 
@@ -1241,27 +1258,27 @@ dev.off()
 grids_pkegg12 <- pred_loop(2070:2074, pk_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg13 <- pred_loop(2075:2079, pk_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg14 <- pred_loop(2080:2084, pk_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg15 <- pred_loop(2085:2089, pk_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg16 <- pred_loop(2090:2094, pk_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 1999)
 grids_pkegg17 <- pred_loop(2095:2099, pk_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 1999)
 
 # Combine into one data frame
 df_pkegg6 <- list(grids_pkegg12[[1]], grids_pkegg12[[2]], grids_pkegg12[[3]], 
@@ -1297,7 +1314,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-
+rm(temps_miroc_ssp585)
+rm(salts_miroc_ssp585)
 
 ### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
