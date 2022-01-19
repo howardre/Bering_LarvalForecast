@@ -1,4 +1,4 @@
-gam_selection <- function(data, roms_temps){
+gam_selection <- function(data){
   gam_base <- gam(catch ~ factor(year) + 
                     s(doy, k = 8) +
                     s(lon, lat) +
