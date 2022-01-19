@@ -101,7 +101,8 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-larval_formula <- gam(catch ~ s(doy, k = 8) +
+larval_formula <- gam(catch ~ factor(year) + 
+                        s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
                         s(roms_salinity, k = 6) +
@@ -142,6 +143,7 @@ get_preds <- function(data, year, date, doy,
   }
   
   # Assign a within sample year and doy to the grid data
+  grid_extent$year <- year
   grid_extent$date <- rep(as.Date(date),
                           length(grid_extent))
   grid_extent$doy <- rep(doy, length(grid_extent))
@@ -176,13 +178,13 @@ get_preds <- function(data, year, date, doy,
 # Function to loop through years
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
-                      list, formula){
+                      list, formula, year){
   grids <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
     date2 <- paste(j, "-02-01", sep = "")
     date3 <- paste(j, "-04-30", sep = "")
-    grid <- get_preds(data, j, date1, doy,
+    grid <- get_preds(data, year, date1, doy,
                       date2, date3,
                       temp_output, salt_output,
                       list, formula)

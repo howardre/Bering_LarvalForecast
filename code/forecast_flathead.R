@@ -107,7 +107,8 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-egg_formula <- gam(catch ~ s(doy, k = 8) +
+egg_formula <- gam(catch ~ factor(year) + 
+                     s(doy, k = 8) +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
@@ -116,7 +117,8 @@ egg_formula <- gam(catch ~ s(doy, k = 8) +
                    family = tw(link = 'log'),
                    method = 'REML')
 
-larval_formula <- gam(catch ~ s(doy, k = 8) +
+larval_formula <- gam(catch ~ factor(year) + 
+                        s(doy, k = 8) +
                         s(lon, lat) +
                         s(roms_temperature, k = 6) +
                         s(roms_salinity, k = 6) +
@@ -157,6 +159,7 @@ get_preds <- function(data, year, date, doy,
   }
   
   # Assign a within sample year and doy to the grid data
+  grid_extent$year <- year
   grid_extent$date <- rep(as.Date(date),
                           length(grid_extent))
   grid_extent$doy <- rep(doy, length(grid_extent))
@@ -191,13 +194,13 @@ get_preds <- function(data, year, date, doy,
 # Function to loop through years
 pred_loop <- function(range, data, doy, 
                       temp_output, salt_output,
-                      list, formula){
+                      list, formula, year){
   grids <- list()
   for(j in range) {
     date1 <- paste(j, "-05-10", sep = "")
     date2 <- paste(j, "-02-01", sep = "")
     date3 <- paste(j, "-04-30", sep = "")
-    grid <- get_preds(data, j, date1, doy,
+    grid <- get_preds(data, year, date1, doy,
                       date2, date3,
                       temp_output, salt_output,
                       list, formula)
@@ -217,23 +220,23 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg1 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -273,27 +276,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_cesm_ssp126,
                           salts_cesm_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg2 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -334,27 +337,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_cesm_ssp126,
                            salts_cesm_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg3 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -390,6 +393,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp126)
+rm(salts_cesm_ssp126)
+
 ##### CESM 585 -----------------------------------------------------------------------------------------------------------------
 temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
 salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
@@ -398,23 +404,23 @@ salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg4 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -454,27 +460,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_cesm_ssp585,
                           salts_cesm_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg5 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -515,27 +521,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_cesm_ssp585,
                            salts_cesm_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg6 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -571,6 +577,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp585)
+rm(salts_cesm_ssp585)
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
@@ -580,23 +588,23 @@ salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg1 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -636,27 +644,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_gfdl_ssp126,
                           salts_gfdl_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg2 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -697,27 +705,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_gfdl_ssp126,
                            salts_gfdl_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg3 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -753,6 +761,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp126)
+rm(salts_gfdl_ssp126)
+
 ##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
 salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
@@ -761,23 +772,23 @@ salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg4 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -817,27 +828,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_gfdl_ssp585,
                           salts_gfdl_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg5 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -878,27 +889,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_gfdl_ssp585,
                            salts_gfdl_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg6 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -934,6 +945,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp585)
+rm(salts_gfdl_ssp585)
+
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
@@ -943,23 +957,23 @@ salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg1 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -999,27 +1013,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_miroc_ssp126,
                           salts_miroc_ssp126, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg2 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -1060,27 +1074,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_miroc_ssp126,
                            salts_miroc_ssp126, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg3 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -1116,6 +1130,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_miroc_ssp126)
+rm(salts_miroc_ssp126)
+
 ##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
 salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
@@ -1124,23 +1141,23 @@ salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 grids_fhsegg1 <- pred_loop(2015:2019, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 1,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg2 <- pred_loop(2020:2024, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 2,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg3 <- pred_loop(2025:2029, fhs_egg, 130,
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 3,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg4 <- pred_loop(2030:2034, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 4,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg5 <- pred_loop(2035:2039, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 5,
-                          egg_formula)
+                          egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg4 <- list(grids_fhsegg1[[1]], grids_fhsegg1[[2]], grids_fhsegg1[[3]], 
@@ -1180,27 +1197,27 @@ dev.off()
 grids_fhsegg6 <- pred_loop(2040:2044, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 6,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg7 <- pred_loop(2045:2049, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 7,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg8 <- pred_loop(2050:2054, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 8,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg9 <- pred_loop(2055:2059, fhs_egg, 130, 
                           temps_miroc_ssp585,
                           salts_miroc_ssp585, 9,
-                          egg_formula)
+                          egg_formula, 2000)
 grids_fhsegg10 <- pred_loop(2060:2064, fhs_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 10,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg11 <- pred_loop(2065:2069, fhs_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 11,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg5 <- list(grids_fhsegg6[[1]], grids_fhsegg6[[2]], grids_fhsegg6[[3]], 
@@ -1241,27 +1258,27 @@ dev.off()
 grids_fhsegg12 <- pred_loop(2070:2074, fhs_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 12,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg13 <- pred_loop(2075:2079, fhs_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 13,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg14 <- pred_loop(2080:2084, fhs_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 14,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg15 <- pred_loop(2085:2089, fhs_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 15,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg16 <- pred_loop(2090:2094, fhs_egg, 130,
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 16,
-                           egg_formula)
+                           egg_formula, 2000)
 grids_fhsegg17 <- pred_loop(2095:2099, fhs_egg, 130, 
                            temps_miroc_ssp585,
                            salts_miroc_ssp585, 17,
-                           egg_formula)
+                           egg_formula, 2000)
 
 # Combine into one data frame
 df_fhsegg6 <- list(grids_fhsegg12[[1]], grids_fhsegg12[[2]], grids_fhsegg12[[3]], 
@@ -1297,7 +1314,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-
+rm(temps_miroc_ssp585)
+rm(salts_miroc_ssp585)
 
 ### Flathead Larvae --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -1309,23 +1327,23 @@ salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae1 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -1365,27 +1383,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_cesm_ssp126,
                              salts_cesm_ssp126, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae2 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -1426,27 +1444,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_cesm_ssp126,
                               salts_cesm_ssp126, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae3 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -1482,6 +1500,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp126)
+rm(salts_cesm_ssp126)
+
 ##### CESM 585 -----------------------------------------------------------------------------------------------------------------
 temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
 salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
@@ -1490,23 +1511,23 @@ salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae4 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -1546,27 +1567,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_cesm_ssp585,
                              salts_cesm_ssp585, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae5 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -1607,27 +1628,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_cesm_ssp585,
                               salts_cesm_ssp585, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae6 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -1663,6 +1684,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_cesm_ssp585)
+rm(salts_cesm_ssp585)
+
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
@@ -1672,23 +1696,23 @@ salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae1 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -1728,27 +1752,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_gfdl_ssp126,
                              salts_gfdl_ssp126, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae2 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -1789,27 +1813,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_gfdl_ssp126,
                               salts_gfdl_ssp126, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae3 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -1845,6 +1869,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp126)
+rm(salts_gfdl_ssp126)
+
 ##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
 temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
 salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
@@ -1853,23 +1880,23 @@ salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae4 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -1909,27 +1936,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_gfdl_ssp585,
                              salts_gfdl_ssp585, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae5 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -1970,27 +1997,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_gfdl_ssp585,
                               salts_gfdl_ssp585, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae6 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -2026,6 +2053,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_gfdl_ssp585)
+rm(salts_gfdl_ssp585)
+
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
@@ -2035,23 +2065,23 @@ salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae1 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -2091,27 +2121,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_miroc_ssp126,
                              salts_miroc_ssp126, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae2 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -2152,27 +2182,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_miroc_ssp126,
                               salts_miroc_ssp126, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae3 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -2208,6 +2238,9 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+rm(temps_miroc_ssp126)
+rm(salts_miroc_ssp126)
+
 ##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
 temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
 salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
@@ -2216,23 +2249,23 @@ salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
 grids_fhslarvae1 <- pred_loop(2015:2019, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 1,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae2 <- pred_loop(2020:2024, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 2,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae3 <- pred_loop(2025:2029, fhs_larvae, 130,
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 3,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae4 <- pred_loop(2030:2034, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 4,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae5 <- pred_loop(2035:2039, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 5,
-                             larval_formula)
+                             larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae4 <- list(grids_fhslarvae1[[1]], grids_fhslarvae1[[2]], grids_fhslarvae1[[3]], 
@@ -2272,27 +2305,27 @@ dev.off()
 grids_fhslarvae6 <- pred_loop(2040:2044, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 6,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae7 <- pred_loop(2045:2049, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 7,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae8 <- pred_loop(2050:2054, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 8,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae9 <- pred_loop(2055:2059, fhs_larvae, 130, 
                              temps_miroc_ssp585,
                              salts_miroc_ssp585, 9,
-                             larval_formula)
+                             larval_formula, 2012)
 grids_fhslarvae10 <- pred_loop(2060:2064, fhs_larvae, 130, 
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 10,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae11 <- pred_loop(2065:2069, fhs_larvae, 130, 
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 11,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae5 <- list(grids_fhslarvae6[[1]], grids_fhslarvae6[[2]], grids_fhslarvae6[[3]], 
@@ -2333,27 +2366,27 @@ dev.off()
 grids_fhslarvae12 <- pred_loop(2070:2074, fhs_larvae, 130,
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 12,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae13 <- pred_loop(2075:2079, fhs_larvae, 130,
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 13,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae14 <- pred_loop(2080:2084, fhs_larvae, 130,
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 14,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae15 <- pred_loop(2085:2089, fhs_larvae, 130,
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 15,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae16 <- pred_loop(2090:2094, fhs_larvae, 130,
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 16,
-                              larval_formula)
+                              larval_formula, 2012)
 grids_fhslarvae17 <- pred_loop(2095:2099, fhs_larvae, 130, 
                               temps_miroc_ssp585,
                               salts_miroc_ssp585, 17,
-                              larval_formula)
+                              larval_formula, 2012)
 
 # Combine into one data frame
 df_fhslarvae6 <- list(grids_fhslarvae12[[1]], grids_fhslarvae12[[2]], grids_fhslarvae12[[3]], 
@@ -2388,6 +2421,11 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
+
+rm(temps_miroc_ssp585)
+rm(salts_miroc_ssp585)
+
+beep("fanfare")
 
 ### Average Predictions ------------------------------------------------------------------------------------------------------------
 # Change to make same zlim
@@ -2425,7 +2463,7 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 1333),
+        zlim = c(0, 2587),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -2442,7 +2480,7 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 1333),
+             zlim = c(0, 2587),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
