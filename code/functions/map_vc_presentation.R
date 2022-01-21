@@ -1,4 +1,4 @@
-map_vc <- function(data, gam, grids, title){
+map_vc_presentation <- function(data, gam, grids, title){
   nlat = 80
   nlon = 120
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
@@ -70,8 +70,8 @@ map_vc <- function(data, gam, grids, title){
                  ncol = length(lond),
                  byrow = T)),
         col = my_color(100),
-        ylab = "Longitude",
-        xlab = "Latitude",
+        xlab = "Longitude",
+        ylab = "Latitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
         main = 'Change in distribution',
