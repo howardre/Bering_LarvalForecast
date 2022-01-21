@@ -125,6 +125,8 @@ fhs_egg_raw <- read_csv(here('data/species_data', 'BS_FlatheadEggCatch.csv'))
 fhs_larvae_raw <- read_csv(here('data/species_data', 'BS_FlatheadLarvaeCatch.csv'))
 pk_egg_raw <- read_csv(here('data/species_data', 'BS_PollockEggCatch.csv'))
 pk_larvae_raw <- read_csv(here('data/species_data', 'Bs_PollockLarvaeCatch.csv'))
+pcod_larvae_raw <- read_csv(here('data/species_data', 'Bs_PacificCodLarvaeCatch.csv'))
+nrs_larvae_raw <- read_csv(here('data/species_data', 'Bs_NorthernRockSoleLarvaeCatch.csv'))
 
 ### Functions ----
 format_data <- function(data){
@@ -214,10 +216,9 @@ final_data <- function(data_trim){
                           'volume_filtered')
   return(data_subset)
 }
-varid_match <- function(data, model_output1, model_output2, 
-                        model_output3, model_output4, model_output5,
-                        model_output6, model_output7, model_output8,
-                        list){
+varid_match_proj <- function(data, model_output1, model_output2, 
+                             model_output3, model_output4, model_output5,
+                             model_output6, model_output7, model_output8, list){
   data$roms_date <- NA
   data$roms_temperature <- NA
   data$roms_salinity <- NA
@@ -244,6 +245,25 @@ varid_match <- function(data, model_output1, model_output2,
     data$roms_salt_hist_gfdl[i] <- c(model_output6[[list]][[4]][, , idx_time])[idx_grid]
     data$roms_temp_hist_miroc[i] <- c(model_output7[[list]][[4]][, , idx_time])[idx_grid]
     data$roms_salt_hist_miroc[i] <- c(model_output8[[list]][[4]][, , idx_time])[idx_grid]
+  }
+  return(data)
+} 
+
+varid_match <- function(data, model_output1, model_output2, list){
+  data$roms_date <- NA
+  data$roms_temperature <- NA
+  data$roms_salinity <- NA
+  for (i in 1:nrow(data)) {
+    idx_time <- order(abs(model_output1[[3]] - data$date[i]))[1]
+    data$roms_date[i] <- model_output1[[3]][idx_time]
+    idx_grid <- order(distance_function(
+      data$lat[i],
+      data$lon[i],
+      c(model_output1[[2]]),
+      c(model_output1[[1]])
+    ))[1]
+    data$roms_temperature[i] <- c(model_output1[[4]][, , idx_time])[idx_grid]
+    data$roms_salinity[i] <- c(model_output2[[4]][, , idx_time])[idx_grid]
   }
   return(data)
 } 
@@ -469,49 +489,21 @@ akp_subset_egg7 <- filter(akp_subset_egg, year > 2014 & year < 2020)
 akp_complete_larvae7 <- filter(akp_subset_larvae, year > 2014 & year < 2020)
 
 # Add Bering10K model temperatures and salinities
-akp_complete_egg1 <- varid_match(akp_subset_egg1, temp_output1, salt_output1, 
-                                 Cop_output1, EupO_output1, EupS_output1,
-                                 PhL_output1, PhS_output1)
-akp_complete_egg2 <- varid_match(akp_subset_egg2, temp_output2, salt_output2, 
-                                 Cop_output2, EupO_output2, EupS_output2,
-                                 PhL_output2, PhS_output2)
-akp_complete_egg3 <- varid_match(akp_subset_egg3, temp_output3, salt_output3, 
-                                 Cop_output3, EupO_output3, EupS_output3,
-                                 PhL_output3, PhS_output3)
-akp_complete_egg4 <- varid_match(akp_subset_egg4, temp_output4, salt_output4, 
-                                 Cop_output4, EupO_output4, EupS_output4,
-                                 PhL_output4, PhS_output4)
-akp_complete_egg5 <- varid_match(akp_subset_egg5, temp_output5, salt_output5, 
-                                 Cop_output5, EupO_output5, EupS_output5,
-                                 PhL_output5, PhS_output5)
-akp_complete_egg6 <- varid_match(akp_subset_egg6, temp_output6, salt_output6, 
-                                 Cop_output6, EupO_output6, EupS_output6,
-                                 PhL_output6, PhS_output6)
-akp_complete_egg7 <- varid_match(akp_subset_egg7, temp_output7, salt_output7, 
-                                 Cop_output7, EupO_output7, EupS_output7,
-                                 PhL_output7, PhS_output7)
+akp_complete_egg1 <- varid_match(akp_subset_egg1, temp_output1, salt_output1)
+akp_complete_egg2 <- varid_match(akp_subset_egg2, temp_output2, salt_output2)
+akp_complete_egg3 <- varid_match(akp_subset_egg3, temp_output3, salt_output3)
+akp_complete_egg4 <- varid_match(akp_subset_egg4, temp_output4, salt_output4)
+akp_complete_egg5 <- varid_match(akp_subset_egg5, temp_output5, salt_output5)
+akp_complete_egg6 <- varid_match(akp_subset_egg6, temp_output6, salt_output6)
+akp_complete_egg7 <- varid_match(akp_subset_egg7, temp_output7, salt_output7)
 
-akp_complete_larvae1 <- varid_match(akp_complete_larvae1, temp_output1, salt_output1, 
-                                    Cop_output1, EupO_output1, EupS_output1,
-                                    PhL_output1, PhS_output1)
-akp_complete_larvae2 <- varid_match(akp_complete_larvae2, temp_output2, salt_output2, 
-                                    Cop_output2, EupO_output2, EupS_output2,
-                                    PhL_output2, PhS_output2)
-akp_complete_larvae3 <- varid_match(akp_complete_larvae3, temp_output3, salt_output3, 
-                                    Cop_output3, EupO_output3, EupS_output3,
-                                    PhL_output3, PhS_output3)
-akp_complete_larvae4 <- varid_match(akp_complete_larvae4, temp_output4, salt_output4, 
-                                    Cop_output4, EupO_output4, EupS_output4,
-                                    PhL_output4, PhS_output4)
-akp_complete_larvae5 <- varid_match(akp_complete_larvae5, temp_output5, salt_output5, 
-                                    Cop_output5, EupO_output5, EupS_output5,
-                                    PhL_output5, PhS_output5)
-akp_complete_larvae6 <- varid_match(akp_complete_larvae6, temp_output6, salt_output6, 
-                                    Cop_output6, EupO_output6, EupS_output6,
-                                    PhL_output6, PhS_output6)
-akp_complete_larvae7 <- varid_match(akp_complete_larvae7, temp_output7, salt_output7, 
-                                    Cop_output7, EupO_output7, EupS_output7,
-                                    PhL_output7, PhS_output7)
+akp_complete_larvae1 <- varid_match(akp_complete_larvae1, temp_output1, salt_output1)
+akp_complete_larvae2 <- varid_match(akp_complete_larvae2, temp_output2, salt_output2)
+akp_complete_larvae3 <- varid_match(akp_complete_larvae3, temp_output3, salt_output3)
+akp_complete_larvae4 <- varid_match(akp_complete_larvae4, temp_output4, salt_output4)
+akp_complete_larvae5 <- varid_match(akp_complete_larvae5, temp_output5, salt_output5)
+akp_complete_larvae6 <- varid_match(akp_complete_larvae6, temp_output6, salt_output6)
+akp_complete_larvae7 <- varid_match(akp_complete_larvae7, temp_output7, salt_output7)
 
 # combine to create whole datasets for each
 akp_complete_egg <- rbind(akp_complete_egg1, akp_complete_egg2, akp_complete_egg3,
@@ -588,49 +580,21 @@ fhs_subset_egg7 <- filter(fhs_subset_egg, year > 2014 & year < 2020)
 fhs_complete_larvae7 <- filter(fhs_subset_larvae, year > 2014 & year < 2020)
 
 # Add Bering10K model temperatures and salinities
-fhs_complete_egg1 <- varid_match(fhs_subset_egg1, temp_output1, salt_output1, 
-                                 Cop_output1, EupO_output1, EupS_output1,
-                                 PhL_output1, PhS_output1)
-fhs_complete_egg2 <- varid_match(fhs_subset_egg2, temp_output2, salt_output2, 
-                                 Cop_output2, EupO_output2, EupS_output2,
-                                 PhL_output2, PhS_output2)
-fhs_complete_egg3 <- varid_match(fhs_subset_egg3, temp_output3, salt_output3, 
-                                 Cop_output3, EupO_output3, EupS_output3,
-                                 PhL_output3, PhS_output3)
-fhs_complete_egg4 <- varid_match(fhs_subset_egg4, temp_output4, salt_output4, 
-                                 Cop_output4, EupO_output4, EupS_output4,
-                                 PhL_output4, PhS_output4)
-fhs_complete_egg5 <- varid_match(fhs_subset_egg5, temp_output5, salt_output5, 
-                                 Cop_output5, EupO_output5, EupS_output5,
-                                 PhL_output5, PhS_output5)
-fhs_complete_egg6 <- varid_match(fhs_subset_egg6, temp_output6, salt_output6, 
-                                 Cop_output6, EupO_output6, EupS_output6,
-                                 PhL_output6, PhS_output6)
-fhs_complete_egg7 <- varid_match(fhs_subset_egg7, temp_output7, salt_output7, 
-                                 Cop_output7, EupO_output7, EupS_output7,
-                                 PhL_output7, PhS_output7)
+fhs_complete_egg1 <- varid_match(fhs_subset_egg1, temp_output1, salt_output1)
+fhs_complete_egg2 <- varid_match(fhs_subset_egg2, temp_output2, salt_output2)
+fhs_complete_egg3 <- varid_match(fhs_subset_egg3, temp_output3, salt_output3)
+fhs_complete_egg4 <- varid_match(fhs_subset_egg4, temp_output4, salt_output4)
+fhs_complete_egg5 <- varid_match(fhs_subset_egg5, temp_output5, salt_output5)
+fhs_complete_egg6 <- varid_match(fhs_subset_egg6, temp_output6, salt_output6)
+fhs_complete_egg7 <- varid_match(fhs_subset_egg7, temp_output7, salt_output7)
 
-fhs_complete_larvae1 <- varid_match(fhs_complete_larvae1, temp_output1, salt_output1, 
-                                    Cop_output1, EupO_output1, EupS_output1,
-                                    PhL_output1, PhS_output1)
-fhs_complete_larvae2 <- varid_match(fhs_complete_larvae2, temp_output2, salt_output2, 
-                                    Cop_output2, EupO_output2, EupS_output2,
-                                    PhL_output2, PhS_output2)
-fhs_complete_larvae3 <- varid_match(fhs_complete_larvae3, temp_output3, salt_output3, 
-                                    Cop_output3, EupO_output3, EupS_output3,
-                                    PhL_output3, PhS_output3)
-fhs_complete_larvae4 <- varid_match(fhs_complete_larvae4, temp_output4, salt_output4, 
-                                    Cop_output4, EupO_output4, EupS_output4,
-                                    PhL_output4, PhS_output4)
-fhs_complete_larvae5 <- varid_match(fhs_complete_larvae5, temp_output5, salt_output5, 
-                                    Cop_output5, EupO_output5, EupS_output5,
-                                    PhL_output5, PhS_output5)
-fhs_complete_larvae6 <- varid_match(fhs_complete_larvae6, temp_output6, salt_output6, 
-                                    Cop_output6, EupO_output6, EupS_output6,
-                                    PhL_output6, PhS_output6)
-fhs_complete_larvae7 <- varid_match(fhs_complete_larvae7, temp_output7, salt_output7, 
-                                    Cop_output7, EupO_output7, EupS_output7,
-                                    PhL_output7, PhS_output7)
+fhs_complete_larvae1 <- varid_match(fhs_complete_larvae1, temp_output1, salt_output1)
+fhs_complete_larvae2 <- varid_match(fhs_complete_larvae2, temp_output2, salt_output2)
+fhs_complete_larvae3 <- varid_match(fhs_complete_larvae3, temp_output3, salt_output3)
+fhs_complete_larvae4 <- varid_match(fhs_complete_larvae4, temp_output4, salt_output4)
+fhs_complete_larvae5 <- varid_match(fhs_complete_larvae5, temp_output5, salt_output5)
+fhs_complete_larvae6 <- varid_match(fhs_complete_larvae6, temp_output6, salt_output6)
+fhs_complete_larvae7 <- varid_match(fhs_complete_larvae7, temp_output7, salt_output7)
 
 # combine to create whole datasets for each
 fhs_complete_egg <- rbind(fhs_complete_egg1, fhs_complete_egg2, fhs_complete_egg3,
@@ -707,49 +671,21 @@ pk_subset_egg7 <- filter(pk_subset_egg, year > 2014 & year < 2020)
 pk_complete_larvae7 <- filter(pk_subset_larvae, year > 2014 & year < 2020)
 
 # Add Bering10K model temperatures and salinities
-pk_complete_egg1 <- varid_match(pk_subset_egg1, temp_output1, salt_output1, 
-                                Cop_output1, EupO_output1, EupS_output1,
-                                PhL_output1, PhS_output1)
-pk_complete_egg2 <- varid_match(pk_subset_egg2, temp_output2, salt_output2, 
-                                Cop_output2, EupO_output2, EupS_output2,
-                                PhL_output2, PhS_output2)
-pk_complete_egg3 <- varid_match(pk_subset_egg3, temp_output3, salt_output3, 
-                                Cop_output3, EupO_output3, EupS_output3,
-                                PhL_output3, PhS_output3)
-pk_complete_egg4 <- varid_match(pk_subset_egg4, temp_output4, salt_output4, 
-                                Cop_output4, EupO_output4, EupS_output4,
-                                PhL_output4, PhS_output4)
-pk_complete_egg5 <- varid_match(pk_subset_egg5, temp_output5, salt_output5, 
-                                Cop_output5, EupO_output5, EupS_output5,
-                                PhL_output5, PhS_output5)
-pk_complete_egg6 <- varid_match(pk_subset_egg6, temp_output6, salt_output6, 
-                                Cop_output6, EupO_output6, EupS_output6,
-                                PhL_output6, PhS_output6)
-pk_complete_egg7 <- varid_match(pk_subset_egg7, temp_output7, salt_output7, 
-                                Cop_output7, EupO_output7, EupS_output7,
-                                PhL_output7, PhS_output7)
+pk_complete_egg1 <- varid_match(pk_subset_egg1, temp_output1, salt_output1)
+pk_complete_egg2 <- varid_match(pk_subset_egg2, temp_output2, salt_output2)
+pk_complete_egg3 <- varid_match(pk_subset_egg3, temp_output3, salt_output3)
+pk_complete_egg4 <- varid_match(pk_subset_egg4, temp_output4, salt_output4)
+pk_complete_egg5 <- varid_match(pk_subset_egg5, temp_output5, salt_output5)
+pk_complete_egg6 <- varid_match(pk_subset_egg6, temp_output6, salt_output6)
+pk_complete_egg7 <- varid_match(pk_subset_egg7, temp_output7, salt_output7)
 
-pk_complete_larvae1 <- varid_match(pk_complete_larvae1, temp_output1, salt_output1, 
-                                   Cop_output1, EupO_output1, EupS_output1,
-                                   PhL_output1, PhS_output1)
-pk_complete_larvae2 <- varid_match(pk_complete_larvae2, temp_output2, salt_output2, 
-                                   Cop_output2, EupO_output2, EupS_output2,
-                                   PhL_output2, PhS_output2)
-pk_complete_larvae3 <- varid_match(pk_complete_larvae3, temp_output3, salt_output3, 
-                                   Cop_output3, EupO_output3, EupS_output3,
-                                   PhL_output3, PhS_output3)
-pk_complete_larvae4 <- varid_match(pk_complete_larvae4, temp_output4, salt_output4, 
-                                   Cop_output4, EupO_output4, EupS_output4,
-                                   PhL_output4, PhS_output4)
-pk_complete_larvae5 <- varid_match(pk_complete_larvae5, temp_output5, salt_output5, 
-                                   Cop_output5, EupO_output5, EupS_output5,
-                                   PhL_output5, PhS_output5)
-pk_complete_larvae6 <- varid_match(pk_complete_larvae6, temp_output6, salt_output6, 
-                                   Cop_output6, EupO_output6, EupS_output6,
-                                   PhL_output6, PhS_output6)
-pk_complete_larvae7 <- varid_match(pk_complete_larvae7, temp_output7, salt_output7, 
-                                   Cop_output7, EupO_output7, EupS_output7,
-                                   PhL_output7, PhS_output7)
+pk_complete_larvae1 <- varid_match(pk_complete_larvae1, temp_output1, salt_output1)
+pk_complete_larvae2 <- varid_match(pk_complete_larvae2, temp_output2, salt_output2)
+pk_complete_larvae3 <- varid_match(pk_complete_larvae3, temp_output3, salt_output3)
+pk_complete_larvae4 <- varid_match(pk_complete_larvae4, temp_output4, salt_output4)
+pk_complete_larvae5 <- varid_match(pk_complete_larvae5, temp_output5, salt_output5)
+pk_complete_larvae6 <- varid_match(pk_complete_larvae6, temp_output6, salt_output6)
+pk_complete_larvae7 <- varid_match(pk_complete_larvae7, temp_output7, salt_output7)
 
 # combine to create whole datasets for each
 pk_complete_egg <- rbind(pk_complete_egg1, pk_complete_egg2, pk_complete_egg3,
@@ -767,3 +703,122 @@ pk_complete_larvae$count <- round(pk_complete_larvae$larvalcatchper1000m3 *
 
 saveRDS(pk_complete_egg, file = here('data', 'pk_egg.rds'))
 saveRDS(pk_complete_larvae, file = here('data', 'pk_larvae.rds'))
+
+
+### Pacific Cod ----
+# change to lowercase
+pcod_larvae_formatted <- format_data(pcod_larvae_raw)
+
+# Check attributes of egg and larval data
+data_check(pk_egg_formatted, pcod_larvae_formatted)
+
+table(pcod_larvae_formatted$haul_performance)
+
+# Clean up data to remove unnecessary hauls
+pcod_larvae_clean <- clean_data(pcod_larvae_formatted)
+
+table(pcod_larvae_clean$primary_net)
+
+# Trim larval data
+# Year: 1988 forward, remove 1997 and 2011 as well
+# Month: 4 - 6
+# Latitude: all
+pcod_larvae_trim <- trim_data(pcod_larvae_clean)
+pcod_larvae_trim <- filter(pcod_larvae_trim,
+                         month > 3, month < 7,
+                         year != 1997, year != 2011)
+
+# Inspect new data
+data_check(pk_egg_trim, pcod_larvae_trim)
+
+# Select data for constrained analyses, including stations that are <30km away from the closest positive catch
+pcod_subset_larvae <- final_data(pcod_larvae_trim)
+table(pcod_subset_larvae$year)
+
+# Split egg and larvae data into separate datasets by date
+pcod_complete_larvae1 <- filter(pcod_subset_larvae, year < 1990)
+pcod_complete_larvae2 <- filter(pcod_subset_larvae, year > 1989 & year < 1995)
+pcod_complete_larvae3 <- filter(pcod_subset_larvae, year > 1994 & year < 2000)
+pcod_complete_larvae4 <- filter(pcod_subset_larvae, year > 1999 & year < 2005)
+pcod_complete_larvae5 <- filter(pcod_subset_larvae, year > 2004 & year < 2010)
+pcod_complete_larvae6 <- filter(pcod_subset_larvae, year > 2009 & year < 2015)
+pcod_complete_larvae7 <- filter(pcod_subset_larvae, year > 2014 & year < 2020)
+
+# Add Bering10K model temperatures and salinities
+pcod_complete_larvae1 <- varid_match(pcod_complete_larvae1, temp_output1, salt_output1)
+pcod_complete_larvae2 <- varid_match(pcod_complete_larvae2, temp_output2, salt_output2)
+pcod_complete_larvae3 <- varid_match(pcod_complete_larvae3, temp_output3, salt_output3)
+pcod_complete_larvae4 <- varid_match(pcod_complete_larvae4, temp_output4, salt_output4)
+pcod_complete_larvae5 <- varid_match(pcod_complete_larvae5, temp_output5, salt_output5)
+pcod_complete_larvae6 <- varid_match(pcod_complete_larvae6, temp_output6, salt_output6)
+pcod_complete_larvae7 <- varid_match(pcod_complete_larvae7, temp_output7, salt_output7)
+
+# combine to create whole datasets for each
+pcod_complete_larvae <- rbind(pcod_complete_larvae1, pcod_complete_larvae2, pcod_complete_larvae3,
+                            pcod_complete_larvae4, pcod_complete_larvae5, pcod_complete_larvae6,
+                            pcod_complete_larvae7)
+
+# add counts
+pcod_complete_larvae$count <- round(pcod_complete_larvae$larvalcatchper1000m3 * 
+                                    pcod_complete_larvae$volume_filtered / 1000, 0)
+
+saveRDS(pcod_complete_larvae, file = here('data', 'pcod_larvae.rds'))
+
+### Northern Rock Sole ----
+# change to lowercase
+nrs_larvae_formatted <- format_data(nrs_larvae_raw)
+
+# Check attributes of egg and larval data
+data_check(pk_egg_formatted, nrs_larvae_formatted)
+
+table(nrs_larvae_formatted$haul_performance)
+
+# Clean up data to remove unnecessary hauls
+nrs_larvae_clean <- clean_data(nrs_larvae_formatted)
+
+table(nrs_larvae_clean$primary_net)
+
+# Trim larval data
+# Year: 1988 forward, remove 1997 and 2011 as well
+# Month: 4 - 6
+# Latitude: all
+nrs_larvae_trim <- trim_data(nrs_larvae_clean)
+nrs_larvae_trim <- filter(nrs_larvae_trim,
+                           month > 3, month < 7,
+                           year != 1997, year != 2011)
+
+# Inspect new data
+data_check(pk_egg_trim, nrs_larvae_trim)
+
+# Select data for constrained analyses, including stations that are <30km away from the closest positive catch
+nrs_subset_larvae <- final_data(nrs_larvae_trim)
+table(nrs_subset_larvae$year)
+
+# Split egg and larvae data into separate datasets by date
+nrs_complete_larvae1 <- filter(nrs_subset_larvae, year < 1990)
+nrs_complete_larvae2 <- filter(nrs_subset_larvae, year > 1989 & year < 1995)
+nrs_complete_larvae3 <- filter(nrs_subset_larvae, year > 1994 & year < 2000)
+nrs_complete_larvae4 <- filter(nrs_subset_larvae, year > 1999 & year < 2005)
+nrs_complete_larvae5 <- filter(nrs_subset_larvae, year > 2004 & year < 2010)
+nrs_complete_larvae6 <- filter(nrs_subset_larvae, year > 2009 & year < 2015)
+nrs_complete_larvae7 <- filter(nrs_subset_larvae, year > 2014 & year < 2020)
+
+# Add Bering10K model temperatures and salinities
+nrs_complete_larvae1 <- varid_match(nrs_complete_larvae1, temp_output1, salt_output1)
+nrs_complete_larvae2 <- varid_match(nrs_complete_larvae2, temp_output2, salt_output2)
+nrs_complete_larvae3 <- varid_match(nrs_complete_larvae3, temp_output3, salt_output3)
+nrs_complete_larvae4 <- varid_match(nrs_complete_larvae4, temp_output4, salt_output4)
+nrs_complete_larvae5 <- varid_match(nrs_complete_larvae5, temp_output5, salt_output5)
+nrs_complete_larvae6 <- varid_match(nrs_complete_larvae6, temp_output6, salt_output6)
+nrs_complete_larvae7 <- varid_match(nrs_complete_larvae7, temp_output7, salt_output7)
+
+# combine to create whole datasets for each
+nrs_complete_larvae <- rbind(nrs_complete_larvae1, nrs_complete_larvae2, nrs_complete_larvae3,
+                              nrs_complete_larvae4, nrs_complete_larvae5, nrs_complete_larvae6,
+                              nrs_complete_larvae7)
+
+# add counts
+nrs_complete_larvae$count <- round(nrs_complete_larvae$larvalcatchper1000m3 * 
+                                      nrs_complete_larvae$volume_filtered / 1000, 0)
+
+saveRDS(nrs_complete_larvae, file = here('data', 'nrs_larvae.rds'))
