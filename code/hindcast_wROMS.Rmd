@@ -2156,7 +2156,7 @@ dev.off()
 ```
 
 
-## GAM multipanel Figure
+## GAM multipanel figures
 ```{r}
 # Figure containing location or doy by mean sst
 tiff(here('results',
