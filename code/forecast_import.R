@@ -274,18 +274,14 @@ rm(salts_miroc_historical)
 
 
 
-###TidyNC Method------------------------------------------------------------------------------------------------------------------------------
-### Load netcdf with tidync
-# read in netcdf files of projected temp from Bering 10k ROMS
-
+### TidyNC Method------------------------------------------------------------------------------------------------------------------------------
+#### Load netcdf with tidync
 library(here)
 library(ncdf4)
 library(tidync)
 require(tidyverse)
 library(data.table)
 library(sf)
-
-# set up lat/lons from area grid file
 
 # download from server
 url_base <- "https://data.pmel.noaa.gov/aclim/thredds/"
@@ -299,280 +295,238 @@ lons <- ncvar_get(nc, "lon_rho")
 
 nc_close(nc)
 
-# CESM simulations ####
-
+#### Hindcast ####
+# Temperature
 # read in files
-cesm_file_list <- list.files(path = "D:/CMIP6_relevant/cesm/temp/")
+hindcast_temp_file_list <- list.files(path = "F:/data/temperature_netcdf")
 
-# historical baseline period ####
-cesm_historical_baseline_file_list <- cesm_file_list[str_detect(cesm_file_list, "historical")]
+prestring <- "F:/data/temperature_netcdf/"
 
-prestring <- "D:/CMIP6_relevant/cesm/temp/"
+hindcast_temp_dat_list <- list()
 
-cesm_hist_dat_list <- list()
-
-for(i in cesm_historical_baseline_file_list){
-  cesm_hist_dat_list[[i]] <- paste0(prestring, i)
-  cesm_hist_dat_list
+for(i in hindcast_temp_file_list){
+  hindcast_temp_dat_list[[i]] <- paste0(prestring, i)
+  hindcast_temp_dat_list
 }
 
-cesm_hist_df_list <- list()
-for(i in cesm_hist_dat_list){
-  cesm_hist_df_list[[i]] <- tidync(i) %>%
-    hyper_filter(s_rho = index > 29) %>%
+hindcast_temp_df_list <- list()
+for(i in hindcast_temp_dat_list){
+  hindcast_temp_df_list[[i]] <- tidync(i) %>%
     hyper_tibble(select_var = "temp")
-  cesm_hist_df_list
+  hindcast_temp_df_list
 }
 
-cesm_hist_dfs <- bind_rows(cesm_hist_df_list)
+hindcast_temp_dfs <- bind_rows(hindcast_temp_df_list)
 
 # add in lat/longs matched to xi/eta 
-cesm_hist_dfs$Lon <- lons[cbind(cesm_hist_dfs$xi_rho, cesm_hist_dfs$eta_rho)]
-cesm_hist_dfs$Lat <- lats[cbind(cesm_hist_dfs$xi_rho, cesm_hist_dfs$eta_rho)]
+hindcast_temp_dfs$lon <- lons[cbind(hindcast_temp_dfs$xi_rho, hindcast_temp_dfs$eta_rho)]
+hindcast_temp_dfs$lat <- lats[cbind(hindcast_temp_dfs$xi_rho, hindcast_temp_dfs$eta_rho)]
 
 # create object for time axis
-cesm_hist_dfs$DateTime <- as.POSIXct(cesm_hist_dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
+hindcast_temp_dfs$DateTime <- as.POSIXct(hindcast_temp_dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
+
+saveRDS(hindcast_temp_dfs, file = "F:/data/hindcast_temp_dfs.rds")
+
+# remove objects
+rm(hindcast_temp_dat_list, 
+   hindcast_temp_df_list,
+   hindcast_temp_dfs)
 
 
-# ssp 126 projection ####
+# Salinity
+# read in files
+hindcast_salt_file_list <- list.files(path = "F:/data/salinity_netcdf")
 
-cesm_ssp126_file_list <- cesm_file_list[str_detect(cesm_file_list, "ssp126")]
+prestring <- "F:/data/salinity_netcdf/"
 
-prestring <- "D:/CMIP6_relevant/cesm/temp/"
+hindcast_salt_dat_list <- list()
 
-cesm_ssp126_dat_list <- list()
-
-for(i in cesm_ssp126_file_list){
-  cesm_ssp126_dat_list[[i]] <- paste0(prestring, i)
-  cesm_ssp126_dat_list
+for(i in hindcast_salt_file_list){
+  hindcast_salt_dat_list[[i]] <- paste0(prestring, i)
+  hindcast_salt_dat_list
 }
 
-cesm_ssp126_df_list <- list()
-for(i in cesm_ssp126_dat_list){
-  cesm_ssp126_df_list[[i]] <- tidync(i) %>% 
-    hyper_filter(s_rho = index > 29) %>%
-    hyper_tibble(select_var = "temp")
-  cesm_ssp126_df_list
+hindcast_salt_df_list <- list()
+for(i in hindcast_salt_dat_list){
+  hindcast_salt_df_list[[i]] <- tidync(i) %>%
+    hyper_tibble(select_var = "salt")
+  hindcast_salt_df_list
 }
 
-cesm_ssp126_dfs <- bind_rows(cesm_ssp126_df_list)
+hindcast_salt_dfs <- bind_rows(hindcast_salt_df_list)
 
 # add in lat/longs matched to xi/eta 
-cesm_ssp126_dfs$Lon <- lons[cbind(cesm_ssp126_dfs$xi_rho, cesm_ssp126_dfs$eta_rho)]
-cesm_ssp126_dfs$Lat <- lats[cbind(cesm_ssp126_dfs$xi_rho, cesm_ssp126_dfs$eta_rho)]
+hindcast_salt_dfs$lon <- lons[cbind(hindcast_salt_dfs$xi_rho, hindcast_salt_dfs$eta_rho)]
+hindcast_salt_dfs$lat <- lats[cbind(hindcast_salt_dfs$xi_rho, hindcast_salt_dfs$eta_rho)]
 
 # create object for time axis
-cesm_ssp126_dfs$DateTime <- as.POSIXct(cesm_ssp126_dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
+hindcast_salt_dfs$DateTime <- as.POSIXct(hindcast_salt_dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
 
-saveRDS(cesm_ssp126_dfs, file = here('data', 'cesm_ssp126_dfs.rds'))
+saveRDS(hindcast_salt_dfs, file = "F:/data/hindcast_salt_dfs.rds")
 
-# ssp585 projection ####
+# remove objects
+rm(hindcast_salt_dat_list, 
+   hindcast_salt_df_list,
+   hindcast_salt_dfs)
 
-cesm_ssp585_file_list <- cesm_file_list[str_detect(cesm_file_list, "ssp585")]
-
-prestring <- "D:/CMIP6_relevant/cesm/temp/"
-
-cesm_ssp585_dat_list <- list()
-for(i in cesm_ssp585_file_list){
-  cesm_ssp585_dat_list[[i]] <- paste0(prestring, i)
-  cesm_ssp585_dat_list
-}
-
-cesm_ssp585_df_list <- list()
-for(i in cesm_ssp585_dat_list){
-  cesm_ssp585_df_list[[i]] <- tidync(i) %>% 
-    hyper_filter(s_rho = index > 29) %>%
-    hyper_tibble(select_var = "temp")
-  cesm_ssp585_df_list
-}
-
-cesm_ssp585_dfs <- bind_rows(cesm_ssp585_df_list)
-
-# add in lat/longs matched to xi/eta 
-cesm_ssp585_dfs$Lon <- lons[cbind(cesm_ssp585_dfs$xi_rho, cesm_ssp585_dfs$eta_rho)]
-cesm_ssp585_dfs$Lat <- lats[cbind(cesm_ssp585_dfs$xi_rho, cesm_ssp585_dfs$eta_rho)]
-
-# create object for time axis
-cesm_ssp585_dfs$DateTime <- as.POSIXct(cesm_ssp585_dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
-
-cesm_ssp126_dfs <- select(cesm_ssp126_dfs, -c(xi_rho, eta_rho, s_rho, ocean_time, station))
-cesm_ssp585_dfs <- select(cesm_ssp585_dfs, -c(xi_rho, eta_rho, s_rho, ocean_time, station))
-cesm_hist_dfs <- select(cesm_hist_dfs, -c(xi_rho, eta_rho, s_rho, ocean_time, station))
-
-# join together
-cesm_ssp126_dfs$projection <- "ssp126"
-cesm_ssp585_dfs$projection <- "ssp585"
-cesm_hist_dfs$projection <- "historical"
-
-
-cesm_dfs <- bind_rows(cesm_hist_dfs, cesm_ssp126_dfs, cesm_ssp585_dfs) 
-
-# separate date column into components
-cesm_dfs$date <- as.Date(cesm_dfs$DateTime) # date in Date format
-cesm_dfs$month <- month(cesm_dfs$date) # month of year
-cesm_dfs$week <- week(cesm_dfs$date) # week of year
-cesm_dfs$year <- year(cesm_dfs$date)
-
-# remove all months aside from Feb - Aug
-months <- c(2:9)
-
-cesm_dfs_trim <- cesm_dfs %>%
-  filter(., month %in% months)
-
-cesm_dfs_trim <- select(cesm_dfs_trim, -DateTime)
-
-# trim df to those lat/lons in hindcast df 
-
-# summarize by lat/lon and convert to sf object
-cesm_dfs_trim_sum <- cesm_dfs_trim %>%
-  group_by(Lat, Lon) %>%
-  summarize(mean_temp = mean(temp)) %>%
-  mutate(latitude = Lat,
-         long_not_360 = case_when(
-           Lon >= 180 ~ Lon - 360,
-           Lon < 180 ~ Lon)) %>%
-  st_as_sf(coords = c("long_not_360", "latitude"), crs = 4326)
-
-cesm_dfs_trim_sum <- cesm_dfs_trim_sum %>%
-  rename(latitude = Lat,
-         longitude = Lon)
-
-# make a summary object of the hindcast data for intersecting the lat/lons
-ROMS_hindcast_dat_sum <- ROMS_hindcast_dat %>%
-  group_by(latitude, longitude) %>%
-  summarise(mean_temp = mean(temp)) %>%
-  mutate(long_not_360 = case_when(
-    longitude >= 180 ~ longitude - 360,
-    longitude < 180 ~ longitude)) %>%
-  st_as_sf(coords = c("long_not_360", "latitude"), crs = 4326)
-
-dat_ints <- st_intersection(cesm_dfs_trim_sum, ROMS_hindcast_dat_sum)
-
-cesm_dat_trim <- cesm_dfs_trim %>% 
-  filter(., Lon %in% dat_ints$longitude) %>%
-  filter(., Lat %in% dat_ints$latitude)
-
-fwrite(cesm_dat_trim, "./data/cesm_dat_trim.csv")
-
-
-# plots ####
-
-# yearly plot
-
-# summarize by year
-cesm_dat_trim_sum <- cesm_dat_trim %>%
-  filter(., projection != "historical") %>%
-  group_by(projection, Lat, Lon, year) %>%
-  summarise(mean_temp = mean(temp))
-
-# convert to sf object
-cesm_dat_trim_sum_sf <- cesm_dat_trim_sum %>% 
-  mutate(latitude = Lat,
-         long_not_360 = case_when(
-           Lon >= 180 ~ Lon - 360,
-           Lon < 180 ~ Lon)) %>%
-  st_as_sf(coords = c("long_not_360", "latitude"), crs = 4326)
-
-
-cesm_yr_plot_func <- function(x){
+# Functions
+get_values <- function(path, projection, type){
+  file_list <- list.files(path = path) # read in files
   
-  new_dat <- cesm_dfs_trim_sum_sf %>% filter(., year == x)
+  baseline_file_list <- file_list[str_detect(file_list, projection)]
   
-  plot <- 
-    ggplot() +
-    geom_sf(data = new_dat, aes(color = mean_temp))  +
-    geom_sf(data = world_map_data, fill = "grey", lwd = 0) +
-    facet_wrap(~ projection) +
-    coord_sf(crs = 3338) +
-    scale_color_viridis_c() +
-    scale_x_continuous(
-      breaks = c(-175, -170, -165, -160),
-      labels = c("-175˚", "-170˚", "-165˚", "-160˚"),
-      name = "Longitude",
-      limits = c(-1400000, -150000)
-    ) +
-    scale_y_continuous(
-      breaks = c(55, 60),
-      limits = c(470000, 1900000),
-      name = "Latitude",
-    ) +
-    labs(colour = "bottom temp C") +
-    theme_bw() +
-    theme(
-      axis.text = element_text(size = 12),	
-      axis.title = element_text(size = 14),
-      legend.title.align=0.5)
+  prestring <- path
   
-  plot
+  dat_list <- list()
   
+  for(i in baseline_file_list){
+    dat_list[[i]] <- paste0(prestring, i)
+    dat_list
+  }
+  
+  df_list <- list()
+  for(i in dat_list){
+    df_list[[i]] <- tidync(i) %>%
+      hyper_filter(s_rho = index > 29) %>% # extract only the top layer
+      hyper_tibble(select_var = type) # get just temperature
+    df_list
+  }
+  
+  dfs <- bind_rows(df_list)
+  
+  # add in lat/longs matched to xi/eta 
+  dfs$lon <- lons[cbind(dfs$xi_rho, dfs$eta_rho)]
+  dfs$lat <- lats[cbind(dfs$xi_rho, dfs$eta_rho)]
+  
+  # create object for time axis
+  dfs$DateTime <- as.POSIXct(dfs$ocean_time, origin = "1900-01-01", tz = "GMT")
+  return(dfs)
 }
 
-years <- unique(cesm_dfs_trim_sum_sf$year)
-
-yr_plot_list <- lapply(years, cesm_yr_plot_func)
-
-yr_name_func_year <- function(x){
-  year_name <- paste0(x, "_cesm_yr_btemp.png")
+join_values <- function(ssp126_dfs, ssp585_dfs, hist_dfs) {
+  ssp126_dfs <- select(ssp126_dfs,-c(xi_rho, eta_rho, s_rho, ocean_time))
+  ssp585_dfs <- select(ssp585_dfs,-c(xi_rho, eta_rho, s_rho, ocean_time))
+  hist_dfs <- select(hist_dfs,-c(xi_rho, eta_rho, s_rho, ocean_time))
+  
+  ssp126_dfs$projection <- "ssp126"
+  ssp585_dfs$projection <- "ssp585"
+  hist_dfs$projection <- "historical"
+  
+  # likely need to increase memory to do this
+  dfs <- bind_rows(hist_dfs, ssp126_dfs, ssp585_dfs)
+  
+  # separate date column into components
+  dfs$date <- as.Date(dfs$DateTime) # date in Date format
+  dfs$month <- month(dfs$date) # month of year
+  dfs$week <- week(dfs$date) # week of year
+  dfs$year <- year(dfs$date)
+  
+  # remove all months aside from Feb - Aug
+  months <- c(2:9)
+  
+  dfs_trim <- dfs %>%
+    filter(., month %in% months)
+  
+  dfs_trim <- select(dfs_trim,-DateTime)
+  
+  # trim df to those lat/lons in hindcast df
+  dfs_trim <- na.omit(dfs_trim)
+  return(dfs_trim)
 }
 
-names_year <- sapply(years, yr_name_func_year)
 
-yr_name_func_file <- function(x){
-  year_file_name <- paste0("/Users/jenniferbigman/My Drive/NOAA AFSC Postdoc/Pcod Bering Sea Habitat Suitability/Pcod-Bering-Sea/output/plots/yearly plots/projected temps/cesm plots/", x)
-}
+#### CESM simulations ####
+# Temperature
+cesm_temp_hist_dfs <- get_values("F:/CMIP6_relevant/cesm/temp/", "historical", "temp")
+saveRDS(cesm_temp_hist_dfs, file = 'F:/data/cesm_temp_hist_dfs.rds')
 
-yearly_names <- sapply(names_year, yr_name_func_file)
+cesm_temp_ssp126_dfs <- get_values("F:/CMIP6_relevant/cesm/temp/", "ssp126", "temp")
+saveRDS(cesm_temp_hist_dfs, file = 'F:/data/cesm_temp_ssp126_dfs.rds')
 
-plot_list <- mapply(ggsave_func, x = yr_plot_list, y = yearly_names)
+cesm_temp_ssp585_dfs <- get_values("F:/CMIP6_relevant/cesm/temp/", "ssp585", "temp")
+saveRDS(cesm_temp_hist_dfs, file = 'F:/data/cesm_temp_ssp585_dfs.rds')
 
+cesm_temp_dfs_trim <- join_values(cesm_temp_ssp126_dfs, cesm_temp_ssp585_dfs, cesm_temp_hist_dfs)
+saveRDS(cesm_temp_dfs_trim, file = 'F:/data/cesm_temp_dfs_trim.rds')
 
-# plot: summary by decade
+rm(cesm_temp_hist_dfs, cesm_temp_ssp126_dfs, cesm_temp_ssp585_dfs, cesm_temp_dfs_trim)
 
-cesm_dat_trim_sum_decade_sf <- cesm_dat_trim_sum_sf %>%
-  mutate(decade = case_when(
-    between(year, 2010, 2019) ~ "2010s",
-    between(year, 2020, 2029) ~ "2020s",
-    between(year, 2030, 2039) ~ "2030s",
-    between(year, 2040, 2049) ~ "2040s",
-    between(year, 2050, 2059) ~ "2050s",
-    between(year, 2060, 2069) ~ "2060s",
-    between(year, 2070, 2079) ~ "2070s",
-    between(year, 2080, 2089) ~ "2080s",
-    between(year, 2090, 2099) ~ "2090s"))
+# Salinity
+cesm_salt_hist_dfs <- get_values("F:/CMIP6_relevant/cesm/salt/", "historical", "salt")
+saveRDS(cesm_salt_hist_dfs, file = 'F:/data/cesm_salt_hist_dfs.rds')
 
-plot_cesm_decade <- 
-  ggplot() +
-  geom_sf(data = cesm_dat_trim_sum_decade_sf, 
-          aes(color = mean_temp))  +
-  geom_sf(data = world_map_data, fill = "grey", lwd = 0) +
-  coord_sf(crs = 3338) +
-  facet_grid(projection ~ decade) +
-  scale_color_viridis_c() +
-  scale_x_continuous(
-    breaks = c(-175, -170, -165, -160),
-    labels = c("-175˚", "-170˚", "-165˚", "-160˚"),
-    name = "Longitude",
-    limits = c(-1400000, -150000)
-  ) +
-  scale_y_continuous(
-    breaks = c(55, 60),
-    limits = c(470000, 1900000),
-    name = "Latitude",
-  ) +
-  labs(colour = "bottom temp C") +
-  theme_bw() +
-  theme(
-    strip.text = element_text(size = 14, face = "bold"),
-    strip.background = element_blank(),
-    axis.text = element_text(size = 12),	
-    axis.title = element_text(size = 14),
-    legend.title = element_text(hjust = 0.5, size = 12),
-    plot.title = element_text(size = 18, face = "bold")
-  )
+cesm_salt_ssp126_dfs <- get_values("F:/CMIP6_relevant/cesm/salt/", "ssp126", "salt")
+saveRDS(cesm_salt_hist_dfs, file = 'F:/data/cesm_salt_ssp126_dfs.rds')
 
-ggsave("./output/plots/plot_cesm_decade.png",
-       plot_cesm_decade,
-       width = 15, height = 10, units = "in")
+cesm_salt_ssp585_dfs <- get_values("F:/CMIP6_relevant/cesm/salt/", "ssp585", "salt")
+saveRDS(cesm_salt_hist_dfs, file = 'F:/data/cesm_salt_ssp585_dfs.rds')
+
+cesm_salt_dfs_trim <- join_values(cesm_salt_ssp126_dfs, cesm_salt_ssp585_dfs, cesm_salt_hist_dfs)
+saveRDS(cesm_salt_dfs_trim, file = 'F:/data/cesm_salt_dfs_trim.rds')
+
+rm(cesm_salt_hist_dfs, cesm_salt_ssp126_dfs, cesm_salt_ssp585_dfs, cesm_salt_dfs_trim)
 
 
+#### GFDL simulations ####
+# Temperature
+gfdl_temp_hist_dfs <- get_values("F:/CMIP6_relevant/gfdl/temp/", "historical", "temp")
+saveRDS(gfdl_temp_hist_dfs, file = 'F:/data/gfdl_temp_hist_dfs.rds')
+
+gfdl_temp_ssp126_dfs <- get_values("F:/CMIP6_relevant/gfdl/temp/", "ssp126", "temp")
+saveRDS(gfdl_temp_hist_dfs, file = 'F:/data/gfdl_temp_ssp126_dfs.rds')
+
+gfdl_temp_ssp585_dfs <- get_values("F:/CMIP6_relevant/gfdl/temp/", "ssp585", "temp")
+saveRDS(gfdl_temp_hist_dfs, file = 'F:/data/gfdl_temp_ssp585_dfs.rds')
+
+gfdl_temp_dfs_trim <- join_values(gfdl_temp_ssp126_dfs, gfdl_temp_ssp585_dfs, gfdl_temp_hist_dfs)
+saveRDS(gfdl_temp_dfs_trim, file = 'F:/data/gfdl_temp_dfs_trim.rds')
+
+rm(gfdl_temp_hist_dfs, gfdl_temp_ssp126_dfs, gfdl_temp_ssp585_dfs, gfdl_temp_dfs_trim)
+
+# Salinity
+gfdl_salt_hist_dfs <- get_values("F:/CMIP6_relevant/gfdl/salt/", "historical", "salt")
+saveRDS(gfdl_salt_hist_dfs, file = 'F:/data/gfdl_salt_hist_dfs.rds')
+
+gfdl_salt_ssp126_dfs <- get_values("F:/CMIP6_relevant/gfdl/salt/", "ssp126", "salt")
+saveRDS(gfdl_salt_hist_dfs, file = 'F:/data/gfdl_salt_ssp126_dfs.rds')
+
+gfdl_salt_ssp585_dfs <- get_values("F:/CMIP6_relevant/gfdl/salt/", "ssp585", "salt")
+saveRDS(gfdl_salt_hist_dfs, file = 'F:/data/gfdl_salt_ssp585_dfs.rds')
+
+gfdl_salt_dfs_trim <- join_values(gfdl_salt_ssp126_dfs, gfdl_salt_ssp585_dfs, gfdl_salt_hist_dfs)
+saveRDS(gfdl_salt_dfs_trim, file = 'F:/data/gfdl_salt_dfs_trim.rds')
+
+rm(gfdl_salt_hist_dfs, gfdl_salt_ssp126_dfs, gfdl_salt_ssp585_dfs, gfdl_salt_dfs_trim)
+
+
+#### MIROC simulations ####
+# Temperature
+miroc_temp_hist_dfs <- get_values("F:/CMIP6_relevant/miroc/temp/", "historical", "temp")
+saveRDS(miroc_temp_hist_dfs, file = 'F:/data/miroc_temp_hist_dfs.rds')
+
+miroc_temp_ssp126_dfs <- get_values("F:/CMIP6_relevant/miroc/temp/", "ssp126", "temp")
+saveRDS(miroc_temp_hist_dfs, file = 'F:/data/miroc_temp_ssp126_dfs.rds')
+
+miroc_temp_ssp585_dfs <- get_values("F:/CMIP6_relevant/miroc/temp/", "ssp585", "temp")
+saveRDS(miroc_temp_hist_dfs, file = 'F:/data/miroc_temp_ssp585_dfs.rds')
+
+miroc_temp_dfs_trim <- join_values(miroc_temp_ssp126_dfs, miroc_temp_ssp585_dfs, miroc_temp_hist_dfs)
+saveRDS(miroc_temp_dfs_trim, file = 'F:/data/miroc_temp_dfs_trim.rds')
+
+rm(miroc_temp_hist_dfs, miroc_temp_ssp126_dfs, miroc_temp_ssp585_dfs, miroc_temp_dfs_trim)
+
+# Salinity
+miroc_salt_hist_dfs <- get_values("F:/CMIP6_relevant/miroc/salt/", "historical", "salt")
+saveRDS(miroc_salt_hist_dfs, file = 'F:/data/miroc_salt_hist_dfs.rds')
+
+miroc_salt_ssp126_dfs <- get_values("F:/CMIP6_relevant/miroc/salt/", "ssp126", "salt")
+saveRDS(miroc_salt_hist_dfs, file = 'F:/data/miroc_salt_ssp126_dfs.rds')
+
+miroc_salt_ssp585_dfs <- get_values("F:/CMIP6_relevant/miroc/salt/", "ssp585", "salt")
+saveRDS(miroc_salt_hist_dfs, file = 'F:/data/miroc_salt_ssp585_dfs.rds')
+
+miroc_salt_dfs_trim <- join_values(miroc_salt_ssp126_dfs, miroc_salt_ssp585_dfs, miroc_salt_hist_dfs)
+saveRDS(miroc_salt_dfs_trim, file = 'F:/data/miroc_salt_dfs_trim.rds')
+
+rm(miroc_salt_hist_dfs, miroc_salt_ssp126_dfs, miroc_salt_ssp585_dfs, miroc_salt_dfs_trim)
 
