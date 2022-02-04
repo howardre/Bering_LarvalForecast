@@ -44,6 +44,9 @@ bering_model_salt6 <- nc_open(here('data/salinity_netcdf',
 bering_model_salt7 <- nc_open(here('data/salinity_netcdf', 
                                    'B10K-K20_CORECFS_2015-2019_average_salt_surface5m.nc'))
 
+# open cesm file
+cesm_dfs <- readRDS('D:/data/cesm_dfs_trim.rds')
+
 # check to see contents
 print(bering_model_temp1)
 
