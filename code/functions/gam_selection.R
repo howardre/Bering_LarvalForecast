@@ -1,5 +1,5 @@
 gam_selection <- function(data){
-  gam_base <- gam(catch ~ factor(year) + 
+  gam_base <- gam(catch ~ s(year, bs = 're') + 
                     s(doy, k = 8) +
                     s(lon, lat) +
                     s(roms_temperature, k = 6) +
@@ -7,7 +7,7 @@ gam_selection <- function(data){
                   data = data,
                   family = tw(link = 'log'),
                   method = 'REML')
-  gam_vc_phen <- gam(catch ~ factor(year) +
+  gam_vc_phen <- gam(catch ~ s(year, bs = 're') +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
@@ -16,7 +16,7 @@ gam_selection <- function(data){
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
-  gam_vc_geog <- gam(catch ~ factor(year) +
+  gam_vc_geog <- gam(catch ~ s(year, bs = 're') +
                        s(doy, k = 8) +
                        s(lon, lat) +
                        s(roms_temperature, k = 6) +
