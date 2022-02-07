@@ -1997,7 +1997,7 @@ grid_predict_egg <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 201),
+        zlim = c(0, 1798),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -2014,7 +2014,7 @@ grid_predict_egg <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 201),
+             zlim = c(0, 1798),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -2073,6 +2073,7 @@ grid_predict_larvae <- function(grid, title){
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
+
 #### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
 ##### Eggs
 df_akpegg_avg1_cesm126 <- readRDS(here('data', 'df_akpegg_avg1_cesm126.rds'))
@@ -2242,10 +2243,27 @@ df_akplarvae_final3 <- data.frame(lat = df_akplarvae_merged3$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_larvae(df_akplarvae_final3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg3.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
+
+#### Make GIFs -----------------------------------------------------------------------------------------------------------------------
+library(magick)
+base_dir <- getwd()
+dir_out <- file.path(base_dir, 'results', 'plaice_forecast', 'akpegg_avgs')
+
+imgs <- list.files(dir_out, full.names = T)
+img_list <- lapply(imgs, image_read)
+
+img_joined <- image_join(img_list)
+
+img_animated <- image_animate(img_joined, fps = 1)
+
+img_animated
+
+image_write(image = img_animated,
+            path = here('results', 'plaice_forecast', "akpegg_avgs.gif"))
