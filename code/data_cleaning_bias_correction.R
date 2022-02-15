@@ -279,24 +279,188 @@ rm(miroc_forecast_salt3, hindcast_salt_dfs, miroc_salt_dfs)
 gc()
 
 ### Figures ----
-cesm_temp_dfs <- readRDS('F:/data/cesm_temp_dfs_trim.rds')
+summarise_years <- function(df){
+  temp_sum_y <- df %>%
+    group_by(projection, lat, lon, year) %>%
+    summarise(mean_temp = mean(bc), .groups = 'keep')
+  
+  sum_year <- temp_sum_y %>%
+    group_by(projection, year) %>%
+    mutate(value = mean(mean_temp),
+           min = min(mean_temp),
+           max = max(mean_temp))
+}
 
-cesm_temp_sum_y <- cesm_temp_dfs %>%
-  group_by(projection, lat, lon, year) %>%
-  summarise(mean_temp = mean(temp), .groups = 'keep')
+summarise_years_hist <- function(df){
+  temp_sum_y <- df %>%
+    group_by(projection, lat, lon, year) %>%
+    summarise(mean_temp = mean(temp), .groups = 'keep')
+  
+  sum_year <- temp_sum_y %>%
+    group_by(projection, year) %>%
+    mutate(value = mean(mean_temp),
+           min = min(mean_temp),
+           max = max(mean_temp))
+}
 
-cesm_test <- cesm_temp_sum_y %>%
-  group_by(projection, year) %>%
-  mutate(value = mean(mean_temp),
-         min = min(mean_temp),
-         max = max(mean_temp))
+# CESM
+cesm_temp_dfs1 <- readRDS('F:/data/cesm_forecast_temp1.rds')
+cesm_temp_dfs2 <- readRDS('F:/data/cesm_forecast_temp2.rds')
+cesm_temp_dfs3 <- readRDS('F:/data/cesm_forecast_temp3.rds')
+cesm_temp_hist <- filter(readRDS('F:/data/cesm_temp_dfs_trim.rds'),
+                         projection == 'historical')
 
-ggplot(cesm_test, aes(x = year, 
-                      y = value, 
-                      group = projection,
-                      fill = projection)) +
-  geom_line(aes(group = projection, 
+cesm_temp_sum1 <- summarise_years(cesm_temp_dfs1)
+cesm_temp_sum2 <- summarise_years(cesm_temp_dfs2)
+cesm_temp_sum3 <- summarise_years(cesm_temp_dfs3)
+cesm_temp_hist_sum <- summarise_years_hist(cesm_temp_hist)
+
+cesm_dfs <- bind_rows(cesm_temp_sum1, 
+                      cesm_temp_sum2,
+                      cesm_temp_sum3,
+                      cesm_temp_hist_sum)
+
+ggplot(cesm_dfs, aes(x = year,
+                     y = value,
+                     group = projection,
+                     fill = projection)) +
+  geom_line(aes(group = projection,
                 color = projection)) +
-  geom_ribbon(aes(ymin = min, 
-                  ymax = max), 
-              alpha = 0.2)
+  geom_ribbon(data = cesm_temp_hist_sum,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = cesm_temp_sum1,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = cesm_temp_sum2,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = cesm_temp_sum3,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "CESM Projections",
+       y = "Temperature (C)",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/cesm_roms_temps.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
+
+# GFDL
+gfdl_temp_dfs1 <- readRDS('F:/data/gfdl_forecast_temp1.rds')
+gfdl_temp_dfs2 <- readRDS('F:/data/gfdl_forecast_temp2.rds')
+gfdl_temp_dfs3 <- readRDS('F:/data/gfdl_forecast_temp3.rds')
+gfdl_temp_hist <- filter(readRDS('F:/data/gfdl_temp_dfs_trim.rds'),
+                         projection == 'historical')
+
+gfdl_temp_sum1 <- summarise_years(gfdl_temp_dfs1)
+gfdl_temp_sum2 <- summarise_years(gfdl_temp_dfs2)
+gfdl_temp_sum3 <- summarise_years(gfdl_temp_dfs3)
+gfdl_temp_hist_sum <- summarise_years_hist(gfdl_temp_hist)
+
+gfdl_dfs <- bind_rows(gfdl_temp_sum1, 
+                      gfdl_temp_sum2,
+                      gfdl_temp_sum3,
+                      gfdl_temp_hist_sum)
+
+ggplot(gfdl_dfs, aes(x = year,
+                     y = value,
+                     group = projection,
+                     fill = projection)) +
+  geom_line(aes(group = projection,
+                color = projection)) +
+  geom_ribbon(data = gfdl_temp_hist_sum,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = gfdl_temp_sum1,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = gfdl_temp_sum2,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = gfdl_temp_sum3,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "GFDL Projections",
+       y = "Temperature (C)",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/gfdl_roms_temps.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
+
+# MIROC
+miroc_temp_dfs1 <- readRDS('F:/data/miroc_forecast_temp1.rds')
+miroc_temp_dfs2 <- readRDS('F:/data/miroc_forecast_temp2.rds')
+miroc_temp_dfs3 <- readRDS('F:/data/miroc_forecast_temp3.rds')
+miroc_temp_hist <- filter(readRDS('F:/data/miroc_temp_dfs_trim.rds'),
+                         projection == 'historical')
+
+miroc_temp_sum1 <- summarise_years(miroc_temp_dfs1)
+miroc_temp_sum2 <- summarise_years(miroc_temp_dfs2)
+miroc_temp_sum3 <- summarise_years(miroc_temp_dfs3)
+miroc_temp_hist_sum <- summarise_years_hist(miroc_temp_hist)
+
+miroc_dfs <- bind_rows(miroc_temp_sum1, 
+                      miroc_temp_sum2,
+                      miroc_temp_sum3,
+                      miroc_temp_hist_sum)
+
+ggplot(miroc_dfs, aes(x = year,
+                     y = value,
+                     group = projection,
+                     fill = projection)) +
+  geom_line(aes(group = projection,
+                color = projection)) +
+  geom_ribbon(data = miroc_temp_hist_sum,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = miroc_temp_sum1,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = miroc_temp_sum2,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  geom_ribbon(data = miroc_temp_sum3,
+              aes(ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "MIROC Projections",
+       y = "Temperature (C)",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/miroc_roms_temps.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
