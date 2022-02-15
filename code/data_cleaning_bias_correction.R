@@ -6,11 +6,12 @@ library(spacetime)
 library(tidyverse)
 library(lubridate)
 library(date)
+library(ggplot2)
 
 ### Functions ----
 hindcast_mean_temp <- function(hindcast_dfs){
   
-  baseline_years <- 1980:2014 # define baseline/ref years (here based on Cheng et al 2021)
+  baseline_years <- 1985:2014 # define baseline/ref years (here based on Cheng et al 2021)
   
   hindcast_dfs$year <- year(hindcast_dfs$DateTime)
   hindcast_dfs$month <- month(hindcast_dfs$DateTime)
@@ -30,7 +31,7 @@ hindcast_mean_temp <- function(hindcast_dfs){
 }
 hindcast_mean_salt <- function(hindcast_dfs){
   
-  baseline_years <- 1980:2014 # define baseline/ref years (here based on Cheng et al 2021)
+  baseline_years <- 1985:2014 # define baseline/ref years (here based on Cheng et al 2021)
   
   hindcast_dfs$year <- year(hindcast_dfs$DateTime)
   hindcast_dfs$month <- month(hindcast_dfs$DateTime)
@@ -49,7 +50,7 @@ hindcast_mean_salt <- function(hindcast_dfs){
   return(ROMS_baseline_dat_mo)
 }
 baseline_mean_temp <- function(baseline_dfs){
-  baseline_years <- 1980:2014
+  baseline_years <- 1985:2014
   baseline_dat <- baseline_dfs %>% # select ref yrs from df
     filter(., year %in% baseline_years)
   
@@ -62,7 +63,7 @@ baseline_mean_temp <- function(baseline_dfs){
   return(baseline_dat_mo)
 }
 baseline_mean_salt <- function(baseline_dfs){
-  baseline_years <- 1980:2014
+  baseline_years <- 1985:2014
   baseline_dat <- baseline_dfs %>% # select ref yrs from df
     filter(., year %in% baseline_years)
   
@@ -276,3 +277,26 @@ miroc_forecast_salt3 <- forecast_deltas_salt(miroc_salt_dfs, 2070:2099,
 saveRDS(miroc_forecast_salt3, 'F:/data/miroc_forecast_salt3.rds')
 rm(miroc_forecast_salt3, hindcast_salt_dfs, miroc_salt_dfs)
 gc()
+
+### Figures ----
+cesm_temp_dfs <- readRDS('F:/data/cesm_temp_dfs_trim.rds')
+
+cesm_temp_sum_y <- cesm_temp_dfs %>%
+  group_by(projection, lat, lon, year) %>%
+  summarise(mean_temp = mean(temp), .groups = 'keep')
+
+cesm_test <- cesm_temp_sum_y %>%
+  group_by(projection, year) %>%
+  mutate(value = mean(mean_temp),
+         min = min(mean_temp),
+         max = max(mean_temp))
+
+ggplot(cesm_test, aes(x = year, 
+                      y = value, 
+                      group = projection,
+                      fill = projection)) +
+  geom_line(aes(group = projection, 
+                color = projection)) +
+  geom_ribbon(aes(ymin = min, 
+                  ymax = max), 
+              alpha = 0.2)
