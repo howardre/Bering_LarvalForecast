@@ -37,7 +37,7 @@ egg_formula <- gam(catch ~ s(year, bs = 're') +
                      s(lon, lat) +
                      s(roms_temperature, k = 6) +
                      s(roms_salinity, k = 6) +
-                     s(doy, by = mean_temp, k = 6),
+                     s(lat, lon, by = mean_temp, k = 6),
                    data = akp_egg,
                    family = tw(link = 'log'),
                    method = 'REML')
@@ -320,7 +320,9 @@ df_akpegg2_cesm126 <- list(preds_akpegg2_cesm126[[1]], preds_akpegg2_cesm126[[2]
                            preds_akpegg2_cesm126[[19]], preds_akpegg2_cesm126[[20]],
                            preds_akpegg2_cesm126[[21]], preds_akpegg2_cesm126[[22]],
                            preds_akpegg2_cesm126[[23]], preds_akpegg2_cesm126[[24]],
-                           preds_akpegg2_cesm126[[25]]) %>%
+                           preds_akpegg2_cesm126[[25]], preds_akpegg2_cesm126[[26]],
+                           preds_akpegg2_cesm126[[27]], preds_akpegg2_cesm126[[28]],
+                           preds_akpegg2_cesm126[[29]], preds_akpegg2_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -329,7 +331,7 @@ x <- grepl("pred", names(df_akpegg2_cesm126), fixed = T)
 df_akpegg_avg2_cesm126 <- data.frame(lat = df_akpegg2_cesm126$lat, 
                                      lon = df_akpegg2_cesm126$lon, 
                                      dist = df_akpegg2_cesm126$dist,
-                                     avg_pred = rowSums(df_akpegg2_cesm126[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_cesm126[, x])/30)
 saveRDS(df_akpegg_avg2_cesm126, file = here("data", "df_akpegg_avg2_cesm126.rds"))
 
 # Plot
@@ -366,7 +368,9 @@ df_akpegg3_cesm126 <- list(preds_akpegg3_cesm126[[1]], preds_akpegg3_cesm126[[2]
                            preds_akpegg3_cesm126[[19]], preds_akpegg3_cesm126[[20]],
                            preds_akpegg3_cesm126[[21]], preds_akpegg3_cesm126[[22]],
                            preds_akpegg3_cesm126[[23]], preds_akpegg3_cesm126[[24]],
-                           preds_akpegg3_cesm126[[25]]) %>%
+                           preds_akpegg3_cesm126[[25]], preds_akpegg3_cesm126[[26]], 
+                           preds_akpegg3_cesm126[[27]], preds_akpegg3_cesm126[[28]], 
+                           preds_akpegg3_cesm126[[29]], preds_akpegg3_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -462,7 +466,9 @@ df_akpegg2_cesm585 <- list(preds_akpegg2_cesm585[[1]], preds_akpegg2_cesm585[[2]
                            preds_akpegg2_cesm585[[19]], preds_akpegg2_cesm585[[20]],
                            preds_akpegg2_cesm585[[21]], preds_akpegg2_cesm585[[22]],
                            preds_akpegg2_cesm585[[23]], preds_akpegg2_cesm585[[24]],
-                           preds_akpegg2_cesm585[[25]]) %>%
+                           preds_akpegg2_cesm585[[25]], preds_akpegg2_cesm585[[26]],
+                           preds_akpegg2_cesm585[[27]], preds_akpegg2_cesm585[[28]],
+                           preds_akpegg2_cesm585[[29]], preds_akpegg2_cesm585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -471,7 +477,7 @@ x <- grepl("pred", names(df_akpegg2_cesm585), fixed = T)
 df_akpegg_avg2_cesm585 <- data.frame(lat = df_akpegg2_cesm585$lat, 
                                      lon = df_akpegg2_cesm585$lon, 
                                      dist = df_akpegg2_cesm585$dist,
-                                     avg_pred = rowSums(df_akpegg2_cesm585[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_cesm585[, x])/30)
 saveRDS(df_akpegg_avg2_cesm585, file = here("data", "df_akpegg_avg2_cesm585.rds"))
 
 # Plot
@@ -508,7 +514,9 @@ df_akpegg3_cesm585 <- list(preds_akpegg3_cesm585[[1]], preds_akpegg3_cesm585[[2]
                            preds_akpegg3_cesm585[[19]], preds_akpegg3_cesm585[[20]],
                            preds_akpegg3_cesm585[[21]], preds_akpegg3_cesm585[[22]],
                            preds_akpegg3_cesm585[[23]], preds_akpegg3_cesm585[[24]],
-                           preds_akpegg3_cesm585[[25]]) %>%
+                           preds_akpegg3_cesm585[[25]], preds_akpegg3_cesm585[[26]], 
+                           preds_akpegg3_cesm585[[27]], preds_akpegg3_cesm585[[28]], 
+                           preds_akpegg3_cesm585[[29]], preds_akpegg3_cesm585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -537,7 +545,6 @@ rm(cesm_temps1, cesm_temps2, cesm_temps3,
    cesm_salts1, cesm_salts2, cesm_salts3)
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
-## 2015 - 2039
 gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
 gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
@@ -604,7 +611,9 @@ df_akpegg2_gfdl126 <- list(preds_akpegg2_gfdl126[[1]], preds_akpegg2_gfdl126[[2]
                            preds_akpegg2_gfdl126[[19]], preds_akpegg2_gfdl126[[20]],
                            preds_akpegg2_gfdl126[[21]], preds_akpegg2_gfdl126[[22]],
                            preds_akpegg2_gfdl126[[23]], preds_akpegg2_gfdl126[[24]],
-                           preds_akpegg2_gfdl126[[25]]) %>%
+                           preds_akpegg2_gfdl126[[25]], preds_akpegg2_gfdl126[[26]],
+                           preds_akpegg2_gfdl126[[27]], preds_akpegg2_gfdl126[[28]],
+                           preds_akpegg2_gfdl126[[29]], preds_akpegg2_gfdl126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -613,7 +622,7 @@ x <- grepl("pred", names(df_akpegg2_gfdl126), fixed = T)
 df_akpegg_avg2_gfdl126 <- data.frame(lat = df_akpegg2_gfdl126$lat, 
                                      lon = df_akpegg2_gfdl126$lon, 
                                      dist = df_akpegg2_gfdl126$dist,
-                                     avg_pred = rowSums(df_akpegg2_gfdl126[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_gfdl126[, x])/30)
 saveRDS(df_akpegg_avg2_gfdl126, file = here("data", "df_akpegg_avg2_gfdl126.rds"))
 
 # Plot
@@ -650,7 +659,9 @@ df_akpegg3_gfdl126 <- list(preds_akpegg3_gfdl126[[1]], preds_akpegg3_gfdl126[[2]
                            preds_akpegg3_gfdl126[[19]], preds_akpegg3_gfdl126[[20]],
                            preds_akpegg3_gfdl126[[21]], preds_akpegg3_gfdl126[[22]],
                            preds_akpegg3_gfdl126[[23]], preds_akpegg3_gfdl126[[24]],
-                           preds_akpegg3_gfdl126[[25]]) %>%
+                           preds_akpegg3_gfdl126[[25]], preds_akpegg3_gfdl126[[26]], 
+                           preds_akpegg3_gfdl126[[27]], preds_akpegg3_gfdl126[[28]], 
+                           preds_akpegg3_gfdl126[[29]], preds_akpegg3_gfdl126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -746,7 +757,9 @@ df_akpegg2_gfdl585 <- list(preds_akpegg2_gfdl585[[1]], preds_akpegg2_gfdl585[[2]
                            preds_akpegg2_gfdl585[[19]], preds_akpegg2_gfdl585[[20]],
                            preds_akpegg2_gfdl585[[21]], preds_akpegg2_gfdl585[[22]],
                            preds_akpegg2_gfdl585[[23]], preds_akpegg2_gfdl585[[24]],
-                           preds_akpegg2_gfdl585[[25]]) %>%
+                           preds_akpegg2_gfdl585[[25]], preds_akpegg2_gfdl585[[26]],
+                           preds_akpegg2_gfdl585[[27]], preds_akpegg2_gfdl585[[28]],
+                           preds_akpegg2_gfdl585[[29]], preds_akpegg2_gfdl585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -755,7 +768,7 @@ x <- grepl("pred", names(df_akpegg2_gfdl585), fixed = T)
 df_akpegg_avg2_gfdl585 <- data.frame(lat = df_akpegg2_gfdl585$lat, 
                                      lon = df_akpegg2_gfdl585$lon, 
                                      dist = df_akpegg2_gfdl585$dist,
-                                     avg_pred = rowSums(df_akpegg2_gfdl585[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_gfdl585[, x])/30)
 saveRDS(df_akpegg_avg2_gfdl585, file = here("data", "df_akpegg_avg2_gfdl585.rds"))
 
 # Plot
@@ -792,7 +805,9 @@ df_akpegg3_gfdl585 <- list(preds_akpegg3_gfdl585[[1]], preds_akpegg3_gfdl585[[2]
                            preds_akpegg3_gfdl585[[19]], preds_akpegg3_gfdl585[[20]],
                            preds_akpegg3_gfdl585[[21]], preds_akpegg3_gfdl585[[22]],
                            preds_akpegg3_gfdl585[[23]], preds_akpegg3_gfdl585[[24]],
-                           preds_akpegg3_gfdl585[[25]]) %>%
+                           preds_akpegg3_gfdl585[[25]], preds_akpegg3_gfdl585[[26]], 
+                           preds_akpegg3_gfdl585[[27]], preds_akpegg3_gfdl585[[28]], 
+                           preds_akpegg3_gfdl585[[29]], preds_akpegg3_gfdl585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -822,7 +837,6 @@ rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
 
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
-## 2015 - 2039
 miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
 miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
@@ -889,7 +903,9 @@ df_akpegg2_miroc126 <- list(preds_akpegg2_miroc126[[1]], preds_akpegg2_miroc126[
                            preds_akpegg2_miroc126[[19]], preds_akpegg2_miroc126[[20]],
                            preds_akpegg2_miroc126[[21]], preds_akpegg2_miroc126[[22]],
                            preds_akpegg2_miroc126[[23]], preds_akpegg2_miroc126[[24]],
-                           preds_akpegg2_miroc126[[25]]) %>%
+                           preds_akpegg2_miroc126[[25]], preds_akpegg2_miroc126[[26]],
+                           preds_akpegg2_miroc126[[27]], preds_akpegg2_miroc126[[28]],
+                           preds_akpegg2_miroc126[[29]], preds_akpegg2_miroc126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -898,7 +914,7 @@ x <- grepl("pred", names(df_akpegg2_miroc126), fixed = T)
 df_akpegg_avg2_miroc126 <- data.frame(lat = df_akpegg2_miroc126$lat, 
                                      lon = df_akpegg2_miroc126$lon, 
                                      dist = df_akpegg2_miroc126$dist,
-                                     avg_pred = rowSums(df_akpegg2_miroc126[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_miroc126[, x])/30)
 saveRDS(df_akpegg_avg2_miroc126, file = here("data", "df_akpegg_avg2_miroc126.rds"))
 
 # Plot
@@ -935,7 +951,9 @@ df_akpegg3_miroc126 <- list(preds_akpegg3_miroc126[[1]], preds_akpegg3_miroc126[
                            preds_akpegg3_miroc126[[19]], preds_akpegg3_miroc126[[20]],
                            preds_akpegg3_miroc126[[21]], preds_akpegg3_miroc126[[22]],
                            preds_akpegg3_miroc126[[23]], preds_akpegg3_miroc126[[24]],
-                           preds_akpegg3_miroc126[[25]]) %>%
+                           preds_akpegg3_miroc126[[25]], preds_akpegg3_miroc126[[26]], 
+                           preds_akpegg3_miroc126[[27]], preds_akpegg3_miroc126[[28]], 
+                           preds_akpegg3_miroc126[[29]], preds_akpegg3_miroc126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1031,7 +1049,9 @@ df_akpegg2_miroc585 <- list(preds_akpegg2_miroc585[[1]], preds_akpegg2_miroc585[
                            preds_akpegg2_miroc585[[19]], preds_akpegg2_miroc585[[20]],
                            preds_akpegg2_miroc585[[21]], preds_akpegg2_miroc585[[22]],
                            preds_akpegg2_miroc585[[23]], preds_akpegg2_miroc585[[24]],
-                           preds_akpegg2_miroc585[[25]]) %>%
+                           preds_akpegg2_miroc585[[25]], preds_akpegg2_miroc585[[26]],
+                           preds_akpegg2_miroc585[[27]], preds_akpegg2_miroc585[[28]],
+                           preds_akpegg2_miroc585[[29]], preds_akpegg2_miroc585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1040,7 +1060,7 @@ x <- grepl("pred", names(df_akpegg2_miroc585), fixed = T)
 df_akpegg_avg2_miroc585 <- data.frame(lat = df_akpegg2_miroc585$lat, 
                                      lon = df_akpegg2_miroc585$lon, 
                                      dist = df_akpegg2_miroc585$dist,
-                                     avg_pred = rowSums(df_akpegg2_miroc585[, x])/25)
+                                     avg_pred = rowSums(df_akpegg2_miroc585[, x])/30)
 saveRDS(df_akpegg_avg2_miroc585, file = here("data", "df_akpegg_avg2_miroc585.rds"))
 
 # Plot
@@ -1077,7 +1097,9 @@ df_akpegg3_miroc585 <- list(preds_akpegg3_miroc585[[1]], preds_akpegg3_miroc585[
                            preds_akpegg3_miroc585[[19]], preds_akpegg3_miroc585[[20]],
                            preds_akpegg3_miroc585[[21]], preds_akpegg3_miroc585[[22]],
                            preds_akpegg3_miroc585[[23]], preds_akpegg3_miroc585[[24]],
-                           preds_akpegg3_miroc585[[25]]) %>%
+                           preds_akpegg3_miroc585[[25]], preds_akpegg3_miroc585[[26]], 
+                           preds_akpegg3_miroc585[[27]], preds_akpegg3_miroc585[[28]], 
+                           preds_akpegg3_miroc585[[29]], preds_akpegg3_miroc585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1104,6 +1126,7 @@ dev.off()
 
 rm(miroc_temps1, miroc_temps2, miroc_temps3,
    miroc_salts1, miroc_salts2, miroc_salts3)
+
 
 ### Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -1175,7 +1198,9 @@ df_akplarvae2_cesm126 <- list(preds_akplarvae2_cesm126[[1]], preds_akplarvae2_ce
                            preds_akplarvae2_cesm126[[19]], preds_akplarvae2_cesm126[[20]],
                            preds_akplarvae2_cesm126[[21]], preds_akplarvae2_cesm126[[22]],
                            preds_akplarvae2_cesm126[[23]], preds_akplarvae2_cesm126[[24]],
-                           preds_akplarvae2_cesm126[[25]]) %>%
+                           preds_akplarvae2_cesm126[[25]], preds_akplarvae2_cesm126[[26]],
+                           preds_akplarvae2_cesm126[[27]], preds_akplarvae2_cesm126[[28]],
+                           preds_akplarvae2_cesm126[[29]], preds_akplarvae2_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1184,7 +1209,7 @@ x <- grepl("pred", names(df_akplarvae2_cesm126), fixed = T)
 df_akplarvae_avg2_cesm126 <- data.frame(lat = df_akplarvae2_cesm126$lat, 
                                      lon = df_akplarvae2_cesm126$lon, 
                                      dist = df_akplarvae2_cesm126$dist,
-                                     avg_pred = rowSums(df_akplarvae2_cesm126[, x])/25)
+                                     avg_pred = rowSums(df_akplarvae2_cesm126[, x])/30)
 saveRDS(df_akplarvae_avg2_cesm126, file = here("data", "df_akplarvae_avg2_cesm126.rds"))
 
 # Plot
@@ -1221,7 +1246,9 @@ df_akplarvae3_cesm126 <- list(preds_akplarvae3_cesm126[[1]], preds_akplarvae3_ce
                            preds_akplarvae3_cesm126[[19]], preds_akplarvae3_cesm126[[20]],
                            preds_akplarvae3_cesm126[[21]], preds_akplarvae3_cesm126[[22]],
                            preds_akplarvae3_cesm126[[23]], preds_akplarvae3_cesm126[[24]],
-                           preds_akplarvae3_cesm126[[25]]) %>%
+                           preds_akplarvae3_cesm126[[25]], preds_akplarvae3_cesm126[[26]], 
+                           preds_akplarvae3_cesm126[[27]], preds_akplarvae3_cesm126[[28]], 
+                           preds_akplarvae3_cesm126[[29]], preds_akplarvae3_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1317,7 +1344,9 @@ df_akplarvae2_cesm585 <- list(preds_akplarvae2_cesm585[[1]], preds_akplarvae2_ce
                            preds_akplarvae2_cesm585[[19]], preds_akplarvae2_cesm585[[20]],
                            preds_akplarvae2_cesm585[[21]], preds_akplarvae2_cesm585[[22]],
                            preds_akplarvae2_cesm585[[23]], preds_akplarvae2_cesm585[[24]],
-                           preds_akplarvae2_cesm585[[25]]) %>%
+                           preds_akplarvae2_cesm585[[25]], preds_akplarvae2_cesm585[[26]],
+                           preds_akplarvae2_cesm585[[27]], preds_akplarvae2_cesm585[[28]],
+                           preds_akplarvae2_cesm585[[29]], preds_akplarvae2_cesm585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1326,7 +1355,7 @@ x <- grepl("pred", names(df_akplarvae2_cesm585), fixed = T)
 df_akplarvae_avg2_cesm585 <- data.frame(lat = df_akplarvae2_cesm585$lat, 
                                      lon = df_akplarvae2_cesm585$lon, 
                                      dist = df_akplarvae2_cesm585$dist,
-                                     avg_pred = rowSums(df_akplarvae2_cesm585[, x])/25)
+                                     avg_pred = rowSums(df_akplarvae2_cesm585[, x])/30)
 saveRDS(df_akplarvae_avg2_cesm585, file = here("data", "df_akplarvae_avg2_cesm585.rds"))
 
 # Plot
@@ -1363,7 +1392,9 @@ df_akplarvae3_cesm585 <- list(preds_akplarvae3_cesm585[[1]], preds_akplarvae3_ce
                            preds_akplarvae3_cesm585[[19]], preds_akplarvae3_cesm585[[20]],
                            preds_akplarvae3_cesm585[[21]], preds_akplarvae3_cesm585[[22]],
                            preds_akplarvae3_cesm585[[23]], preds_akplarvae3_cesm585[[24]],
-                           preds_akplarvae3_cesm585[[25]]) %>%
+                           preds_akplarvae3_cesm585[[25]], preds_akplarvae3_cesm585[[26]], 
+                           preds_akplarvae3_cesm585[[27]], preds_akplarvae3_cesm585[[28]], 
+                           preds_akplarvae3_cesm585[[29]], preds_akplarvae3_cesm585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1392,7 +1423,6 @@ rm(cesm_temps1, cesm_temps2, cesm_temps3,
    cesm_salts1, cesm_salts2, cesm_salts3)
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
-## 2015 - 2039
 gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
 gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
@@ -1459,7 +1489,9 @@ df_akplarvae2_gfdl126 <- list(preds_akplarvae2_gfdl126[[1]], preds_akplarvae2_gf
                            preds_akplarvae2_gfdl126[[19]], preds_akplarvae2_gfdl126[[20]],
                            preds_akplarvae2_gfdl126[[21]], preds_akplarvae2_gfdl126[[22]],
                            preds_akplarvae2_gfdl126[[23]], preds_akplarvae2_gfdl126[[24]],
-                           preds_akplarvae2_gfdl126[[25]]) %>%
+                           preds_akplarvae2_gfdl126[[25]], preds_akplarvae2_gfdl126[[26]],
+                           preds_akplarvae2_gfdl126[[27]], preds_akplarvae2_gfdl126[[28]],
+                           preds_akplarvae2_gfdl126[[29]], preds_akplarvae2_gfdl126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1468,7 +1500,7 @@ x <- grepl("pred", names(df_akplarvae2_gfdl126), fixed = T)
 df_akplarvae_avg2_gfdl126 <- data.frame(lat = df_akplarvae2_gfdl126$lat, 
                                      lon = df_akplarvae2_gfdl126$lon, 
                                      dist = df_akplarvae2_gfdl126$dist,
-                                     avg_pred = rowSums(df_akplarvae2_gfdl126[, x])/25)
+                                     avg_pred = rowSums(df_akplarvae2_gfdl126[, x])/30)
 saveRDS(df_akplarvae_avg2_gfdl126, file = here("data", "df_akplarvae_avg2_gfdl126.rds"))
 
 # Plot
@@ -1505,7 +1537,9 @@ df_akplarvae3_gfdl126 <- list(preds_akplarvae3_gfdl126[[1]], preds_akplarvae3_gf
                            preds_akplarvae3_gfdl126[[19]], preds_akplarvae3_gfdl126[[20]],
                            preds_akplarvae3_gfdl126[[21]], preds_akplarvae3_gfdl126[[22]],
                            preds_akplarvae3_gfdl126[[23]], preds_akplarvae3_gfdl126[[24]],
-                           preds_akplarvae3_gfdl126[[25]]) %>%
+                           preds_akplarvae3_gfdl126[[25]], preds_akplarvae3_gfdl126[[26]], 
+                           preds_akplarvae3_gfdl126[[27]], preds_akplarvae3_gfdl126[[28]], 
+                           preds_akplarvae3_gfdl126[[29]], preds_akplarvae3_gfdl126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1601,7 +1635,9 @@ df_akplarvae2_gfdl585 <- list(preds_akplarvae2_gfdl585[[1]], preds_akplarvae2_gf
                            preds_akplarvae2_gfdl585[[19]], preds_akplarvae2_gfdl585[[20]],
                            preds_akplarvae2_gfdl585[[21]], preds_akplarvae2_gfdl585[[22]],
                            preds_akplarvae2_gfdl585[[23]], preds_akplarvae2_gfdl585[[24]],
-                           preds_akplarvae2_gfdl585[[25]]) %>%
+                           preds_akplarvae2_gfdl585[[25]], preds_akplarvae2_gfdl585[[26]],
+                           preds_akplarvae2_gfdl585[[27]], preds_akplarvae2_gfdl585[[28]],
+                           preds_akplarvae2_gfdl585[[29]], preds_akplarvae2_gfdl585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1610,7 +1646,7 @@ x <- grepl("pred", names(df_akplarvae2_gfdl585), fixed = T)
 df_akplarvae_avg2_gfdl585 <- data.frame(lat = df_akplarvae2_gfdl585$lat, 
                                      lon = df_akplarvae2_gfdl585$lon, 
                                      dist = df_akplarvae2_gfdl585$dist,
-                                     avg_pred = rowSums(df_akplarvae2_gfdl585[, x])/25)
+                                     avg_pred = rowSums(df_akplarvae2_gfdl585[, x])/30)
 saveRDS(df_akplarvae_avg2_gfdl585, file = here("data", "df_akplarvae_avg2_gfdl585.rds"))
 
 # Plot
@@ -1647,7 +1683,9 @@ df_akplarvae3_gfdl585 <- list(preds_akplarvae3_gfdl585[[1]], preds_akplarvae3_gf
                            preds_akplarvae3_gfdl585[[19]], preds_akplarvae3_gfdl585[[20]],
                            preds_akplarvae3_gfdl585[[21]], preds_akplarvae3_gfdl585[[22]],
                            preds_akplarvae3_gfdl585[[23]], preds_akplarvae3_gfdl585[[24]],
-                           preds_akplarvae3_gfdl585[[25]]) %>%
+                           preds_akplarvae3_gfdl585[[25]], preds_akplarvae3_gfdl585[[26]], 
+                           preds_akplarvae3_gfdl585[[27]], preds_akplarvae3_gfdl585[[28]], 
+                           preds_akplarvae3_gfdl585[[29]], preds_akplarvae3_gfdl585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1677,7 +1715,6 @@ rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
 
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
-## 2015 - 2039
 miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
 miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
@@ -1744,7 +1781,9 @@ df_akplarvae2_miroc126 <- list(preds_akplarvae2_miroc126[[1]], preds_akplarvae2_
                             preds_akplarvae2_miroc126[[19]], preds_akplarvae2_miroc126[[20]],
                             preds_akplarvae2_miroc126[[21]], preds_akplarvae2_miroc126[[22]],
                             preds_akplarvae2_miroc126[[23]], preds_akplarvae2_miroc126[[24]],
-                            preds_akplarvae2_miroc126[[25]]) %>%
+                            preds_akplarvae2_miroc126[[25]], preds_akplarvae2_miroc126[[26]],
+                            preds_akplarvae2_miroc126[[27]], preds_akplarvae2_miroc126[[28]],
+                            preds_akplarvae2_miroc126[[29]], preds_akplarvae2_miroc126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1753,7 +1792,7 @@ x <- grepl("pred", names(df_akplarvae2_miroc126), fixed = T)
 df_akplarvae_avg2_miroc126 <- data.frame(lat = df_akplarvae2_miroc126$lat, 
                                       lon = df_akplarvae2_miroc126$lon, 
                                       dist = df_akplarvae2_miroc126$dist,
-                                      avg_pred = rowSums(df_akplarvae2_miroc126[, x])/25)
+                                      avg_pred = rowSums(df_akplarvae2_miroc126[, x])/30)
 saveRDS(df_akplarvae_avg2_miroc126, file = here("data", "df_akplarvae_avg2_miroc126.rds"))
 
 # Plot
@@ -1790,7 +1829,9 @@ df_akplarvae3_miroc126 <- list(preds_akplarvae3_miroc126[[1]], preds_akplarvae3_
                             preds_akplarvae3_miroc126[[19]], preds_akplarvae3_miroc126[[20]],
                             preds_akplarvae3_miroc126[[21]], preds_akplarvae3_miroc126[[22]],
                             preds_akplarvae3_miroc126[[23]], preds_akplarvae3_miroc126[[24]],
-                            preds_akplarvae3_miroc126[[25]]) %>%
+                            preds_akplarvae3_miroc126[[25]], preds_akplarvae3_miroc126[[26]], 
+                            preds_akplarvae3_miroc126[[27]], preds_akplarvae3_miroc126[[28]], 
+                            preds_akplarvae3_miroc126[[29]], preds_akplarvae3_miroc126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1886,7 +1927,9 @@ df_akplarvae2_miroc585 <- list(preds_akplarvae2_miroc585[[1]], preds_akplarvae2_
                             preds_akplarvae2_miroc585[[19]], preds_akplarvae2_miroc585[[20]],
                             preds_akplarvae2_miroc585[[21]], preds_akplarvae2_miroc585[[22]],
                             preds_akplarvae2_miroc585[[23]], preds_akplarvae2_miroc585[[24]],
-                            preds_akplarvae2_miroc585[[25]]) %>%
+                            preds_akplarvae2_miroc585[[25]], preds_akplarvae2_miroc585[[26]],
+                            preds_akplarvae2_miroc585[[27]], preds_akplarvae2_miroc585[[28]],
+                            preds_akplarvae2_miroc585[[29]], preds_akplarvae2_miroc585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1895,7 +1938,7 @@ x <- grepl("pred", names(df_akplarvae2_miroc585), fixed = T)
 df_akplarvae_avg2_miroc585 <- data.frame(lat = df_akplarvae2_miroc585$lat, 
                                       lon = df_akplarvae2_miroc585$lon, 
                                       dist = df_akplarvae2_miroc585$dist,
-                                      avg_pred = rowSums(df_akplarvae2_miroc585[, x])/25)
+                                      avg_pred = rowSums(df_akplarvae2_miroc585[, x])/30)
 saveRDS(df_akplarvae_avg2_miroc585, file = here("data", "df_akplarvae_avg2_miroc585.rds"))
 
 # Plot
@@ -1932,7 +1975,9 @@ df_akplarvae3_miroc585 <- list(preds_akplarvae3_miroc585[[1]], preds_akplarvae3_
                             preds_akplarvae3_miroc585[[19]], preds_akplarvae3_miroc585[[20]],
                             preds_akplarvae3_miroc585[[21]], preds_akplarvae3_miroc585[[22]],
                             preds_akplarvae3_miroc585[[23]], preds_akplarvae3_miroc585[[24]],
-                            preds_akplarvae3_miroc585[[25]]) %>%
+                            preds_akplarvae3_miroc585[[25]], preds_akplarvae3_miroc585[[26]], 
+                            preds_akplarvae3_miroc585[[27]], preds_akplarvae3_miroc585[[28]], 
+                            preds_akplarvae3_miroc585[[29]], preds_akplarvae3_miroc585[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
@@ -1997,7 +2042,7 @@ grid_predict_egg <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 1798),
+        zlim = c(0, 1863),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -2014,7 +2059,7 @@ grid_predict_egg <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 1798),
+             zlim = c(0, 1863),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -2052,7 +2097,7 @@ grid_predict_larvae <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 201),
+        zlim = c(0, 121),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -2069,7 +2114,7 @@ grid_predict_larvae <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 201),
+             zlim = c(0, 121),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -2096,7 +2141,7 @@ df_akpegg_final1 <- data.frame(lat = df_akpegg_merged1$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_egg(df_akpegg_final1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg1.jpg'),
          height = 6,
          width = 6,
@@ -2125,7 +2170,7 @@ df_akplarvae_final1 <- data.frame(lat = df_akplarvae_merged1$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_larvae(df_akplarvae_final1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg1.jpg'),
          height = 6,
          width = 6,
@@ -2156,7 +2201,7 @@ df_akpegg_final2 <- data.frame(lat = df_akpegg_merged2$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_egg(df_akpegg_final2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg2.jpg'),
          height = 6,
          width = 6,
@@ -2185,7 +2230,7 @@ df_akplarvae_final2 <- data.frame(lat = df_akplarvae_merged2$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_larvae(df_akplarvae_final2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg2.jpg'),
          height = 6,
          width = 6,
@@ -2215,7 +2260,7 @@ df_akpegg_final3 <- data.frame(lat = df_akpegg_merged3$lat,
 windows(width = 6, height = 6, family = "serif")
 grid_predict_egg(df_akpegg_final3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
-         here('results/plaice_forecast',
+         here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg3.jpg'),
          height = 6,
          width = 6,
@@ -2267,3 +2312,18 @@ img_animated
 
 image_write(image = img_animated,
             path = here('results', 'plaice_forecast', "akpegg_avgs.gif"))
+
+
+dir_out2 <- file.path(base_dir, 'results', 'plaice_forecast', 'akplarvae_avgs')
+
+imgs2 <- list.files(dir_out2, full.names = T)
+img_list2 <- lapply(imgs2, image_read)
+
+img_joined2 <- image_join(img_list2)
+
+img_animated2 <- image_animate(img_joined2, fps = 1)
+
+img_animated2
+
+image_write(image = img_animated2,
+            path = here('results', 'plaice_forecast', "akplarvae_avgs.gif"))

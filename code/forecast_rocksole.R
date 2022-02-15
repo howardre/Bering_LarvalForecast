@@ -11,6 +11,7 @@ library(date)
 library(rgdal)
 library(RColorBrewer)
 library(mgcv)
+library(RANN)
 source(here('code/functions', 'distance_function.R'))
 
 
@@ -18,29 +19,116 @@ source(here('code/functions', 'distance_function.R'))
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
+nrs_egg <- as.data.frame(filter((readRDS(here('data', 'nrs_egg.rds'))),
+                                lat >= 52 & lat <= 62,
+                                lon >= -176.5 & lon <= -156.5))
+nrs_egg$mean_temp <- roms_temps$mean[match(nrs_egg$year, roms_temps$year)]
+nrs_egg$catch <- nrs_egg$larvalcatchper10m2 + 1
+
 nrs_larvae <- as.data.frame(filter(readRDS(here('data', 'nrs_larvae.rds')),
-                                    lat >= 52 & lat <= 62,
-                                    lon >= -176.5 & lon <= -156.5))
+                                   lat >= 52 & lat <= 62,
+                                   lon >= -176.5 & lon <= -156.5))
 nrs_larvae$mean_temp <- roms_temps$mean[match(nrs_larvae$year, roms_temps$year)]
 nrs_larvae$catch <- nrs_larvae$larvalcatchper10m2 + 1
 
-# Match ROMS output function
-varid_match <- function(data, model_output1, model_output2, list){
-  data$roms_date <- NA
-  data$roms_temperature <- NA
-  data$roms_salinity <- NA
-  for (i in 1:nrow(data)) {
-    idx_time <- order(abs(model_output1[[list]][[3]] - data$date[i]))[1]
-    data$roms_date[i] <- model_output1[[list]][[3]][idx_time]
-    idx_grid <- order(distance_function(data$lat[i],
-                                        data$lon[i],
-                                        c(model_output1[[list]][[2]]),
-                                        c(model_output1[[list]][[1]])))[1]
-    data$roms_temperature[i] <- c(model_output1[[list]][[4]][, , idx_time])[idx_grid]
-    data$roms_salinity[i] <- c(model_output2[[list]][[4]][, , idx_time])[idx_grid]
+# Formulas
+larval_formula <- gam(catch ~ s(year, bs = 're') + 
+                        s(doy, k = 8) +
+                        s(lon, lat) +
+                        s(roms_temperature, k = 6) +
+                        s(roms_salinity, k = 6) +
+                        s(doy, by = mean_temp, k = 6),
+                      data = nrs_larvae,
+                      family = tw(link = 'log'),
+                      method = 'REML')
+
+# New method to use bias corrected ROMS output
+get_preds <- function(data, the_year, doy,
+                      the_month, proj, temp_output, 
+                      salt_output, formula){
+  nlat = 40
+  nlon = 60
+  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
+  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
+  
+  grid_extent <- expand.grid(lond, latd)
+  names(grid_extent) <- c('lon', 'lat')
+  
+  # Calculate distance of each grid point to closest 'positive observation'
+  grid_extent$dist <- NA
+  
+  for (k in 1:nrow(grid_extent)) {
+    dist <- distance_function(grid_extent$lat[k],
+                              grid_extent$lon[k],
+                              data$lat,
+                              data$lon)
+    grid_extent$dist[k] <- min(dist)
   }
-  return(data)
+  
+  # Assign a within sample year and doy to the grid data
+  grid_extent$year <- the_year
+  grid_extent$doy <- rep(doy, length(grid_extent))
+  grid_extent$month <- the_month
+  
+  temp_output$lon <- -temp_output$lon
+  salt_output$lon <- -salt_output$lon
+  
+  # Use RANN package to match nearest temperature value based on lat, lon, month, year
+  bc_temps <- temp_output %>% filter(month == the_month & year == the_year & projection == proj)
+  bc_salts <- salt_output %>% filter(month == the_month & year == the_year & projection == proj)
+  
+  grid_extent[, c(7, 8)] <- as.data.frame(RANN::nn2(bc_temps[, c('lat', 'lon')],
+                                                    grid_extent[, c('lat', 'lon')],
+                                                    k = 1))
+  #temporary
+  # message(paste(the_year))
+  # message(paste("nnidx max", max(grid_extent$nn.idx)))
+  # message(paste("nnidx min", min(grid_extent$nn.idx)))
+  # end temporary
+  grid_extent$roms_temperature <- bc_temps[c(grid_extent$nn.idx), 10] # Match nearest temp
+  grid_extent$roms_salinity <- bc_salts[c(grid_extent$nn.idx), 10] # Match nearest temp
+  grid_extent <- grid_extent[-c(6:8)] # remove extra columns before predicting
+  
+  # Calculate mean temperature
+  
+  temp_filtered <- temp_output %>% filter(lon >= -170 & lon <= -165, 
+                                          lat >= 56 & lat <= 58,
+                                          month >= 2 & month <= 4,
+                                          year == the_year)
+  #temporary
+  # message(paste('temp_output pre', nrow(temp_output)))
+  # message(paste("temp filtered", nrow(temp_filtered)))
+  # end temporary
+  mean <- mean(temp_filtered$bc, na.rm = T)
+  grid_extent$mean_temp <- mean
+  
+  # Parameterized model
+  gam <- formula
+  
+  # Predict on forecasted output
+  grid_extent$pred <- exp(predict(gam,
+                                  newdata = grid_extent,
+                                  type = "link",
+                                  exclude = "s(year)"))
+  grid_extent$pred[grid_extent$dist > 30000] <- NA
+  return(grid_extent)
 }
+
+
+# New function to loop through years
+pred_loop <- function(range, data, doy, month, 
+                      proj, temp_output, salt_output,
+                      the_formula){
+  grids <- list()
+  for(j in range) {
+    grid <- get_preds(data, j, doy, month,
+                      proj, temp_output, salt_output,
+                      the_formula)
+    grids[[paste("year", j, sep = "")]] <- grid
+  }
+  return(grids)
+}
+
 
 # Function to make maps
 grid_predict <- function(grid, title){
@@ -101,146 +189,91 @@ grid_predict <- function(grid, title){
                                 side = 2, cex = 1))
 }
 
-larval_formula <- gam(catch ~ factor(year) + 
-                        s(doy, k = 8) +
-                        s(lon, lat) +
-                        s(roms_temperature, k = 6) +
-                        s(roms_salinity, k = 6) +
-                        s(lat, lon, by = mean_temp, k = 6),
-                      data = nrs_larvae,
-                      family = tw(link = 'log'),
-                      method = 'REML')
 
-### Bias correction testing ----
-# Average by month for hindcast and historical found in each fish dataset
-# Need to match the forecast to the fish dataset by lat, lon, year, month
-# Then subtract the baseline (historical) from the forecast to get the deltas
-# Finally add the deltas to the hindcast to get final values
+## Use if any issues arise in get_preds function
+# nlat = 40
+# nlon = 60
+# latd = seq(min(nrs_egg$lat), max(nrs_egg$lat), length.out = nlat)
+# lond = seq(min(nrs_egg$lon), max(nrs_egg$lon), length.out = nlon)
+# grid_extent <- expand.grid(lond, latd)
+# names(grid_extent) <- c('lon', 'lat')
+# 
+# # Calculate distance of each grid point to closest 'positive observation'
+# grid_extent$dist <- NA
+# for (k in 1:nrow(grid_extent)) {
+#   dist <- distance_function(grid_extent$lat[k],
+#                             grid_extent$lon[k],
+#                             nrs_egg$lat,
+#                             nrs_egg$lon)
+#   grid_extent$dist[k] <- min(dist)
+# }
 
-
-
-# Function to get predictions
-get_preds <- function(data, year, date, doy, 
-                      start_date, end_date,
-                      temp_output, salt_output,
-                      list, formula){
-  # Prediction grid
-  nlat = 40
-  nlon = 60
-  latd = seq(min(data$lat), max(data$lat), length.out = nlat)
-  lond = seq(min(data$lon), max(data$lon), length.out = nlon)
-  grid_extent <- expand.grid(lond, latd)
-  names(grid_extent) <- c('lon', 'lat')
-  
-  # Calculate distance of each grid point to closest 'positive observation'
-  grid_extent$dist <- NA
-  for (k in 1:nrow(grid_extent)) {
-    dist <- distance_function(grid_extent$lat[k],
-                              grid_extent$lon[k],
-                              data$lat,
-                              data$lon)
-    grid_extent$dist[k] <- min(dist)
-  }
-  
-  # Assign a within sample year and doy to the grid data
-  grid_extent$year <- year
-  grid_extent$date <- rep(as.Date(date),
-                          length(grid_extent))
-  grid_extent$doy <- rep(doy, length(grid_extent))
-  
-  # Attach ROMs forecast
-  grid_extent <- varid_match(grid_extent, temp_output, salt_output, list)
-  
-  # Calculate mean temperature
-  time_index <- temp_output[[list]][[3]] >= start_date & temp_output[[list]][[3]] <= end_date
-  temp_array <- temp_output[[list]][[4]][, , time_index]
-  temp_data <- as.data.frame(cbind(lon = as.vector(temp_output[[list]][[1]]), 
-                                   lat = as.vector(temp_output[[list]][[2]]), 
-                                   temp = as.vector(temp_array)))
-  temp_filtered <- temp_data %>% filter(lon >= -170 & lon <= -165, lat >= 56 & lat <= 58)
-  mean <- mean(temp_filtered$temp, na.rm = T)
-  
-  grid_extent$mean_temp <- mean
-  
-  # Parameterized model
-  gam <- formula
-  
-  # Predict on forecasted output
-  grid_extent$pred <- predict(gam,
-                              newdata = grid_extent,
-                              type = "response")
-  grid_extent$pred[grid_extent$dist > 30000] <- NA
-  
-  return(grid_extent)
-  
-}
-
-# Function to loop through years
-pred_loop <- function(range, data, doy, 
-                      temp_output, salt_output,
-                      list, formula, year){
-  grids <- list()
-  for(j in range) {
-    date1 <- paste(j, "-05-10", sep = "")
-    date2 <- paste(j, "-02-01", sep = "")
-    date3 <- paste(j, "-04-30", sep = "")
-    grid <- get_preds(data, year, date1, doy,
-                      date2, date3,
-                      temp_output, salt_output,
-                      list, formula)
-    grids[[paste("year", j, sep = "")]] <- grid
-  }
-  return(grids)
-}
+# Assign a within sample year and doy to the grid nrs_egg
+# grid_extent$year <- 2040
+# grid_extent$doy <- rep(130, length(grid_extent))
+# grid_extent$month <- 5
+# 
+# cesm_temps2$lon <- -cesm_temps2$lon
+# cesm_salts2$lon <- -cesm_salts2$lon
+# # Use RANN package to match nearest temperature value based on lat, lon, month, year
+# bc_temps <- cesm_temps2 %>% filter(month == 5 & year == 2040 & projection == 'ssp126')
+# bc_salts <- cesm_salts2 %>% filter(month == 5 & year == 2040 & projection == 'ssp126')
+# grid_extent[, c(7, 8)] <- as.data.frame(RANN::nn2(bc_temps[, c('lat', 'lon')],
+#                                                   grid_extent[, c('lat', 'lon')],
+#                                                   k = 1))
+# grid_extent$roms_temperature <- bc_temps[c(grid_extent$nn.idx), 10] # Match nearest temp
+# grid_extent$roms_salinity <- bc_salts[c(grid_extent$nn.idx), 10] # Match nearest temp
+# grid_extent <- grid_extent[-c(6:8)] # remove extra columns before predicting
+# temp_filtered <- cesm_temps1 %>% filter(lon >= -170 & lon <= -165, 
+#                                         lat >= 56 & lat <= 58,
+#                                         month >= 2 & month <= 4,
+#                                         year == year)
+# mean <- mean(temp_filtered$bc, na.rm = T)
+# grid_extent$mean_temp <- mean
+# gam <- egg_formula
+# 
+# # Predict on forecasted output
+# grid_extent$pred <- exp(predict(gam,
+#                                 newdata = grid_extent,
+#                                 type = "link",
+#                                 exclude = "s(year)"))
+# grid_extent$pred[grid_extent$dist > 30000] <- NA
 
 
 ### Northern Rock Sole Larvae --------------------------------------------------------------------------------------------------------------------------
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
-temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
-salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
-
 ## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 5,
-                               larval_formula, 1994)
+cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
+cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
+
+preds_nrslarvae1_cesm126 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                      5, 'ssp126', cesm_temps1, 
+                                      cesm_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae1 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_cesm126 <- list(preds_nrslarvae1_cesm126[[1]], preds_nrslarvae1_cesm126[[2]],
+                              preds_nrslarvae1_cesm126[[3]], preds_nrslarvae1_cesm126[[4]],
+                              preds_nrslarvae1_cesm126[[5]], preds_nrslarvae1_cesm126[[6]],
+                              preds_nrslarvae1_cesm126[[7]], preds_nrslarvae1_cesm126[[8]],
+                              preds_nrslarvae1_cesm126[[9]], preds_nrslarvae1_cesm126[[10]],
+                              preds_nrslarvae1_cesm126[[11]], preds_nrslarvae1_cesm126[[12]],
+                              preds_nrslarvae1_cesm126[[13]], preds_nrslarvae1_cesm126[[14]],
+                              preds_nrslarvae1_cesm126[[15]], preds_nrslarvae1_cesm126[[16]],
+                              preds_nrslarvae1_cesm126[[17]], preds_nrslarvae1_cesm126[[18]],
+                              preds_nrslarvae1_cesm126[[19]], preds_nrslarvae1_cesm126[[20]],
+                              preds_nrslarvae1_cesm126[[21]], preds_nrslarvae1_cesm126[[22]],
+                              preds_nrslarvae1_cesm126[[23]], preds_nrslarvae1_cesm126[[24]],
+                              preds_nrslarvae1_cesm126[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae1), fixed = T)
-df_nrslarvae_avg1_cesm126 <- data.frame(lat = df_nrslarvae1$lat, 
-                                         lon = df_nrslarvae1$lon, 
-                                         dist = df_nrslarvae1$dist,
-                                         avg_pred = rowSums(df_nrslarvae1[, x])/25)
+x <- grepl("pred", names(df_nrslarvae1_cesm126), fixed = T)
+df_nrslarvae_avg1_cesm126 <- data.frame(lat = df_nrslarvae1_cesm126$lat, 
+                                        lon = df_nrslarvae1_cesm126$lon, 
+                                        dist = df_nrslarvae1_cesm126$dist,
+                                        avg_pred = rowSums(df_nrslarvae1_cesm126[, x])/25)
 saveRDS(df_nrslarvae_avg1_cesm126, file = here("data", "df_nrslarvae_avg1_cesm126.rds"))
 
 # Plot
@@ -257,51 +290,38 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_cesm_ssp126,
-                               salts_cesm_ssp126, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 11,
-                                larval_formula, 1994)
+cesm_temps2 <- readRDS(here('data', 'cesm_forecast_temp2.rds'))
+cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
+
+preds_nrslarvae2_cesm126 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                      5, 'ssp126', cesm_temps2, 
+                                      cesm_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae2 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_cesm126 <- list(preds_nrslarvae2_cesm126[[1]], preds_nrslarvae2_cesm126[[2]],
+                              preds_nrslarvae2_cesm126[[3]], preds_nrslarvae2_cesm126[[4]],
+                              preds_nrslarvae2_cesm126[[5]], preds_nrslarvae2_cesm126[[6]],
+                              preds_nrslarvae2_cesm126[[7]], preds_nrslarvae2_cesm126[[8]],
+                              preds_nrslarvae2_cesm126[[9]], preds_nrslarvae2_cesm126[[10]],
+                              preds_nrslarvae2_cesm126[[11]], preds_nrslarvae2_cesm126[[12]],
+                              preds_nrslarvae2_cesm126[[13]], preds_nrslarvae2_cesm126[[14]],
+                              preds_nrslarvae2_cesm126[[15]], preds_nrslarvae2_cesm126[[16]],
+                              preds_nrslarvae2_cesm126[[17]], preds_nrslarvae2_cesm126[[18]],
+                              preds_nrslarvae2_cesm126[[19]], preds_nrslarvae2_cesm126[[20]],
+                              preds_nrslarvae2_cesm126[[21]], preds_nrslarvae2_cesm126[[22]],
+                              preds_nrslarvae2_cesm126[[23]], preds_nrslarvae2_cesm126[[24]],
+                              preds_nrslarvae2_cesm126[[25]], preds_nrslarvae2_cesm126[[26]],
+                              preds_nrslarvae2_cesm126[[27]], preds_nrslarvae2_cesm126[[28]],
+                              preds_nrslarvae2_cesm126[[29]], preds_nrslarvae2_cesm126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae2), fixed = T)
-df_nrslarvae_avg2_cesm126 <- data.frame(lat = df_nrslarvae2$lat, 
-                                         lon = df_nrslarvae2$lon, 
-                                         dist = df_nrslarvae2$dist,
-                                         avg_pred = rowSums(df_nrslarvae2[, x])/30)
+x <- grepl("pred", names(df_nrslarvae2_cesm126), fixed = T)
+df_nrslarvae_avg2_cesm126 <- data.frame(lat = df_nrslarvae2_cesm126$lat, 
+                                        lon = df_nrslarvae2_cesm126$lon, 
+                                        dist = df_nrslarvae2_cesm126$dist,
+                                        avg_pred = rowSums(df_nrslarvae2_cesm126[, x])/30)
 saveRDS(df_nrslarvae_avg2_cesm126, file = here("data", "df_nrslarvae_avg2_cesm126.rds"))
 
 # Plot
@@ -318,51 +338,38 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_cesm_ssp126,
-                                salts_cesm_ssp126, 17,
-                                larval_formula, 1994)
+cesm_temps3 <- readRDS(here('data', 'cesm_forecast_temp3.rds'))
+cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
+
+preds_nrslarvae3_cesm126 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                      5, 'ssp126', cesm_temps3, 
+                                      cesm_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae3 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_cesm126 <- list(preds_nrslarvae3_cesm126[[1]], preds_nrslarvae3_cesm126[[2]],
+                              preds_nrslarvae3_cesm126[[3]], preds_nrslarvae3_cesm126[[4]],
+                              preds_nrslarvae3_cesm126[[5]], preds_nrslarvae3_cesm126[[6]],
+                              preds_nrslarvae3_cesm126[[7]], preds_nrslarvae3_cesm126[[8]],
+                              preds_nrslarvae3_cesm126[[9]], preds_nrslarvae3_cesm126[[10]],
+                              preds_nrslarvae3_cesm126[[11]], preds_nrslarvae3_cesm126[[12]],
+                              preds_nrslarvae3_cesm126[[13]], preds_nrslarvae3_cesm126[[14]],
+                              preds_nrslarvae3_cesm126[[15]], preds_nrslarvae3_cesm126[[16]],
+                              preds_nrslarvae3_cesm126[[17]], preds_nrslarvae3_cesm126[[18]],
+                              preds_nrslarvae3_cesm126[[19]], preds_nrslarvae3_cesm126[[20]],
+                              preds_nrslarvae3_cesm126[[21]], preds_nrslarvae3_cesm126[[22]],
+                              preds_nrslarvae3_cesm126[[23]], preds_nrslarvae3_cesm126[[24]],
+                              preds_nrslarvae3_cesm126[[25]], preds_nrslarvae3_cesm126[[26]], 
+                              preds_nrslarvae3_cesm126[[27]], preds_nrslarvae3_cesm126[[28]], 
+                              preds_nrslarvae3_cesm126[[29]], preds_nrslarvae3_cesm126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae3), fixed = T)
-df_nrslarvae_avg3_cesm126 <- data.frame(lat = df_nrslarvae3$lat, 
-                                         lon = df_nrslarvae3$lon, 
-                                         dist = df_nrslarvae3$dist,
-                                         avg_pred = rowSums(df_nrslarvae3[, x])/30)
+x <- grepl("pred", names(df_nrslarvae3_cesm126), fixed = T)
+df_nrslarvae_avg3_cesm126 <- data.frame(lat = df_nrslarvae3_cesm126$lat, 
+                                        lon = df_nrslarvae3_cesm126$lon, 
+                                        dist = df_nrslarvae3_cesm126$dist,
+                                        avg_pred = rowSums(df_nrslarvae3_cesm126[, x])/30)
 saveRDS(df_nrslarvae_avg3_cesm126, file = here("data", "df_nrslarvae_avg3_cesm126.rds"))
 
 # Plot
@@ -377,59 +384,47 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_cesm_ssp126)
-rm(salts_cesm_ssp126)
+
+rm(cesm_temps1, cesm_temps2, cesm_temps3,
+   cesm_salts1, cesm_salts2, cesm_salts3)
 
 ##### CESM 585 -----------------------------------------------------------------------------------------------------------------
-temps_cesm_ssp585 <- readRDS(here('data', 'temps_cesm_ssp585.rds'))
-salts_cesm_ssp585 <- readRDS(here('data', 'salts_cesm_ssp585.rds'))
-
 ## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 5,
-                               larval_formula, 1994)
+cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
+cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
+
+preds_nrslarvae1_cesm585 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                      5, 'ssp585', cesm_temps1, 
+                                      cesm_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae4 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_cesm585 <- list(preds_nrslarvae1_cesm585[[1]], preds_nrslarvae1_cesm585[[2]],
+                              preds_nrslarvae1_cesm585[[3]], preds_nrslarvae1_cesm585[[4]],
+                              preds_nrslarvae1_cesm585[[5]], preds_nrslarvae1_cesm585[[6]],
+                              preds_nrslarvae1_cesm585[[7]], preds_nrslarvae1_cesm585[[8]],
+                              preds_nrslarvae1_cesm585[[9]], preds_nrslarvae1_cesm585[[10]],
+                              preds_nrslarvae1_cesm585[[11]], preds_nrslarvae1_cesm585[[12]],
+                              preds_nrslarvae1_cesm585[[13]], preds_nrslarvae1_cesm585[[14]],
+                              preds_nrslarvae1_cesm585[[15]], preds_nrslarvae1_cesm585[[16]],
+                              preds_nrslarvae1_cesm585[[17]], preds_nrslarvae1_cesm585[[18]],
+                              preds_nrslarvae1_cesm585[[19]], preds_nrslarvae1_cesm585[[20]],
+                              preds_nrslarvae1_cesm585[[21]], preds_nrslarvae1_cesm585[[22]],
+                              preds_nrslarvae1_cesm585[[23]], preds_nrslarvae1_cesm585[[24]],
+                              preds_nrslarvae1_cesm585[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae4), fixed = T)
-df_nrslarvae_avg4_cesm585 <- data.frame(lat = df_nrslarvae4$lat, 
-                                         lon = df_nrslarvae4$lon, 
-                                         dist = df_nrslarvae4$dist,
-                                         avg_pred = rowSums(df_nrslarvae4[, x])/25)
-saveRDS(df_nrslarvae_avg4_cesm585, file = here("data", "df_nrslarvae_avg4_cesm585.rds"))
+x <- grepl("pred", names(df_nrslarvae1_cesm585), fixed = T)
+df_nrslarvae_avg1_cesm585 <- data.frame(lat = df_nrslarvae1_cesm585$lat, 
+                                        lon = df_nrslarvae1_cesm585$lon, 
+                                        dist = df_nrslarvae1_cesm585$dist,
+                                        avg_pred = rowSums(df_nrslarvae1_cesm585[, x])/25)
+saveRDS(df_nrslarvae_avg1_cesm585, file = here("data", "df_nrslarvae_avg1_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg4_cesm585, "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
+grid_predict(df_nrslarvae_avg1_cesm585, "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_cesm_ssp585_1.jpg'),
@@ -441,56 +436,43 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_cesm_ssp585,
-                               salts_cesm_ssp585, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 11,
-                                larval_formula, 1994)
+cesm_temps2 <- readRDS(here('data', 'cesm_forecast_temp2.rds'))
+cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
+
+preds_nrslarvae2_cesm585 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                      5, 'ssp585', cesm_temps2, 
+                                      cesm_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae5 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_cesm585 <- list(preds_nrslarvae2_cesm585[[1]], preds_nrslarvae2_cesm585[[2]],
+                              preds_nrslarvae2_cesm585[[3]], preds_nrslarvae2_cesm585[[4]],
+                              preds_nrslarvae2_cesm585[[5]], preds_nrslarvae2_cesm585[[6]],
+                              preds_nrslarvae2_cesm585[[7]], preds_nrslarvae2_cesm585[[8]],
+                              preds_nrslarvae2_cesm585[[9]], preds_nrslarvae2_cesm585[[10]],
+                              preds_nrslarvae2_cesm585[[11]], preds_nrslarvae2_cesm585[[12]],
+                              preds_nrslarvae2_cesm585[[13]], preds_nrslarvae2_cesm585[[14]],
+                              preds_nrslarvae2_cesm585[[15]], preds_nrslarvae2_cesm585[[16]],
+                              preds_nrslarvae2_cesm585[[17]], preds_nrslarvae2_cesm585[[18]],
+                              preds_nrslarvae2_cesm585[[19]], preds_nrslarvae2_cesm585[[20]],
+                              preds_nrslarvae2_cesm585[[21]], preds_nrslarvae2_cesm585[[22]],
+                              preds_nrslarvae2_cesm585[[23]], preds_nrslarvae2_cesm585[[24]],
+                              preds_nrslarvae2_cesm585[[25]], preds_nrslarvae2_cesm585[[26]],
+                              preds_nrslarvae2_cesm585[[27]], preds_nrslarvae2_cesm585[[28]],
+                              preds_nrslarvae2_cesm585[[29]], preds_nrslarvae2_cesm585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae5), fixed = T)
-df_nrslarvae_avg5_cesm585 <- data.frame(lat = df_nrslarvae5$lat, 
-                                         lon = df_nrslarvae5$lon, 
-                                         dist = df_nrslarvae5$dist,
-                                         avg_pred = rowSums(df_nrslarvae5[, x])/30)
-saveRDS(df_nrslarvae_avg5_cesm585, file = here("data", "df_nrslarvae_avg5_cesm585.rds"))
+x <- grepl("pred", names(df_nrslarvae2_cesm585), fixed = T)
+df_nrslarvae_avg2_cesm585 <- data.frame(lat = df_nrslarvae2_cesm585$lat, 
+                                        lon = df_nrslarvae2_cesm585$lon, 
+                                        dist = df_nrslarvae2_cesm585$dist,
+                                        avg_pred = rowSums(df_nrslarvae2_cesm585[, x])/30)
+saveRDS(df_nrslarvae_avg2_cesm585, file = here("data", "df_nrslarvae_avg2_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg5_cesm585, "Forecasted Distribution 2040 - 2069 \n CESM SSP585")
+grid_predict(df_nrslarvae_avg2_cesm585, "Forecasted Distribution 2040 - 2069 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_cesm_ssp585_2.jpg'),
@@ -502,56 +484,43 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_cesm_ssp585,
-                                salts_cesm_ssp585, 17,
-                                larval_formula, 1994)
+cesm_temps3 <- readRDS(here('data', 'cesm_forecast_temp3.rds'))
+cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
+
+preds_nrslarvae3_cesm585 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                      5, 'ssp585', cesm_temps3, 
+                                      cesm_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae6 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_cesm585 <- list(preds_nrslarvae3_cesm585[[1]], preds_nrslarvae3_cesm585[[2]],
+                              preds_nrslarvae3_cesm585[[3]], preds_nrslarvae3_cesm585[[4]],
+                              preds_nrslarvae3_cesm585[[5]], preds_nrslarvae3_cesm585[[6]],
+                              preds_nrslarvae3_cesm585[[7]], preds_nrslarvae3_cesm585[[8]],
+                              preds_nrslarvae3_cesm585[[9]], preds_nrslarvae3_cesm585[[10]],
+                              preds_nrslarvae3_cesm585[[11]], preds_nrslarvae3_cesm585[[12]],
+                              preds_nrslarvae3_cesm585[[13]], preds_nrslarvae3_cesm585[[14]],
+                              preds_nrslarvae3_cesm585[[15]], preds_nrslarvae3_cesm585[[16]],
+                              preds_nrslarvae3_cesm585[[17]], preds_nrslarvae3_cesm585[[18]],
+                              preds_nrslarvae3_cesm585[[19]], preds_nrslarvae3_cesm585[[20]],
+                              preds_nrslarvae3_cesm585[[21]], preds_nrslarvae3_cesm585[[22]],
+                              preds_nrslarvae3_cesm585[[23]], preds_nrslarvae3_cesm585[[24]],
+                              preds_nrslarvae3_cesm585[[25]], preds_nrslarvae3_cesm585[[26]], 
+                              preds_nrslarvae3_cesm585[[27]], preds_nrslarvae3_cesm585[[28]], 
+                              preds_nrslarvae3_cesm585[[29]], preds_nrslarvae3_cesm585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae6), fixed = T)
-df_nrslarvae_avg6_cesm585 <- data.frame(lat = df_nrslarvae6$lat, 
-                                         lon = df_nrslarvae6$lon, 
-                                         dist = df_nrslarvae6$dist,
-                                         avg_pred = rowSums(df_nrslarvae6[, x])/30)
-saveRDS(df_nrslarvae_avg6_cesm585, file = here("data", "df_nrslarvae_avg6_cesm585.rds"))
+x <- grepl("pred", names(df_nrslarvae3_cesm585), fixed = T)
+df_nrslarvae_avg3_cesm585 <- data.frame(lat = df_nrslarvae3_cesm585$lat, 
+                                        lon = df_nrslarvae3_cesm585$lon, 
+                                        dist = df_nrslarvae3_cesm585$dist,
+                                        avg_pred = rowSums(df_nrslarvae3_cesm585[, x])/30)
+saveRDS(df_nrslarvae_avg3_cesm585, file = here("data", "df_nrslarvae_avg3_cesm585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg6_cesm585, "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
+grid_predict(df_nrslarvae_avg3_cesm585, "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_cesm_ssp585_3.jpg'),
@@ -561,60 +530,46 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_cesm_ssp585)
-rm(salts_cesm_ssp585)
 
+rm(cesm_temps1, cesm_temps2, cesm_temps3,
+   cesm_salts1, cesm_salts2, cesm_salts3)
 
 ##### GFDL 126 ----------------------------------------------------------------------------------------------------------------------------
-temps_gfdl_ssp126 <- readRDS(here('data', 'temps_gfdl_ssp126.rds'))
-salts_gfdl_ssp126 <- readRDS(here('data', 'salts_gfdl_ssp126.rds'))
+gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
+gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
-## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 5,
-                               larval_formula, 1994)
+preds_nrslarvae1_gfdl126 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                      5, 'ssp126', gfdl_temps1, 
+                                      gfdl_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae1 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_gfdl126 <- list(preds_nrslarvae1_gfdl126[[1]], preds_nrslarvae1_gfdl126[[2]],
+                              preds_nrslarvae1_gfdl126[[3]], preds_nrslarvae1_gfdl126[[4]],
+                              preds_nrslarvae1_gfdl126[[5]], preds_nrslarvae1_gfdl126[[6]],
+                              preds_nrslarvae1_gfdl126[[7]], preds_nrslarvae1_gfdl126[[8]],
+                              preds_nrslarvae1_gfdl126[[9]], preds_nrslarvae1_gfdl126[[10]],
+                              preds_nrslarvae1_gfdl126[[11]], preds_nrslarvae1_gfdl126[[12]],
+                              preds_nrslarvae1_gfdl126[[13]], preds_nrslarvae1_gfdl126[[14]],
+                              preds_nrslarvae1_gfdl126[[15]], preds_nrslarvae1_gfdl126[[16]],
+                              preds_nrslarvae1_gfdl126[[17]], preds_nrslarvae1_gfdl126[[18]],
+                              preds_nrslarvae1_gfdl126[[19]], preds_nrslarvae1_gfdl126[[20]],
+                              preds_nrslarvae1_gfdl126[[21]], preds_nrslarvae1_gfdl126[[22]],
+                              preds_nrslarvae1_gfdl126[[23]], preds_nrslarvae1_gfdl126[[24]],
+                              preds_nrslarvae1_gfdl126[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae1), fixed = T)
-df_nrslarvae_avg1_gfdl126 <- data.frame(lat = df_nrslarvae1$lat, 
-                                         lon = df_nrslarvae1$lon, 
-                                         dist = df_nrslarvae1$dist,
-                                         avg_pred = rowSums(df_nrslarvae1[, x])/25)
+x <- grepl("pred", names(df_nrslarvae1_gfdl126), fixed = T)
+df_nrslarvae_avg1_gfdl126 <- data.frame(lat = df_nrslarvae1_gfdl126$lat, 
+                                        lon = df_nrslarvae1_gfdl126$lon, 
+                                        dist = df_nrslarvae1_gfdl126$dist,
+                                        avg_pred = rowSums(df_nrslarvae1_gfdl126[, x])/25)
 saveRDS(df_nrslarvae_avg1_gfdl126, file = here("data", "df_nrslarvae_avg1_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n GFDL SSP126")
+grid_predict(df_nrslarvae_avg1_gfdl126, "Forecasted Distribution 2015 - 2039 \n gfdl SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp126_1.jpg'),
@@ -626,56 +581,43 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_gfdl_ssp126,
-                               salts_gfdl_ssp126, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 11,
-                                larval_formula, 1994)
+gfdl_temps2 <- readRDS(here('data', 'gfdl_forecast_temp2.rds'))
+gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
+
+preds_nrslarvae2_gfdl126 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                      5, 'ssp126', gfdl_temps2, 
+                                      gfdl_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae2 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_gfdl126 <- list(preds_nrslarvae2_gfdl126[[1]], preds_nrslarvae2_gfdl126[[2]],
+                              preds_nrslarvae2_gfdl126[[3]], preds_nrslarvae2_gfdl126[[4]],
+                              preds_nrslarvae2_gfdl126[[5]], preds_nrslarvae2_gfdl126[[6]],
+                              preds_nrslarvae2_gfdl126[[7]], preds_nrslarvae2_gfdl126[[8]],
+                              preds_nrslarvae2_gfdl126[[9]], preds_nrslarvae2_gfdl126[[10]],
+                              preds_nrslarvae2_gfdl126[[11]], preds_nrslarvae2_gfdl126[[12]],
+                              preds_nrslarvae2_gfdl126[[13]], preds_nrslarvae2_gfdl126[[14]],
+                              preds_nrslarvae2_gfdl126[[15]], preds_nrslarvae2_gfdl126[[16]],
+                              preds_nrslarvae2_gfdl126[[17]], preds_nrslarvae2_gfdl126[[18]],
+                              preds_nrslarvae2_gfdl126[[19]], preds_nrslarvae2_gfdl126[[20]],
+                              preds_nrslarvae2_gfdl126[[21]], preds_nrslarvae2_gfdl126[[22]],
+                              preds_nrslarvae2_gfdl126[[23]], preds_nrslarvae2_gfdl126[[24]],
+                              preds_nrslarvae2_gfdl126[[25]], preds_nrslarvae2_gfdl126[[26]],
+                              preds_nrslarvae2_gfdl126[[27]], preds_nrslarvae2_gfdl126[[28]],
+                              preds_nrslarvae2_gfdl126[[29]], preds_nrslarvae2_gfdl126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae2), fixed = T)
-df_nrslarvae_avg2_gfdl126 <- data.frame(lat = df_nrslarvae2$lat, 
-                                         lon = df_nrslarvae2$lon, 
-                                         dist = df_nrslarvae2$dist,
-                                         avg_pred = rowSums(df_nrslarvae2[, x])/30)
+x <- grepl("pred", names(df_nrslarvae2_gfdl126), fixed = T)
+df_nrslarvae_avg2_gfdl126 <- data.frame(lat = df_nrslarvae2_gfdl126$lat, 
+                                        lon = df_nrslarvae2_gfdl126$lon, 
+                                        dist = df_nrslarvae2_gfdl126$dist,
+                                        avg_pred = rowSums(df_nrslarvae2_gfdl126[, x])/30)
 saveRDS(df_nrslarvae_avg2_gfdl126, file = here("data", "df_nrslarvae_avg2_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n GFDL SSP126")
+grid_predict(df_nrslarvae_avg2_gfdl126, "Forecasted Distribution 2040 - 2069 \n gfdl SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp126_2.jpg'),
@@ -687,56 +629,43 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_gfdl_ssp126,
-                                salts_gfdl_ssp126, 17,
-                                larval_formula, 1994)
+gfdl_temps3 <- readRDS(here('data', 'gfdl_forecast_temp3.rds'))
+gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
+
+preds_nrslarvae3_gfdl126 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                      5, 'ssp126', gfdl_temps3, 
+                                      gfdl_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae3 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_gfdl126 <- list(preds_nrslarvae3_gfdl126[[1]], preds_nrslarvae3_gfdl126[[2]],
+                              preds_nrslarvae3_gfdl126[[3]], preds_nrslarvae3_gfdl126[[4]],
+                              preds_nrslarvae3_gfdl126[[5]], preds_nrslarvae3_gfdl126[[6]],
+                              preds_nrslarvae3_gfdl126[[7]], preds_nrslarvae3_gfdl126[[8]],
+                              preds_nrslarvae3_gfdl126[[9]], preds_nrslarvae3_gfdl126[[10]],
+                              preds_nrslarvae3_gfdl126[[11]], preds_nrslarvae3_gfdl126[[12]],
+                              preds_nrslarvae3_gfdl126[[13]], preds_nrslarvae3_gfdl126[[14]],
+                              preds_nrslarvae3_gfdl126[[15]], preds_nrslarvae3_gfdl126[[16]],
+                              preds_nrslarvae3_gfdl126[[17]], preds_nrslarvae3_gfdl126[[18]],
+                              preds_nrslarvae3_gfdl126[[19]], preds_nrslarvae3_gfdl126[[20]],
+                              preds_nrslarvae3_gfdl126[[21]], preds_nrslarvae3_gfdl126[[22]],
+                              preds_nrslarvae3_gfdl126[[23]], preds_nrslarvae3_gfdl126[[24]],
+                              preds_nrslarvae3_gfdl126[[25]], preds_nrslarvae3_gfdl126[[26]], 
+                              preds_nrslarvae3_gfdl126[[27]], preds_nrslarvae3_gfdl126[[28]], 
+                              preds_nrslarvae3_gfdl126[[29]], preds_nrslarvae3_gfdl126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae3), fixed = T)
-df_nrslarvae_avg3_gfdl126 <- data.frame(lat = df_nrslarvae3$lat, 
-                                         lon = df_nrslarvae3$lon, 
-                                         dist = df_nrslarvae3$dist,
-                                         avg_pred = rowSums(df_nrslarvae3[, x])/30)
+x <- grepl("pred", names(df_nrslarvae3_gfdl126), fixed = T)
+df_nrslarvae_avg3_gfdl126 <- data.frame(lat = df_nrslarvae3_gfdl126$lat, 
+                                        lon = df_nrslarvae3_gfdl126$lon, 
+                                        dist = df_nrslarvae3_gfdl126$dist,
+                                        avg_pred = rowSums(df_nrslarvae3_gfdl126[, x])/30)
 saveRDS(df_nrslarvae_avg3_gfdl126, file = here("data", "df_nrslarvae_avg3_gfdl126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n GFDL SSP126")
+grid_predict(df_nrslarvae_avg3_gfdl126, "Forecasted Distribution 2070 - 2099 \n gfdl SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp126_3.jpg'),
@@ -746,59 +675,47 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_gfdl_ssp126)
-rm(salts_gfdl_ssp126)
+
+rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
+   gfdl_salts1, gfdl_salts2, gfdl_salts3)
 
 ##### GFDL 585 -----------------------------------------------------------------------------------------------------------------
-temps_gfdl_ssp585 <- readRDS(here('data', 'temps_gfdl_ssp585.rds'))
-salts_gfdl_ssp585 <- readRDS(here('data', 'salts_gfdl_ssp585.rds'))
-
 ## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 5,
-                               larval_formula, 1994)
+gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
+gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
+
+preds_nrslarvae1_gfdl585 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                      5, 'ssp585', gfdl_temps1, 
+                                      gfdl_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae4 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_gfdl585 <- list(preds_nrslarvae1_gfdl585[[1]], preds_nrslarvae1_gfdl585[[2]],
+                              preds_nrslarvae1_gfdl585[[3]], preds_nrslarvae1_gfdl585[[4]],
+                              preds_nrslarvae1_gfdl585[[5]], preds_nrslarvae1_gfdl585[[6]],
+                              preds_nrslarvae1_gfdl585[[7]], preds_nrslarvae1_gfdl585[[8]],
+                              preds_nrslarvae1_gfdl585[[9]], preds_nrslarvae1_gfdl585[[10]],
+                              preds_nrslarvae1_gfdl585[[11]], preds_nrslarvae1_gfdl585[[12]],
+                              preds_nrslarvae1_gfdl585[[13]], preds_nrslarvae1_gfdl585[[14]],
+                              preds_nrslarvae1_gfdl585[[15]], preds_nrslarvae1_gfdl585[[16]],
+                              preds_nrslarvae1_gfdl585[[17]], preds_nrslarvae1_gfdl585[[18]],
+                              preds_nrslarvae1_gfdl585[[19]], preds_nrslarvae1_gfdl585[[20]],
+                              preds_nrslarvae1_gfdl585[[21]], preds_nrslarvae1_gfdl585[[22]],
+                              preds_nrslarvae1_gfdl585[[23]], preds_nrslarvae1_gfdl585[[24]],
+                              preds_nrslarvae1_gfdl585[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae4), fixed = T)
-df_nrslarvae_avg4_gfdl585 <- data.frame(lat = df_nrslarvae4$lat, 
-                                         lon = df_nrslarvae4$lon, 
-                                         dist = df_nrslarvae4$dist,
-                                         avg_pred = rowSums(df_nrslarvae4[, x])/25)
-saveRDS(df_nrslarvae_avg4_gfdl585, file = here("data", "df_nrslarvae_avg4_gfdl585.rds"))
+x <- grepl("pred", names(df_nrslarvae1_gfdl585), fixed = T)
+df_nrslarvae_avg1_gfdl585 <- data.frame(lat = df_nrslarvae1_gfdl585$lat, 
+                                        lon = df_nrslarvae1_gfdl585$lon, 
+                                        dist = df_nrslarvae1_gfdl585$dist,
+                                        avg_pred = rowSums(df_nrslarvae1_gfdl585[, x])/25)
+saveRDS(df_nrslarvae_avg1_gfdl585, file = here("data", "df_nrslarvae_avg1_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg4_gfdl585, "Forecasted Distribution 2015 - 2039 \n GFDL SSP585")
+grid_predict(df_nrslarvae_avg1_gfdl585, "Forecasted Distribution 2015 - 2039 \n gfdl SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp585_1.jpg'),
@@ -810,56 +727,43 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_gfdl_ssp585,
-                               salts_gfdl_ssp585, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 11,
-                                larval_formula, 1994)
+gfdl_temps2 <- readRDS(here('data', 'gfdl_forecast_temp2.rds'))
+gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
+
+preds_nrslarvae2_gfdl585 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                      5, 'ssp585', gfdl_temps2, 
+                                      gfdl_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae5 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_gfdl585 <- list(preds_nrslarvae2_gfdl585[[1]], preds_nrslarvae2_gfdl585[[2]],
+                              preds_nrslarvae2_gfdl585[[3]], preds_nrslarvae2_gfdl585[[4]],
+                              preds_nrslarvae2_gfdl585[[5]], preds_nrslarvae2_gfdl585[[6]],
+                              preds_nrslarvae2_gfdl585[[7]], preds_nrslarvae2_gfdl585[[8]],
+                              preds_nrslarvae2_gfdl585[[9]], preds_nrslarvae2_gfdl585[[10]],
+                              preds_nrslarvae2_gfdl585[[11]], preds_nrslarvae2_gfdl585[[12]],
+                              preds_nrslarvae2_gfdl585[[13]], preds_nrslarvae2_gfdl585[[14]],
+                              preds_nrslarvae2_gfdl585[[15]], preds_nrslarvae2_gfdl585[[16]],
+                              preds_nrslarvae2_gfdl585[[17]], preds_nrslarvae2_gfdl585[[18]],
+                              preds_nrslarvae2_gfdl585[[19]], preds_nrslarvae2_gfdl585[[20]],
+                              preds_nrslarvae2_gfdl585[[21]], preds_nrslarvae2_gfdl585[[22]],
+                              preds_nrslarvae2_gfdl585[[23]], preds_nrslarvae2_gfdl585[[24]],
+                              preds_nrslarvae2_gfdl585[[25]], preds_nrslarvae2_gfdl585[[26]],
+                              preds_nrslarvae2_gfdl585[[27]], preds_nrslarvae2_gfdl585[[28]],
+                              preds_nrslarvae2_gfdl585[[29]], preds_nrslarvae2_gfdl585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae5), fixed = T)
-df_nrslarvae_avg5_gfdl585 <- data.frame(lat = df_nrslarvae5$lat, 
-                                         lon = df_nrslarvae5$lon, 
-                                         dist = df_nrslarvae5$dist,
-                                         avg_pred = rowSums(df_nrslarvae5[, x])/30)
-saveRDS(df_nrslarvae_avg5_gfdl585, file = here("data", "df_nrslarvae_avg5_gfdl585.rds"))
+x <- grepl("pred", names(df_nrslarvae2_gfdl585), fixed = T)
+df_nrslarvae_avg2_gfdl585 <- data.frame(lat = df_nrslarvae2_gfdl585$lat, 
+                                        lon = df_nrslarvae2_gfdl585$lon, 
+                                        dist = df_nrslarvae2_gfdl585$dist,
+                                        avg_pred = rowSums(df_nrslarvae2_gfdl585[, x])/30)
+saveRDS(df_nrslarvae_avg2_gfdl585, file = here("data", "df_nrslarvae_avg2_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg5_gfdl585, "Forecasted Distribution 2040 - 2069 \n GFDL SSP585")
+grid_predict(df_nrslarvae_avg2_gfdl585, "Forecasted Distribution 2040 - 2069 \n gfdl SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp585_2.jpg'),
@@ -871,56 +775,43 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_gfdl_ssp585,
-                                salts_gfdl_ssp585, 17,
-                                larval_formula, 1994)
+gfdl_temps3 <- readRDS(here('data', 'gfdl_forecast_temp3.rds'))
+gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
+
+preds_nrslarvae3_gfdl585 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                      5, 'ssp585', gfdl_temps3, 
+                                      gfdl_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae6 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_gfdl585 <- list(preds_nrslarvae3_gfdl585[[1]], preds_nrslarvae3_gfdl585[[2]],
+                              preds_nrslarvae3_gfdl585[[3]], preds_nrslarvae3_gfdl585[[4]],
+                              preds_nrslarvae3_gfdl585[[5]], preds_nrslarvae3_gfdl585[[6]],
+                              preds_nrslarvae3_gfdl585[[7]], preds_nrslarvae3_gfdl585[[8]],
+                              preds_nrslarvae3_gfdl585[[9]], preds_nrslarvae3_gfdl585[[10]],
+                              preds_nrslarvae3_gfdl585[[11]], preds_nrslarvae3_gfdl585[[12]],
+                              preds_nrslarvae3_gfdl585[[13]], preds_nrslarvae3_gfdl585[[14]],
+                              preds_nrslarvae3_gfdl585[[15]], preds_nrslarvae3_gfdl585[[16]],
+                              preds_nrslarvae3_gfdl585[[17]], preds_nrslarvae3_gfdl585[[18]],
+                              preds_nrslarvae3_gfdl585[[19]], preds_nrslarvae3_gfdl585[[20]],
+                              preds_nrslarvae3_gfdl585[[21]], preds_nrslarvae3_gfdl585[[22]],
+                              preds_nrslarvae3_gfdl585[[23]], preds_nrslarvae3_gfdl585[[24]],
+                              preds_nrslarvae3_gfdl585[[25]], preds_nrslarvae3_gfdl585[[26]], 
+                              preds_nrslarvae3_gfdl585[[27]], preds_nrslarvae3_gfdl585[[28]], 
+                              preds_nrslarvae3_gfdl585[[29]], preds_nrslarvae3_gfdl585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae6), fixed = T)
-df_nrslarvae_avg6_gfdl585 <- data.frame(lat = df_nrslarvae6$lat, 
-                                         lon = df_nrslarvae6$lon, 
-                                         dist = df_nrslarvae6$dist,
-                                         avg_pred = rowSums(df_nrslarvae6[, x])/30)
-saveRDS(df_nrslarvae_avg6_gfdl585, file = here("data", "df_nrslarvae_avg6_gfdl585.rds"))
+x <- grepl("pred", names(df_nrslarvae3_gfdl585), fixed = T)
+df_nrslarvae_avg3_gfdl585 <- data.frame(lat = df_nrslarvae3_gfdl585$lat, 
+                                        lon = df_nrslarvae3_gfdl585$lon, 
+                                        dist = df_nrslarvae3_gfdl585$dist,
+                                        avg_pred = rowSums(df_nrslarvae3_gfdl585[, x])/30)
+saveRDS(df_nrslarvae_avg3_gfdl585, file = here("data", "df_nrslarvae_avg3_gfdl585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg6_gfdl585, "Forecasted Distribution 2070 - 2099 \n GFDL SSP585")
+grid_predict(df_nrslarvae_avg3_gfdl585, "Forecasted Distribution 2070 - 2099 \n gfdl SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_gfdl_ssp585_3.jpg'),
@@ -930,60 +821,47 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_gfdl_ssp585)
-rm(salts_gfdl_ssp585)
+
+rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
+   gfdl_salts1, gfdl_salts2, gfdl_salts3)
 
 
 ##### MIROC 126 ----------------------------------------------------------------------------------------------------------------------------
-temps_miroc_ssp126 <- readRDS(here('data', 'temps_miroc_ssp126.rds'))
-salts_miroc_ssp126 <- readRDS(here('data', 'salts_miroc_ssp126.rds'))
+miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
+miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
-## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 5,
-                               larval_formula, 1994)
+preds_nrslarvae1_miroc126 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                       5, 'ssp126', miroc_temps1, 
+                                       miroc_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae1 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_miroc126 <- list(preds_nrslarvae1_miroc126[[1]], preds_nrslarvae1_miroc126[[2]],
+                               preds_nrslarvae1_miroc126[[3]], preds_nrslarvae1_miroc126[[4]],
+                               preds_nrslarvae1_miroc126[[5]], preds_nrslarvae1_miroc126[[6]],
+                               preds_nrslarvae1_miroc126[[7]], preds_nrslarvae1_miroc126[[8]],
+                               preds_nrslarvae1_miroc126[[9]], preds_nrslarvae1_miroc126[[10]],
+                               preds_nrslarvae1_miroc126[[11]], preds_nrslarvae1_miroc126[[12]],
+                               preds_nrslarvae1_miroc126[[13]], preds_nrslarvae1_miroc126[[14]],
+                               preds_nrslarvae1_miroc126[[15]], preds_nrslarvae1_miroc126[[16]],
+                               preds_nrslarvae1_miroc126[[17]], preds_nrslarvae1_miroc126[[18]],
+                               preds_nrslarvae1_miroc126[[19]], preds_nrslarvae1_miroc126[[20]],
+                               preds_nrslarvae1_miroc126[[21]], preds_nrslarvae1_miroc126[[22]],
+                               preds_nrslarvae1_miroc126[[23]], preds_nrslarvae1_miroc126[[24]],
+                               preds_nrslarvae1_miroc126[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae1), fixed = T)
-df_nrslarvae_avg1_miroc126 <- data.frame(lat = df_nrslarvae1$lat, 
-                                          lon = df_nrslarvae1$lon, 
-                                          dist = df_nrslarvae1$dist,
-                                          avg_pred = rowSums(df_nrslarvae1[, x])/25)
+x <- grepl("pred", names(df_nrslarvae1_miroc126), fixed = T)
+df_nrslarvae_avg1_miroc126 <- data.frame(lat = df_nrslarvae1_miroc126$lat, 
+                                         lon = df_nrslarvae1_miroc126$lon, 
+                                         dist = df_nrslarvae1_miroc126$dist,
+                                         avg_pred = rowSums(df_nrslarvae1_miroc126[, x])/25)
 saveRDS(df_nrslarvae_avg1_miroc126, file = here("data", "df_nrslarvae_avg1_miroc126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n MIROC SSP126")
+grid_predict(df_nrslarvae_avg1_miroc126, "Forecasted Distribution 2015 - 2039 \n miroc SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp126_1.jpg'),
@@ -995,56 +873,43 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_miroc_ssp126,
-                               salts_miroc_ssp126, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 11,
-                                larval_formula, 1994)
+miroc_temps2 <- readRDS(here('data', 'miroc_forecast_temp2.rds'))
+miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
+
+preds_nrslarvae2_miroc126 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                       5, 'ssp126', miroc_temps2, 
+                                       miroc_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae2 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_miroc126 <- list(preds_nrslarvae2_miroc126[[1]], preds_nrslarvae2_miroc126[[2]],
+                               preds_nrslarvae2_miroc126[[3]], preds_nrslarvae2_miroc126[[4]],
+                               preds_nrslarvae2_miroc126[[5]], preds_nrslarvae2_miroc126[[6]],
+                               preds_nrslarvae2_miroc126[[7]], preds_nrslarvae2_miroc126[[8]],
+                               preds_nrslarvae2_miroc126[[9]], preds_nrslarvae2_miroc126[[10]],
+                               preds_nrslarvae2_miroc126[[11]], preds_nrslarvae2_miroc126[[12]],
+                               preds_nrslarvae2_miroc126[[13]], preds_nrslarvae2_miroc126[[14]],
+                               preds_nrslarvae2_miroc126[[15]], preds_nrslarvae2_miroc126[[16]],
+                               preds_nrslarvae2_miroc126[[17]], preds_nrslarvae2_miroc126[[18]],
+                               preds_nrslarvae2_miroc126[[19]], preds_nrslarvae2_miroc126[[20]],
+                               preds_nrslarvae2_miroc126[[21]], preds_nrslarvae2_miroc126[[22]],
+                               preds_nrslarvae2_miroc126[[23]], preds_nrslarvae2_miroc126[[24]],
+                               preds_nrslarvae2_miroc126[[25]], preds_nrslarvae2_miroc126[[26]],
+                               preds_nrslarvae2_miroc126[[27]], preds_nrslarvae2_miroc126[[28]],
+                               preds_nrslarvae2_miroc126[[29]], preds_nrslarvae2_miroc126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae2), fixed = T)
-df_nrslarvae_avg2_miroc126 <- data.frame(lat = df_nrslarvae2$lat, 
-                                          lon = df_nrslarvae2$lon, 
-                                          dist = df_nrslarvae2$dist,
-                                          avg_pred = rowSums(df_nrslarvae2[, x])/30)
+x <- grepl("pred", names(df_nrslarvae2_miroc126), fixed = T)
+df_nrslarvae_avg2_miroc126 <- data.frame(lat = df_nrslarvae2_miroc126$lat, 
+                                         lon = df_nrslarvae2_miroc126$lon, 
+                                         dist = df_nrslarvae2_miroc126$dist,
+                                         avg_pred = rowSums(df_nrslarvae2_miroc126[, x])/30)
 saveRDS(df_nrslarvae_avg2_miroc126, file = here("data", "df_nrslarvae_avg2_miroc126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n MIROC SSP126")
+grid_predict(df_nrslarvae_avg2_miroc126, "Forecasted Distribution 2040 - 2069 \n miroc SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp126_2.jpg'),
@@ -1056,56 +921,43 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_miroc_ssp126,
-                                salts_miroc_ssp126, 17,
-                                larval_formula, 1994)
+miroc_temps3 <- readRDS(here('data', 'miroc_forecast_temp3.rds'))
+miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
+
+preds_nrslarvae3_miroc126 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                       5, 'ssp126', miroc_temps3, 
+                                       miroc_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae3 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_miroc126 <- list(preds_nrslarvae3_miroc126[[1]], preds_nrslarvae3_miroc126[[2]],
+                               preds_nrslarvae3_miroc126[[3]], preds_nrslarvae3_miroc126[[4]],
+                               preds_nrslarvae3_miroc126[[5]], preds_nrslarvae3_miroc126[[6]],
+                               preds_nrslarvae3_miroc126[[7]], preds_nrslarvae3_miroc126[[8]],
+                               preds_nrslarvae3_miroc126[[9]], preds_nrslarvae3_miroc126[[10]],
+                               preds_nrslarvae3_miroc126[[11]], preds_nrslarvae3_miroc126[[12]],
+                               preds_nrslarvae3_miroc126[[13]], preds_nrslarvae3_miroc126[[14]],
+                               preds_nrslarvae3_miroc126[[15]], preds_nrslarvae3_miroc126[[16]],
+                               preds_nrslarvae3_miroc126[[17]], preds_nrslarvae3_miroc126[[18]],
+                               preds_nrslarvae3_miroc126[[19]], preds_nrslarvae3_miroc126[[20]],
+                               preds_nrslarvae3_miroc126[[21]], preds_nrslarvae3_miroc126[[22]],
+                               preds_nrslarvae3_miroc126[[23]], preds_nrslarvae3_miroc126[[24]],
+                               preds_nrslarvae3_miroc126[[25]], preds_nrslarvae3_miroc126[[26]], 
+                               preds_nrslarvae3_miroc126[[27]], preds_nrslarvae3_miroc126[[28]], 
+                               preds_nrslarvae3_miroc126[[29]], preds_nrslarvae3_miroc126[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae3), fixed = T)
-df_nrslarvae_avg3_miroc126 <- data.frame(lat = df_nrslarvae3$lat, 
-                                          lon = df_nrslarvae3$lon, 
-                                          dist = df_nrslarvae3$dist,
-                                          avg_pred = rowSums(df_nrslarvae3[, x])/30)
+x <- grepl("pred", names(df_nrslarvae3_miroc126), fixed = T)
+df_nrslarvae_avg3_miroc126 <- data.frame(lat = df_nrslarvae3_miroc126$lat, 
+                                         lon = df_nrslarvae3_miroc126$lon, 
+                                         dist = df_nrslarvae3_miroc126$dist,
+                                         avg_pred = rowSums(df_nrslarvae3_miroc126[, x])/30)
 saveRDS(df_nrslarvae_avg3_miroc126, file = here("data", "df_nrslarvae_avg3_miroc126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n MIROC SSP126")
+grid_predict(df_nrslarvae_avg3_miroc126, "Forecasted Distribution 2070 - 2099 \n miroc SSP126")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp126_3.jpg'),
@@ -1115,59 +967,47 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_miroc_ssp126)
-rm(salts_miroc_ssp126)
+
+rm(miroc_temps1, miroc_temps2, miroc_temps3,
+   miroc_salts1, miroc_salts2, miroc_salts3)
 
 ##### MIROC 585 -----------------------------------------------------------------------------------------------------------------
-temps_miroc_ssp585 <- readRDS(here('data', 'temps_miroc_ssp585.rds'))
-salts_miroc_ssp585 <- readRDS(here('data', 'salts_miroc_ssp585.rds'))
-
 ## 2015 - 2039
-grids_nrslarvae1 <- pred_loop(2015:2019, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 1,
-                               larval_formula, 1994)
-grids_nrslarvae2 <- pred_loop(2020:2024, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 2,
-                               larval_formula, 1994)
-grids_nrslarvae3 <- pred_loop(2025:2029, nrs_larvae, 130,
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 3,
-                               larval_formula, 1994)
-grids_nrslarvae4 <- pred_loop(2030:2034, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 4,
-                               larval_formula, 1994)
-grids_nrslarvae5 <- pred_loop(2035:2039, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 5,
-                               larval_formula, 1994)
+miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
+miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
+
+preds_nrslarvae1_miroc585 <- pred_loop(2015:2039, nrs_larvae, 130,
+                                       5, 'ssp585', miroc_temps1, 
+                                       miroc_salts1, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae4 <- list(grids_nrslarvae1[[1]], grids_nrslarvae1[[2]], grids_nrslarvae1[[3]], 
-                       grids_nrslarvae1[[4]], grids_nrslarvae1[[5]], grids_nrslarvae2[[1]], 
-                       grids_nrslarvae2[[2]], grids_nrslarvae2[[3]], grids_nrslarvae2[[4]],
-                       grids_nrslarvae2[[5]], grids_nrslarvae3[[1]], grids_nrslarvae3[[2]], 
-                       grids_nrslarvae3[[3]], grids_nrslarvae3[[4]], grids_nrslarvae3[[5]],
-                       grids_nrslarvae4[[1]], grids_nrslarvae4[[2]], grids_nrslarvae4[[3]], 
-                       grids_nrslarvae4[[4]], grids_nrslarvae4[[5]], grids_nrslarvae5[[1]], 
-                       grids_nrslarvae5[[2]], grids_nrslarvae5[[3]], grids_nrslarvae5[[4]],
-                       grids_nrslarvae5[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae1_miroc585 <- list(preds_nrslarvae1_miroc585[[1]], preds_nrslarvae1_miroc585[[2]],
+                               preds_nrslarvae1_miroc585[[3]], preds_nrslarvae1_miroc585[[4]],
+                               preds_nrslarvae1_miroc585[[5]], preds_nrslarvae1_miroc585[[6]],
+                               preds_nrslarvae1_miroc585[[7]], preds_nrslarvae1_miroc585[[8]],
+                               preds_nrslarvae1_miroc585[[9]], preds_nrslarvae1_miroc585[[10]],
+                               preds_nrslarvae1_miroc585[[11]], preds_nrslarvae1_miroc585[[12]],
+                               preds_nrslarvae1_miroc585[[13]], preds_nrslarvae1_miroc585[[14]],
+                               preds_nrslarvae1_miroc585[[15]], preds_nrslarvae1_miroc585[[16]],
+                               preds_nrslarvae1_miroc585[[17]], preds_nrslarvae1_miroc585[[18]],
+                               preds_nrslarvae1_miroc585[[19]], preds_nrslarvae1_miroc585[[20]],
+                               preds_nrslarvae1_miroc585[[21]], preds_nrslarvae1_miroc585[[22]],
+                               preds_nrslarvae1_miroc585[[23]], preds_nrslarvae1_miroc585[[24]],
+                               preds_nrslarvae1_miroc585[[25]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae4), fixed = T)
-df_nrslarvae_avg4_miroc585 <- data.frame(lat = df_nrslarvae4$lat, 
-                                          lon = df_nrslarvae4$lon, 
-                                          dist = df_nrslarvae4$dist,
-                                          avg_pred = rowSums(df_nrslarvae4[, x])/25)
-saveRDS(df_nrslarvae_avg4_miroc585, file = here("data", "df_nrslarvae_avg4_miroc585.rds"))
+x <- grepl("pred", names(df_nrslarvae1_miroc585), fixed = T)
+df_nrslarvae_avg1_miroc585 <- data.frame(lat = df_nrslarvae1_miroc585$lat, 
+                                         lon = df_nrslarvae1_miroc585$lon, 
+                                         dist = df_nrslarvae1_miroc585$dist,
+                                         avg_pred = rowSums(df_nrslarvae1_miroc585[, x])/25)
+saveRDS(df_nrslarvae_avg1_miroc585, file = here("data", "df_nrslarvae_avg1_miroc585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg4_miroc585, "Forecasted Distribution 2015 - 2039 \n MIROC SSP585")
+grid_predict(df_nrslarvae_avg1_miroc585, "Forecasted Distribution 2015 - 2039 \n miroc SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp585_1.jpg'),
@@ -1179,56 +1019,43 @@ dev.off()
 
 
 ## 2040 - 2069
-grids_nrslarvae6 <- pred_loop(2040:2044, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 6,
-                               larval_formula, 1994)
-grids_nrslarvae7 <- pred_loop(2045:2049, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 7,
-                               larval_formula, 1994)
-grids_nrslarvae8 <- pred_loop(2050:2054, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 8,
-                               larval_formula, 1994)
-grids_nrslarvae9 <- pred_loop(2055:2059, nrs_larvae, 130, 
-                               temps_miroc_ssp585,
-                               salts_miroc_ssp585, 9,
-                               larval_formula, 1994)
-grids_nrslarvae10 <- pred_loop(2060:2064, nrs_larvae, 130, 
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 10,
-                                larval_formula, 1994)
-grids_nrslarvae11 <- pred_loop(2065:2069, nrs_larvae, 130, 
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 11,
-                                larval_formula, 1994)
+miroc_temps2 <- readRDS(here('data', 'miroc_forecast_temp2.rds'))
+miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
+
+preds_nrslarvae2_miroc585 <- pred_loop(2040:2069, nrs_larvae, 130,
+                                       5, 'ssp585', miroc_temps2, 
+                                       miroc_salts2, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae5 <- list(grids_nrslarvae6[[1]], grids_nrslarvae6[[2]], grids_nrslarvae6[[3]], 
-                       grids_nrslarvae6[[4]], grids_nrslarvae6[[5]], grids_nrslarvae7[[1]], 
-                       grids_nrslarvae7[[2]], grids_nrslarvae7[[3]], grids_nrslarvae7[[4]],
-                       grids_nrslarvae7[[5]], grids_nrslarvae8[[1]], grids_nrslarvae8[[2]], 
-                       grids_nrslarvae8[[3]], grids_nrslarvae8[[4]], grids_nrslarvae8[[5]],
-                       grids_nrslarvae9[[1]], grids_nrslarvae9[[2]], grids_nrslarvae9[[3]], 
-                       grids_nrslarvae9[[4]], grids_nrslarvae9[[5]], grids_nrslarvae10[[1]], 
-                       grids_nrslarvae10[[2]], grids_nrslarvae10[[3]], grids_nrslarvae10[[4]],
-                       grids_nrslarvae11[[5]], grids_nrslarvae11[[1]], grids_nrslarvae11[[2]],
-                       grids_nrslarvae11[[3]], grids_nrslarvae11[[4]], grids_nrslarvae11[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae2_miroc585 <- list(preds_nrslarvae2_miroc585[[1]], preds_nrslarvae2_miroc585[[2]],
+                               preds_nrslarvae2_miroc585[[3]], preds_nrslarvae2_miroc585[[4]],
+                               preds_nrslarvae2_miroc585[[5]], preds_nrslarvae2_miroc585[[6]],
+                               preds_nrslarvae2_miroc585[[7]], preds_nrslarvae2_miroc585[[8]],
+                               preds_nrslarvae2_miroc585[[9]], preds_nrslarvae2_miroc585[[10]],
+                               preds_nrslarvae2_miroc585[[11]], preds_nrslarvae2_miroc585[[12]],
+                               preds_nrslarvae2_miroc585[[13]], preds_nrslarvae2_miroc585[[14]],
+                               preds_nrslarvae2_miroc585[[15]], preds_nrslarvae2_miroc585[[16]],
+                               preds_nrslarvae2_miroc585[[17]], preds_nrslarvae2_miroc585[[18]],
+                               preds_nrslarvae2_miroc585[[19]], preds_nrslarvae2_miroc585[[20]],
+                               preds_nrslarvae2_miroc585[[21]], preds_nrslarvae2_miroc585[[22]],
+                               preds_nrslarvae2_miroc585[[23]], preds_nrslarvae2_miroc585[[24]],
+                               preds_nrslarvae2_miroc585[[25]], preds_nrslarvae2_miroc585[[26]],
+                               preds_nrslarvae2_miroc585[[27]], preds_nrslarvae2_miroc585[[28]],
+                               preds_nrslarvae2_miroc585[[29]], preds_nrslarvae2_miroc585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae5), fixed = T)
-df_nrslarvae_avg5_miroc585 <- data.frame(lat = df_nrslarvae5$lat, 
-                                          lon = df_nrslarvae5$lon, 
-                                          dist = df_nrslarvae5$dist,
-                                          avg_pred = rowSums(df_nrslarvae5[, x])/30)
-saveRDS(df_nrslarvae_avg5_miroc585, file = here("data", "df_nrslarvae_avg5_miroc585.rds"))
+x <- grepl("pred", names(df_nrslarvae2_miroc585), fixed = T)
+df_nrslarvae_avg2_miroc585 <- data.frame(lat = df_nrslarvae2_miroc585$lat, 
+                                         lon = df_nrslarvae2_miroc585$lon, 
+                                         dist = df_nrslarvae2_miroc585$dist,
+                                         avg_pred = rowSums(df_nrslarvae2_miroc585[, x])/30)
+saveRDS(df_nrslarvae_avg2_miroc585, file = here("data", "df_nrslarvae_avg2_miroc585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg5_miroc585, "Forecasted Distribution 2040 - 2069 \n MIROC SSP585")
+grid_predict(df_nrslarvae_avg2_miroc585, "Forecasted Distribution 2040 - 2069 \n miroc SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp585_2.jpg'),
@@ -1240,56 +1067,43 @@ dev.off()
 
 
 ## 2070 - 2099
-grids_nrslarvae12 <- pred_loop(2070:2074, nrs_larvae, 130,
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 12,
-                                larval_formula, 1994)
-grids_nrslarvae13 <- pred_loop(2075:2079, nrs_larvae, 130,
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 13,
-                                larval_formula, 1994)
-grids_nrslarvae14 <- pred_loop(2080:2084, nrs_larvae, 130,
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 14,
-                                larval_formula, 1994)
-grids_nrslarvae15 <- pred_loop(2085:2089, nrs_larvae, 130,
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 15,
-                                larval_formula, 1994)
-grids_nrslarvae16 <- pred_loop(2090:2094, nrs_larvae, 130,
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 16,
-                                larval_formula, 1994)
-grids_nrslarvae17 <- pred_loop(2095:2099, nrs_larvae, 130, 
-                                temps_miroc_ssp585,
-                                salts_miroc_ssp585, 17,
-                                larval_formula, 1994)
+miroc_temps3 <- readRDS(here('data', 'miroc_forecast_temp3.rds'))
+miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
+
+preds_nrslarvae3_miroc585 <- pred_loop(2070:2099, nrs_larvae, 130,
+                                       5, 'ssp585', miroc_temps3, 
+                                       miroc_salts3, larval_formula)
 
 # Combine into one data frame
-df_nrslarvae6 <- list(grids_nrslarvae12[[1]], grids_nrslarvae12[[2]], grids_nrslarvae12[[3]], 
-                       grids_nrslarvae12[[4]], grids_nrslarvae12[[5]], grids_nrslarvae13[[1]], 
-                       grids_nrslarvae13[[2]], grids_nrslarvae13[[3]], grids_nrslarvae13[[4]],
-                       grids_nrslarvae13[[5]], grids_nrslarvae14[[1]], grids_nrslarvae14[[2]], 
-                       grids_nrslarvae14[[3]], grids_nrslarvae14[[4]], grids_nrslarvae14[[5]],
-                       grids_nrslarvae15[[1]], grids_nrslarvae15[[2]], grids_nrslarvae15[[3]], 
-                       grids_nrslarvae15[[4]], grids_nrslarvae15[[5]], grids_nrslarvae16[[1]], 
-                       grids_nrslarvae16[[2]], grids_nrslarvae16[[3]], grids_nrslarvae16[[4]],
-                       grids_nrslarvae17[[5]], grids_nrslarvae17[[1]], grids_nrslarvae17[[2]],
-                       grids_nrslarvae17[[3]], grids_nrslarvae17[[4]], grids_nrslarvae17[[5]]) %>%
-  reduce(inner_join, by = c("lon", "lat", "dist")) 
+df_nrslarvae3_miroc585 <- list(preds_nrslarvae3_miroc585[[1]], preds_nrslarvae3_miroc585[[2]],
+                               preds_nrslarvae3_miroc585[[3]], preds_nrslarvae3_miroc585[[4]],
+                               preds_nrslarvae3_miroc585[[5]], preds_nrslarvae3_miroc585[[6]],
+                               preds_nrslarvae3_miroc585[[7]], preds_nrslarvae3_miroc585[[8]],
+                               preds_nrslarvae3_miroc585[[9]], preds_nrslarvae3_miroc585[[10]],
+                               preds_nrslarvae3_miroc585[[11]], preds_nrslarvae3_miroc585[[12]],
+                               preds_nrslarvae3_miroc585[[13]], preds_nrslarvae3_miroc585[[14]],
+                               preds_nrslarvae3_miroc585[[15]], preds_nrslarvae3_miroc585[[16]],
+                               preds_nrslarvae3_miroc585[[17]], preds_nrslarvae3_miroc585[[18]],
+                               preds_nrslarvae3_miroc585[[19]], preds_nrslarvae3_miroc585[[20]],
+                               preds_nrslarvae3_miroc585[[21]], preds_nrslarvae3_miroc585[[22]],
+                               preds_nrslarvae3_miroc585[[23]], preds_nrslarvae3_miroc585[[24]],
+                               preds_nrslarvae3_miroc585[[25]], preds_nrslarvae3_miroc585[[26]], 
+                               preds_nrslarvae3_miroc585[[27]], preds_nrslarvae3_miroc585[[28]], 
+                               preds_nrslarvae3_miroc585[[29]], preds_nrslarvae3_miroc585[[30]]) %>%
+  reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
 
 # Generate average prediction from all predictions
-x <- grepl("pred", names(df_nrslarvae6), fixed = T)
-df_nrslarvae_avg6_miroc585 <- data.frame(lat = df_nrslarvae6$lat, 
-                                          lon = df_nrslarvae6$lon, 
-                                          dist = df_nrslarvae6$dist,
-                                          avg_pred = rowSums(df_nrslarvae6[, x])/30)
-saveRDS(df_nrslarvae_avg6_miroc585, file = here("data", "df_nrslarvae_avg6_miroc585.rds"))
+x <- grepl("pred", names(df_nrslarvae3_miroc585), fixed = T)
+df_nrslarvae_avg3_miroc585 <- data.frame(lat = df_nrslarvae3_miroc585$lat, 
+                                         lon = df_nrslarvae3_miroc585$lon, 
+                                         dist = df_nrslarvae3_miroc585$dist,
+                                         avg_pred = rowSums(df_nrslarvae3_miroc585[, x])/30)
+saveRDS(df_nrslarvae_avg3_miroc585, file = here("data", "df_nrslarvae_avg3_miroc585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_avg6_miroc585, "Forecasted Distribution 2070 - 2099 \n MIROC SSP585")
+grid_predict(df_nrslarvae_avg3_miroc585, "Forecasted Distribution 2070 - 2099 \n miroc SSP585")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_miroc_ssp585_3.jpg'),
@@ -1299,11 +1113,14 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-rm(temps_miroc_ssp585)
-rm(salts_miroc_ssp585)
+
+rm(miroc_temps1, miroc_temps2, miroc_temps3,
+   miroc_salts1, miroc_salts2, miroc_salts3)
+
 
 ### Average Predictions ------------------------------------------------------------------------------------------------------------
-grid_predict <- function(grid, title){
+# Change to have same scale for all
+grid_predict_larvae <- function(grid, title){
   nlat = 40
   nlon = 60
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
@@ -1337,7 +1154,7 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(0, 1000),
+        zlim = c(0, 547),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -1354,14 +1171,12 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(0, 1000),
+             zlim = c(0, 547),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
 
-
 #### 2015-2039 ---------------------------------------------------------------------------------------------------------------------
-##### Larvae
 df_nrslarvae_avg1_cesm126 <- readRDS(here('data', 'df_nrslarvae_avg1_cesm126.rds'))
 df_nrslarvae_avg4_cesm585 <- readRDS(here('data', 'df_nrslarvae_avg4_cesm585.rds'))
 df_nrslarvae_avg1_gfdl126 <- readRDS(here('data', 'df_nrslarvae_avg1_gfdl126.rds'))
@@ -1370,19 +1185,19 @@ df_nrslarvae_avg1_miroc126 <- readRDS(here('data', 'df_nrslarvae_avg1_miroc126.r
 df_nrslarvae_avg4_miroc585 <- readRDS(here('data', 'df_nrslarvae_avg4_miroc585.rds'))
 
 df_nrslarvae_merged1 <- list(df_nrslarvae_avg1_cesm126, df_nrslarvae_avg4_cesm585,
-                              df_nrslarvae_avg1_gfdl126, df_nrslarvae_avg4_gfdl585,
-                              df_nrslarvae_avg1_miroc126, df_nrslarvae_avg4_miroc585) %>%
+                             df_nrslarvae_avg1_gfdl126, df_nrslarvae_avg4_gfdl585,
+                             df_nrslarvae_avg1_miroc126, df_nrslarvae_avg4_miroc585) %>%
   reduce(inner_join, by = c("lon", "lat", "dist"))
 
 x <- grepl("pred", names(df_nrslarvae_merged1), fixed = T)
 df_nrslarvae_final1 <- data.frame(lat = df_nrslarvae_merged1$lat,
-                                   lon = df_nrslarvae_merged1$lon,
-                                   avg_pred = (rowSums(df_nrslarvae_merged1[, x])/6))
+                                  lon = df_nrslarvae_merged1$lon,
+                                  avg_pred = (rowSums(df_nrslarvae_merged1[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_final1, "Forecasted Distribution 2015 - 2039")
+grid_predict_larvae(df_nrslarvae_final1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
-         here('results/rocksole_forecast',
+         here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg1.jpg'),
          height = 6,
          width = 6,
@@ -1392,7 +1207,6 @@ dev.off()
 
 
 #### 2040-2069 ---------------------------------------------------------------------------------------------------------------------
-##### Larvae
 df_nrslarvae_avg2_cesm126 <- readRDS(here('data', 'df_nrslarvae_avg2_cesm126.rds'))
 df_nrslarvae_avg5_cesm585 <- readRDS(here('data', 'df_nrslarvae_avg5_cesm585.rds'))
 df_nrslarvae_avg2_gfdl126 <- readRDS(here('data', 'df_nrslarvae_avg2_gfdl126.rds'))
@@ -1401,19 +1215,19 @@ df_nrslarvae_avg2_miroc126 <- readRDS(here('data', 'df_nrslarvae_avg2_miroc126.r
 df_nrslarvae_avg5_miroc585 <- readRDS(here('data', 'df_nrslarvae_avg5_miroc585.rds'))
 
 df_nrslarvae_merged2 <- list(df_nrslarvae_avg2_cesm126, df_nrslarvae_avg5_cesm585,
-                              df_nrslarvae_avg2_gfdl126, df_nrslarvae_avg5_gfdl585,
-                              df_nrslarvae_avg2_miroc126, df_nrslarvae_avg5_miroc585) %>%
+                             df_nrslarvae_avg2_gfdl126, df_nrslarvae_avg5_gfdl585,
+                             df_nrslarvae_avg2_miroc126, df_nrslarvae_avg5_miroc585) %>%
   reduce(inner_join, by = c("lon", "lat", "dist"))
 
 x <- grepl("pred", names(df_nrslarvae_merged2), fixed = T)
 df_nrslarvae_final2 <- data.frame(lat = df_nrslarvae_merged2$lat,
-                                   lon = df_nrslarvae_merged2$lon,
-                                   avg_pred = (rowSums(df_nrslarvae_merged2[, x])/6))
+                                  lon = df_nrslarvae_merged2$lon,
+                                  avg_pred = (rowSums(df_nrslarvae_merged2[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_final2, "Forecasted Distribution 2040 - 2069")
+grid_predict_larvae(df_nrslarvae_final2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
-         here('results/rocksole_forecast',
+         here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg2.jpg'),
          height = 6,
          width = 6,
@@ -1431,22 +1245,39 @@ df_nrslarvae_avg3_miroc126 <- readRDS(here('data', 'df_nrslarvae_avg3_miroc126.r
 df_nrslarvae_avg6_miroc585 <- readRDS(here('data', 'df_nrslarvae_avg6_miroc585.rds'))
 
 df_nrslarvae_merged3 <- list(df_nrslarvae_avg3_cesm126, df_nrslarvae_avg6_cesm585,
-                              df_nrslarvae_avg3_gfdl126, df_nrslarvae_avg6_gfdl585,
-                              df_nrslarvae_avg3_miroc126, df_nrslarvae_avg6_miroc585) %>%
+                             df_nrslarvae_avg3_gfdl126, df_nrslarvae_avg6_gfdl585,
+                             df_nrslarvae_avg3_miroc126, df_nrslarvae_avg6_miroc585) %>%
   reduce(inner_join, by = c("lon", "lat", "dist"))
 
 x <- grepl("pred", names(df_nrslarvae_merged3), fixed = T)
 df_nrslarvae_final3 <- data.frame(lat = df_nrslarvae_merged3$lat,
-                                   lon = df_nrslarvae_merged3$lon,
-                                   avg_pred = (rowSums(df_nrslarvae_merged3[, x])/6))
+                                  lon = df_nrslarvae_merged3$lon,
+                                  avg_pred = (rowSums(df_nrslarvae_merged3[, x])/6))
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_nrslarvae_final3, "Forecasted Distribution 2070 - 2099")
+grid_predict_larvae(df_nrslarvae_final3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
-         here('results/rocksole_forecast',
+         here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg3.jpg'),
          height = 6,
          width = 6,
          res = 200,
          units = 'in')
 dev.off()
+
+#### Make GIFs -----------------------------------------------------------------------------------------------------------------------
+library(magick)
+base_dir <- getwd()
+dir_out <- file.path(base_dir, 'results', 'rocksole_forecast', 'nrslarvae_avgs')
+
+imgs <- list.files(dir_out, full.names = T)
+img_list <- lapply(imgs, image_read)
+
+img_joined <- image_join(img_list)
+
+img_animated <- image_animate(img_joined, fps = 1)
+
+img_animated
+
+image_write(image = img_animated,
+            path = here('results', 'rocksole_forecast', "nrslarvae_avgs.gif"))
