@@ -280,7 +280,10 @@ gc()
 
 ### Figures ----
 summarise_years <- function(df){
-  temp_sum_y <- df %>%
+  temp_sum_y <- df %>% 
+    filter(lon <= 170 & lon >= 165,
+           lat >= 56 & lat <= 58,
+           month == 4) %>%
     group_by(projection, lat, lon, year) %>%
     summarise(mean_temp = mean(bc), .groups = 'keep')
   
@@ -289,10 +292,14 @@ summarise_years <- function(df){
     mutate(value = mean(mean_temp),
            min = min(mean_temp),
            max = max(mean_temp))
+  return(sum_year)
 }
 
 summarise_years_hist <- function(df){
   temp_sum_y <- df %>%
+    filter(lon <= 170 & lon >= 165,
+           lat >= 56 & lat <= 58,
+           month == 4) %>%
     group_by(projection, lat, lon, year) %>%
     summarise(mean_temp = mean(temp), .groups = 'keep')
   
@@ -301,6 +308,21 @@ summarise_years_hist <- function(df){
     mutate(value = mean(mean_temp),
            min = min(mean_temp),
            max = max(mean_temp))
+}
+
+summarise_years_hist_salt <- function(df){
+  salt_sum_y <- df %>%
+    filter(lon <= 170 & lon >= 165,
+           lat >= 56 & lat <= 58,
+           month == 4) %>%
+    group_by(projection, lat, lon, year) %>%
+    summarise(mean_salt = mean(salt), .groups = 'keep')
+  
+  sum_year <- salt_sum_y %>%
+    group_by(projection, year) %>%
+    mutate(value = mean(mean_salt),
+           min = min(mean_salt),
+           max = max(mean_salt))
 }
 
 # CESM
@@ -326,20 +348,9 @@ ggplot(cesm_dfs, aes(x = year,
                      fill = projection)) +
   geom_line(aes(group = projection,
                 color = projection)) +
-  geom_ribbon(data = cesm_temp_hist_sum,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = cesm_temp_sum1,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = cesm_temp_sum2,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = cesm_temp_sum3,
-              aes(ymin = min,
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "CESM Projections",
@@ -380,20 +391,9 @@ ggplot(gfdl_dfs, aes(x = year,
                      fill = projection)) +
   geom_line(aes(group = projection,
                 color = projection)) +
-  geom_ribbon(data = gfdl_temp_hist_sum,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = gfdl_temp_sum1,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = gfdl_temp_sum2,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = gfdl_temp_sum3,
-              aes(ymin = min,
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "GFDL Projections",
@@ -416,7 +416,7 @@ miroc_temp_dfs1 <- readRDS('F:/data/miroc_forecast_temp1.rds')
 miroc_temp_dfs2 <- readRDS('F:/data/miroc_forecast_temp2.rds')
 miroc_temp_dfs3 <- readRDS('F:/data/miroc_forecast_temp3.rds')
 miroc_temp_hist <- filter(readRDS('F:/data/miroc_temp_dfs_trim.rds'),
-                         projection == 'historical')
+                          projection == 'historical')
 
 miroc_temp_sum1 <- summarise_years(miroc_temp_dfs1)
 miroc_temp_sum2 <- summarise_years(miroc_temp_dfs2)
@@ -424,30 +424,19 @@ miroc_temp_sum3 <- summarise_years(miroc_temp_dfs3)
 miroc_temp_hist_sum <- summarise_years_hist(miroc_temp_hist)
 
 miroc_dfs <- bind_rows(miroc_temp_sum1, 
-                      miroc_temp_sum2,
-                      miroc_temp_sum3,
-                      miroc_temp_hist_sum)
+                       miroc_temp_sum2,
+                       miroc_temp_sum3,
+                       miroc_temp_hist_sum)
 
 ggplot(miroc_dfs, aes(x = year,
-                     y = value,
-                     group = projection,
-                     fill = projection)) +
+                      y = value,
+                      group = projection,
+                      fill = projection)) +
   geom_line(aes(group = projection,
                 color = projection)) +
-  geom_ribbon(data = miroc_temp_hist_sum,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = miroc_temp_sum1,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = miroc_temp_sum2,
-              aes(ymin = min,
-                  ymax = max),
-              alpha = 0.2) +
-  geom_ribbon(data = miroc_temp_sum3,
-              aes(ymin = min,
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "MIROC Projections",
@@ -462,5 +451,135 @@ ggplot(miroc_dfs, aes(x = year,
         text = element_text(family = "serif"))
 
 dev.copy(jpeg, 'F:/results/miroc_roms_temps.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
+
+## Salinity
+# CESM
+cesm_salt_dfs1 <- readRDS('F:/data/cesm_forecast_salt1.rds')
+cesm_salt_dfs2 <- readRDS('F:/data/cesm_forecast_salt2.rds')
+cesm_salt_dfs3 <- readRDS('F:/data/cesm_forecast_salt3.rds')
+cesm_salt_hist <- filter(readRDS('F:/data/cesm_salt_dfs_trim.rds'),
+                         projection == 'historical')
+
+cesm_salt_sum1 <- summarise_years(cesm_salt_dfs1)
+cesm_salt_sum2 <- summarise_years(cesm_salt_dfs2)
+cesm_salt_sum3 <- summarise_years(cesm_salt_dfs3)
+cesm_salt_hist_sum <- summarise_years_hist_salt(cesm_salt_hist)
+
+cesm_dfs <- bind_rows(cesm_salt_sum1, 
+                      cesm_salt_sum2,
+                      cesm_salt_sum3,
+                      cesm_salt_hist_sum)
+
+ggplot(cesm_dfs, aes(x = year,
+                     y = value,
+                     group = projection,
+                     fill = projection)) +
+  geom_line(aes(group = projection,
+                color = projection)) +
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "CESM Projections",
+       y = "Salinity",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/cesm_roms_salts.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
+
+# GFDL
+gfdl_salt_dfs1 <- readRDS('F:/data/gfdl_forecast_salt1.rds')
+gfdl_salt_dfs2 <- readRDS('F:/data/gfdl_forecast_salt2.rds')
+gfdl_salt_dfs3 <- readRDS('F:/data/gfdl_forecast_salt3.rds')
+gfdl_salt_hist <- filter(readRDS('F:/data/gfdl_salt_dfs_trim.rds'),
+                         projection == 'historical')
+
+gfdl_salt_sum1 <- summarise_years(gfdl_salt_dfs1)
+gfdl_salt_sum2 <- summarise_years(gfdl_salt_dfs2)
+gfdl_salt_sum3 <- summarise_years(gfdl_salt_dfs3)
+gfdl_salt_hist_sum <- summarise_years_hist_salt(gfdl_salt_hist)
+
+gfdl_dfs <- bind_rows(gfdl_salt_sum1, 
+                      gfdl_salt_sum2,
+                      gfdl_salt_sum3,
+                      gfdl_salt_hist_sum)
+
+ggplot(gfdl_dfs, aes(x = year,
+                     y = value,
+                     group = projection,
+                     fill = projection)) +
+  geom_line(aes(group = projection,
+                color = projection)) +
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "GFDL Projections",
+       y = "Salinity",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/gfdl_roms_salts.jpg', 
+         height = 10, width = 20, units = 'in', res = 200)
+dev.off()
+
+# MIROC
+miroc_salt_dfs1 <- readRDS('F:/data/miroc_forecast_salt1.rds')
+miroc_salt_dfs2 <- readRDS('F:/data/miroc_forecast_salt2.rds')
+miroc_salt_dfs3 <- readRDS('F:/data/miroc_forecast_salt3.rds')
+miroc_salt_hist <- filter(readRDS('F:/data/miroc_salt_dfs_trim.rds'),
+                          projection == 'historical')
+
+miroc_salt_sum1 <- summarise_years(miroc_salt_dfs1)
+miroc_salt_sum2 <- summarise_years(miroc_salt_dfs2)
+miroc_salt_sum3 <- summarise_years(miroc_salt_dfs3)
+miroc_salt_hist_sum <- summarise_years_hist_salt(miroc_salt_hist)
+
+miroc_dfs <- bind_rows(miroc_salt_sum1, 
+                       miroc_salt_sum2,
+                       miroc_salt_sum3,
+                       miroc_salt_hist_sum)
+
+ggplot(miroc_dfs, aes(x = year,
+                      y = value,
+                      group = projection,
+                      fill = projection)) +
+  geom_line(aes(group = projection,
+                color = projection)) +
+  geom_ribbon(aes(group = projection,
+                  fill = projection,
+                  ymin = min,
+                  ymax = max),
+              alpha = 0.2) +
+  labs(title = "MIROC Projections",
+       y = "Salinity",
+       x = "Year") +
+  theme_bw() +
+  theme(axis.title = element_text(size = 22),
+        axis.text = element_text(size = 19),
+        plot.title = element_text(size = 28),
+        legend.text = element_text(size = 19),
+        legend.title = element_text(size = 20),
+        text = element_text(family = "serif"))
+
+dev.copy(jpeg, 'F:/results/miroc_roms_salts.jpg', 
          height = 10, width = 20, units = 'in', res = 200)
 dev.off()
