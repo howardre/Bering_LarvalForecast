@@ -277,6 +277,18 @@ df_pkegg1_cesm126 <- list(preds_pkegg1_cesm126[[1]], preds_pkegg1_cesm126[[2]],
                            preds_pkegg1_cesm126[[25]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
+# Calculate index of abundance per year
+df_pkegg1_cesm126_abund <- map(preds_pkegg1_cesm126, ~ .x %>%
+                                 mutate(rel_abund = pred / sum(pred, na.rm = T)))
+abundances <- sapply(df_pkegg1_cesm126_abund, function(x) colMeans(select(x, rel_abund), na.rm = T))
+
+# Calculate mean predicted abundance per year
+preds_pkegg1_cesm126_avgs <- sapply(preds_pkegg1_cesm126, function(x) colMeans(select(x, pred), na.rm = T))
+df_pkegg1_cesm126_avgs <- data.frame(year = c(2015:2039), 
+                                     avg_pred = preds_pkegg1_cesm126_avgs)
+ggplot(df_pkegg1_cesm126_avgs) +
+  geom_line(aes(x = year,
+                y = avg_pred))
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg1_cesm126), fixed = T)
@@ -325,6 +337,15 @@ df_pkegg2_cesm126 <- list(preds_pkegg2_cesm126[[1]], preds_pkegg2_cesm126[[2]],
                            preds_pkegg2_cesm126[[29]], preds_pkegg2_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
+# Calculate mean predicted abundance per year
+preds_pkegg2_cesm126_avgs <- sapply(preds_pkegg2_cesm126, function(x) colMeans(select(x, pred), na.rm = T))
+df_pkegg2_cesm126_avgs <- data.frame(year = c(2040:2069), 
+                                     avg_pred = preds_pkegg2_cesm126_avgs)
+
+ggplot(df_pkegg2_cesm126_avgs) +
+  geom_line(aes(x = year,
+                y = avg_pred))
+
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg2_cesm126), fixed = T)
@@ -372,6 +393,15 @@ df_pkegg3_cesm126 <- list(preds_pkegg3_cesm126[[1]], preds_pkegg3_cesm126[[2]],
                            preds_pkegg3_cesm126[[27]], preds_pkegg3_cesm126[[28]], 
                            preds_pkegg3_cesm126[[29]], preds_pkegg3_cesm126[[30]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
+
+# Calculate mean predicted abundance per year
+preds_pkegg3_cesm126_avgs <- sapply(preds_pkegg3_cesm126, function(x) colMeans(select(x, pred), na.rm = T))
+df_pkegg3_cesm126_avgs <- data.frame(year = c(2070:2099), 
+                                     avg_pred = preds_pkegg3_cesm126_avgs)
+
+ggplot(df_pkegg3_cesm126_avgs) +
+  geom_line(aes(x = year,
+                y = avg_pred))
 
 
 # Generate average prediction from all predictions
