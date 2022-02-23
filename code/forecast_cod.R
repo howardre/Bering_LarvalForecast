@@ -19,12 +19,6 @@ source(here('code/functions', 'distance_function.R'))
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
-pcod_egg <- as.data.frame(filter((readRDS(here('data', 'pcod_egg.rds'))),
-                                lat >= 52 & lat <= 62,
-                                lon >= -176.5 & lon <= -156.5))
-pcod_egg$mean_temp <- roms_temps$mean[match(pcod_egg$year, roms_temps$year)]
-pcod_egg$catch <- pcod_egg$larvalcatchper10m2 + 1
-
 pcod_larvae <- as.data.frame(filter(readRDS(here('data', 'pcod_larvae.rds')),
                                    lat >= 52 & lat <= 62,
                                    lon >= -176.5 & lon <= -156.5))
