@@ -849,6 +849,11 @@ pk_egg_basenb <- gam(count ~ factor(year) +
                      family = nb(),
                      offset = log(volume_filtered))
 summary(pk_egg_basenb)
+testDispersion(pk_egg_basenb)
+output_pkegg_nb <- simulateResiduals(fittedModel = pk_egg_basenb)
+windows()
+plot(output_pkegg_nb)
+testZeroInflation(output_pkegg_nb)
 # R2: -1.18
 # Deviance: 68.7%
 
@@ -901,6 +906,11 @@ pk_egg_baset <- gam((larvalcatchper10m2 + 1) ~ factor(year) +
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(pk_egg_baset)
+testDispersion(pk_egg_baset)
+output_pkegg_t <- simulateResiduals(fittedModel = pk_egg_baset)
+windows()
+plot(output_pkegg_t)
+testZeroInflation(output_pkegg_t)
 # R2: -0.544
 # Deviance: 66.5%
 
@@ -929,6 +939,11 @@ pk_egg_zip <- gam(count ~ s(year) +  # cannot use year as a factor
                   family = ziP(),
                   offset = log(volume_filtered))
 summary(pk_egg_zip)
+testDispersion(pk_egg_zip)
+output_pkegg_zip <- simulateResiduals(fittedModel = pk_egg_zip)
+windows()
+plot(output_pkegg_zip)
+testZeroInflation(output_pkegg_zip)
 # Deviance: 100%
 
 windows()
@@ -974,12 +989,17 @@ gam.check(pk_egg_ziplss)
 # Two-part binomial and gaussian
 # binomial
 pk_egg$presence <- 1 * (pk_egg$count > 0)
-pk_egg_gam1 <- gam(presence ~ factor(year) +
+pk_egg_gam1 <- gam(presence ~ s(year, bs = "re") +
                      s(doy) +
                      s(lon, lat),
                    data = pk_egg,
                    family = "binomial")
 summary(pk_egg_gam1)
+testDispersion(pk_egg_gam1)
+output_pkegg_gam1 <- simulateResiduals(fittedModel = pk_egg_gam1)
+windows()
+plot(output_pkegg_gam1)
+testZeroInflation(output_pkegg_gam1)
 # R2: 0.309
 # Deviance: 29.2%
 
@@ -987,11 +1007,23 @@ par(mfrow = c(2, 2))
 gam.check(pk_egg_gam1)
 
 # gaussian
-pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ factor(year) +
-                     s(doy) +
-                     s(lon, lat),
-                   data = pk_egg[pk_egg$larvalcatchper10m2 > 0, ])
+pk_egg_abundance <- pk_egg[pk_egg$larvalcatchper10m2 > 0, ]
+pk_egg_gam2 <- gam(log(larvalcatchper10m2 + 1) ~ s(year, bs = "re", k = 4) +
+                     s(doy, k = 4) +
+                     s(lon, lat) +
+                     s(roms_temperature, k = 4) +
+                     s(roms_salinity, k = 4),
+                   data = pk_egg_abundance)
 summary(pk_egg_gam2)
+testDispersion(pk_egg_gam2)
+output_pkegg_gam2 <- simulateResiduals(fittedModel = pk_egg_gam2)
+windows()
+plot(output_pkegg_gam2)
+testZeroInflation(output_pkegg_gam2)
+windows()
+plotResiduals(output_pkegg_gam2, pk_egg_abundance$doy)
+plotResiduals(output_pkegg_gam2, pk_egg_abundance$roms_temperature)
+plotResiduals(output_pkegg_gam2, pk_egg_abundance$roms_salinity)
 # R2: 0.383
 # Deviance: 39.9% 
 
