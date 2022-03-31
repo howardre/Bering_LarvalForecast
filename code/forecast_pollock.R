@@ -12,6 +12,7 @@ library(rgdal)
 library(RColorBrewer)
 library(mgcv)
 library(RANN)
+library(scales)
 source(here('code/functions', 'distance_function.R'))
 
 
@@ -20,13 +21,13 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
 pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
-                                lat >= 52 & lat <= 62,
+                                lat >= 52 & lat <= 60,
                                 lon >= -176.5 & lon <= -156.5))
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
 pk_egg$catch <- pk_egg$larvalcatchper10m2 + 1
 
 pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds')),
-                                   lat >= 52 & lat <= 62,
+                                   lat >= 52 & lat <= 60,
                                    lon >= -176.5 & lon <= -156.5))
 pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
 pk_larvae$catch <- pk_larvae$larvalcatchper10m2 + 1
@@ -39,8 +40,7 @@ egg_formula <- gam(catch ~ s(year, bs = 're') +
                      s(roms_salinity, k = 6) +
                      s(doy, by = mean_temp, k = 6),
                    data = pk_egg,
-                   family = tw(link = 'log'),
-                   method = 'REML')
+                   family = tw(link = 'log'))
 
 larval_formula <- gam(catch ~ s(year, bs = 're') + 
                         s(doy, k = 8) +
@@ -90,25 +90,15 @@ get_preds <- function(data, the_year, doy,
   grid_extent[, c(7, 8)] <- as.data.frame(RANN::nn2(bc_temps[, c('lat', 'lon')],
                                                     grid_extent[, c('lat', 'lon')],
                                                     k = 1))
-  #temporary
-  # message(paste(the_year))
-  # message(paste("nnidx max", max(grid_extent$nn.idx)))
-  # message(paste("nnidx min", min(grid_extent$nn.idx)))
-  # end temporary
   grid_extent$roms_temperature <- bc_temps[c(grid_extent$nn.idx), 10] # Match nearest temp
   grid_extent$roms_salinity <- bc_salts[c(grid_extent$nn.idx), 10] # Match nearest temp
   grid_extent <- grid_extent[-c(6:8)] # remove extra columns before predicting
   
   # Calculate mean temperature
-  
   temp_filtered <- temp_output %>% filter(lon >= -170 & lon <= -165, 
                                           lat >= 56 & lat <= 58,
                                           month >= 2 & month <= 4,
                                           year == the_year)
-  #temporary
-  # message(paste('temp_output pre', nrow(temp_output)))
-  # message(paste("temp filtered", nrow(temp_filtered)))
-  # end temporary
   mean <- mean(temp_filtered$bc, na.rm = T)
   grid_extent$mean_temp <- mean
   
@@ -153,7 +143,7 @@ grid_predict <- function(grid, title){
                                     "#542D20", "#352311", "#191900")))
   image(lond,
         latd,
-        t(matrix(grid$avg_pred,
+        t(matrix(grid$pred_scaled,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -166,7 +156,7 @@ grid_predict <- function(grid, title){
   par(new = TRUE)
   image(lond,
         latd,
-        t(matrix(grid$avg_pred,
+        t(matrix(grid$pred_scaled,
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
@@ -175,8 +165,8 @@ grid_predict <- function(grid, title){
         xlab = "Longitude",
         xlim = c(-176.5, -156.5),
         ylim = c(52, 62),
-        zlim = c(min(grid$avg_pred, na.rm = T), 
-                 max(grid$avg_pred, na.rm = T)),
+        zlim = c(min(grid$pred_scaled, na.rm = T), 
+                 max(grid$pred_scaled, na.rm = T)),
         main = title,
         cex.main = 1.2,
         cex.lab = 1.1,
@@ -193,8 +183,8 @@ grid_predict <- function(grid, title){
              axis.args = list(cex.axis = 0.8),
              legend.width = 0.5,
              legend.mar = 6,
-             zlim = c(min(grid$avg_pred, na.rm = T), 
-                      max(grid$avg_pred, na.rm = T)),
+             zlim = c(min(grid$pred_scaled, na.rm = T), 
+                      max(grid$pred_scaled, na.rm = T)),
              legend.args = list("Avg. Predicted \n Occurrence",
                                 side = 2, cex = 1))
 }
@@ -277,18 +267,21 @@ df_pkegg1_cesm126 <- list(preds_pkegg1_cesm126[[1]], preds_pkegg1_cesm126[[2]],
                            preds_pkegg1_cesm126[[25]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
 
+
 # Calculate index of abundance per year
-df_pkegg1_cesm126_abund <- map(preds_pkegg1_cesm126, ~ .x %>%
-                                 mutate(rel_abund = pred / sum(pred, na.rm = T)))
-abundances <- sapply(df_pkegg1_cesm126_abund, function(x) colMeans(select(x, rel_abund), na.rm = T))
+# df_pkegg1_cesm126_abund <- map(preds_pkegg1_cesm126, ~ .x %>%
+#                                  mutate(rel_abund = pred / sum(pred, na.rm = T)))
+# abundances <- sapply(df_pkegg1_cesm126_abund, function(x) colMeans(select(x, rel_abund), na.rm = T))
 
 # Calculate mean predicted abundance per year
 preds_pkegg1_cesm126_avgs <- sapply(preds_pkegg1_cesm126, function(x) colMeans(select(x, pred), na.rm = T))
 df_pkegg1_cesm126_avgs <- data.frame(year = c(2015:2039), 
                                      avg_pred = preds_pkegg1_cesm126_avgs)
+df_pkegg1_cesm126_avgs$avg_scaled <- rescale(df_pkegg1_cesm126_avgs$avg_pred)
+
 ggplot(df_pkegg1_cesm126_avgs) +
   geom_line(aes(x = year,
-                y = avg_pred))
+                y = avg_scaled))
 
 # Generate average prediction from all predictions
 x <- grepl("pred", names(df_pkegg1_cesm126), fixed = T)
@@ -296,6 +289,7 @@ df_pkegg_avg1_cesm126 <- data.frame(lat = df_pkegg1_cesm126$lat,
                                      lon = df_pkegg1_cesm126$lon, 
                                      dist = df_pkegg1_cesm126$dist,
                                      avg_pred = rowSums(df_pkegg1_cesm126[, x])/25)
+df_pkegg_avg1_cesm126$pred_scaled <- rescale(df_pkegg_avg1_cesm126$avg_pred)
 saveRDS(df_pkegg_avg1_cesm126, file = here("data", "df_pkegg_avg1_cesm126.rds"))
 
 # Plot
