@@ -641,12 +641,20 @@ table(pk_larvae_clean$primary_net)
 # Latitude: all
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
-                      month > 2, month < 8, 
-                      year != 1997, year != 2011)
+                      month > 3, month < 7, 
+                      year != 1996, 
+                      year != 1997, 
+                      year != 1998, 
+                      year != 2000,
+                      year != 2013)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
-                         month > 2, month < 8,
-                         year != 1997, year != 2011)
+                         month > 3, month < 7,
+                         year != 1996, 
+                         year != 1997, 
+                         year != 1998, 
+                         year != 2000,
+                         year != 2013)
 
 # Inspect new data
 data_check(pk_egg_trim, pk_larvae_trim)
