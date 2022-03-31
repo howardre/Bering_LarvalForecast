@@ -99,7 +99,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 pk_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                             s(doy) +
                             s(lon, lat) +
-                            s(doy, by = s(year, bs = 're')),
+                            s(doy, by = year),
                           data = pk_egg,
                           family = tw(link = 'log'),
                           method =  'REML')
@@ -109,7 +109,7 @@ AIC(pk_egg_phenology_t)
 
 pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                             s(lon, lat) +
-                            s(lon, lat, by = s(year, bs = 're')) +
+                            s(lon, lat, by = year) +
                             s(doy),
                           data = pk_egg,
                           family = tw(link = 'log'),
@@ -327,7 +327,7 @@ Note variable coefficient by year for each
 pk_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                s(doy) +
                                s(lon, lat) +
-                               s(doy, by = s(year, bs = 're')),
+                               s(doy, by = year),
                              data = pk_larvae,
                              family = tw(link = 'log'),
                              method = 'REML')
@@ -337,7 +337,7 @@ AIC(pk_larvae_phenology_t)
 
 pk_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                s(lon, lat) +
-                               s(lon, lat, by = s(year, bs = 're')) +
+                               s(lon, lat, by = year) +
                                s(doy),
                              data = pk_larvae,
                              family = tw(link = 'log'),
@@ -575,7 +575,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 fhs_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
                              s(lon, lat) +
-                             s(doy, by = s(year, bs = 're')),
+                             s(doy, by = year),
                            data = fhs_egg,
                            family = tw(link = 'log'),
                            method = 'REML')
@@ -585,7 +585,7 @@ AIC(fhs_egg_phenology_t)
 
 fhs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                              s(lon, lat) +
-                             s(lon, lat, by = s(year, bs = 're')) +
+                             s(lon, lat, by = year) +
                              s(doy),
                            data = fhs_egg,
                            family = tw(link = 'log'),
@@ -765,7 +765,7 @@ Note variable coefficient by year for each
 fhs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
                                 s(lon, lat) +
-                                s(doy, by = s(year, bs = 're')),
+                                s(doy, by = year),
                               data = fhs_larvae,
                               family = tw(link = 'log'),
                               method = 'REML')
@@ -775,7 +775,7 @@ AIC(fhs_larvae_phenology_t)
 
 fhs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
-                                s(lon, lat, by = s(year, bs = 're')) +
+                                s(lon, lat, by = year) +
                                 s(doy),
                               data = fhs_larvae,
                               family = tw(link = 'log'),
@@ -973,7 +973,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 yfs_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
                              s(lon, lat) +
-                             s(doy, by = s(year, bs = 're')),
+                             s(doy, by = year),
                            data = yfs_egg,
                            family = tw(link = 'log'),
                            method = 'REML')
@@ -983,7 +983,7 @@ AIC(yfs_egg_phenology_t)
 
 yfs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                              s(lon, lat) +
-                             s(lon, lat, by = s(year, bs = 're')) +
+                             s(lon, lat, by = year) +
                              s(doy),
                            data = yfs_egg,
                            family = tw(link = 'log'),
@@ -1162,7 +1162,7 @@ Note variable coefficient by year for each
 yfs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
                                 s(lon, lat) +
-                                s(doy, by = s(year, bs = 're')),
+                                s(doy, by = year),
                               data = yfs_larvae,
                               family = tw(link = 'log'),
                               method =  'REML')
@@ -1172,7 +1172,7 @@ AIC(yfs_larvae_phenology_t)
 
 yfs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
-                                s(lon, lat, by = s(year, bs = 're')) +
+                                s(lon, lat, by = year) +
                                 s(doy),
                               data = yfs_larvae,
                               family = tw(link = 'log'),
@@ -1371,7 +1371,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 akp_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
                              s(lon, lat) +
-                             s(doy, by = s(year, bs = 're')),
+                             s(doy, by = year),
                            data = akp_egg,
                            family = tw(link = 'log'),
                            method =  'REML')
@@ -1381,7 +1381,7 @@ AIC(akp_egg_phenology_t)
 
 akp_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                              s(lon, lat) +
-                             s(lon, lat, by = s(year, bs = 're')) +
+                             s(lon, lat, by = year) +
                              s(doy),
                            data = akp_egg,
                            family = tw(link = 'log'),
@@ -1559,7 +1559,7 @@ Note variable coefficient by year for each
 akp_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
                                 s(lon, lat) +
-                                s(doy, by = s(year, bs = 're')),
+                                s(doy, by = year),
                               data = akp_larvae,
                               family = tw(link = 'log'),
                               method = 'REML')
@@ -1569,7 +1569,7 @@ AIC(akp_larvae_phenology_t)
 
 akp_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
-                                s(lon, lat, by = s(year, bs = 're')) +
+                                s(lon, lat, by = year) +
                                 s(doy),
                               data = akp_larvae,
                               family = tw(link = 'log'),
@@ -1765,7 +1765,7 @@ Note variable coefficient by year for each
 pcod_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
                                 s(lon, lat) +
-                                s(doy, by = s(year, bs = 're')),
+                                s(doy, by = year),
                               data = pcod_larvae,
                               family = tw(link = 'log'),
                               method = 'REML')
@@ -1775,7 +1775,7 @@ AIC(pcod_larvae_phenology_t)
 
 pcod_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
-                                s(lon, lat, by = s(year, bs = 're')) +
+                                s(lon, lat, by = year) +
                                 s(doy),
                               data = pcod_larvae,
                               family = tw(link = 'log'),
@@ -1970,7 +1970,7 @@ Note variable coefficient by year for each
 nrs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
                                 s(lon, lat) +
-                                s(doy, by = s(year, bs = 're')),
+                                s(doy, by = year),
                               data = nrs_larvae,
                               family = tw(link = 'log'),
                               method = 'REML')
@@ -1980,7 +1980,7 @@ AIC(nrs_larvae_phenology_t)
 
 nrs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
-                                s(lon, lat, by = s(year, bs = 're')) +
+                                s(lon, lat, by = year) +
                                 s(doy),
                               data = nrs_larvae,
                               family = tw(link = 'log'),
