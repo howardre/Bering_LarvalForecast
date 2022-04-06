@@ -19,9 +19,7 @@ source(here('code/functions', 'distance_function.R'))
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
-yfs_egg <- as.data.frame(filter((readRDS(here('data', 'yfs_egg.rds'))),
-                                lat >= 52 & lat <= 62,
-                                lon >= -176.5 & lon <= -156.5))
+yfs_egg <- as.data.frame(readRDS(here('data', 'yfs_egg.rds')))
 yfs_egg$mean_temp <- roms_temps$mean[match(yfs_egg$year, roms_temps$year)]
 yfs_egg$catch <- yfs_egg$larvalcatchper10m2 + 1
 
@@ -247,8 +245,8 @@ grid_predict <- function(grid, title){
 cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
 cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
-preds_yfslarvae1_cesm126 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                      5, 'ssp126', cesm_temps1, 
+preds_yfslarvae1_cesm126 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                      9, 'ssp126', cesm_temps1, 
                                       cesm_salts1, larval_formula)
 
 # Combine into one data frame
@@ -293,8 +291,8 @@ dev.off()
 cesm_temps2 <- readRDS(here('data', 'cesm_forecast_temp2.rds'))
 cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
-preds_yfslarvae2_cesm126 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                      5, 'ssp126', cesm_temps2, 
+preds_yfslarvae2_cesm126 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                      9, 'ssp126', cesm_temps2, 
                                       cesm_salts2, larval_formula)
 
 # Combine into one data frame
@@ -341,8 +339,8 @@ dev.off()
 cesm_temps3 <- readRDS(here('data', 'cesm_forecast_temp3.rds'))
 cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
-preds_yfslarvae3_cesm126 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                      5, 'ssp126', cesm_temps3, 
+preds_yfslarvae3_cesm126 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                      9, 'ssp126', cesm_temps3, 
                                       cesm_salts3, larval_formula)
 
 # Combine into one data frame
@@ -393,8 +391,8 @@ rm(cesm_temps1, cesm_temps2, cesm_temps3,
 cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
 cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
-preds_yfslarvae1_cesm585 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                      5, 'ssp585', cesm_temps1, 
+preds_yfslarvae1_cesm585 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                      9, 'ssp585', cesm_temps1, 
                                       cesm_salts1, larval_formula)
 
 # Combine into one data frame
@@ -439,8 +437,8 @@ dev.off()
 cesm_temps2 <- readRDS(here('data', 'cesm_forecast_temp2.rds'))
 cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
-preds_yfslarvae2_cesm585 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                      5, 'ssp585', cesm_temps2, 
+preds_yfslarvae2_cesm585 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                      9, 'ssp585', cesm_temps2, 
                                       cesm_salts2, larval_formula)
 
 # Combine into one data frame
@@ -487,8 +485,8 @@ dev.off()
 cesm_temps3 <- readRDS(here('data', 'cesm_forecast_temp3.rds'))
 cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
-preds_yfslarvae3_cesm585 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                      5, 'ssp585', cesm_temps3, 
+preds_yfslarvae3_cesm585 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                      9, 'ssp585', cesm_temps3, 
                                       cesm_salts3, larval_formula)
 
 # Combine into one data frame
@@ -538,8 +536,8 @@ rm(cesm_temps1, cesm_temps2, cesm_temps3,
 gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
 gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
-preds_yfslarvae1_gfdl126 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                      5, 'ssp126', gfdl_temps1, 
+preds_yfslarvae1_gfdl126 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                      9, 'ssp126', gfdl_temps1, 
                                       gfdl_salts1, larval_formula)
 
 # Combine into one data frame
@@ -584,8 +582,8 @@ dev.off()
 gfdl_temps2 <- readRDS(here('data', 'gfdl_forecast_temp2.rds'))
 gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
-preds_yfslarvae2_gfdl126 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                      5, 'ssp126', gfdl_temps2, 
+preds_yfslarvae2_gfdl126 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                      9, 'ssp126', gfdl_temps2, 
                                       gfdl_salts2, larval_formula)
 
 # Combine into one data frame
@@ -632,8 +630,8 @@ dev.off()
 gfdl_temps3 <- readRDS(here('data', 'gfdl_forecast_temp3.rds'))
 gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
-preds_yfslarvae3_gfdl126 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                      5, 'ssp126', gfdl_temps3, 
+preds_yfslarvae3_gfdl126 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                      9, 'ssp126', gfdl_temps3, 
                                       gfdl_salts3, larval_formula)
 
 # Combine into one data frame
@@ -684,8 +682,8 @@ rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
 gfdl_temps1 <- readRDS(here('data', 'gfdl_forecast_temp1.rds'))
 gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
-preds_yfslarvae1_gfdl585 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                      5, 'ssp585', gfdl_temps1, 
+preds_yfslarvae1_gfdl585 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                      9, 'ssp585', gfdl_temps1, 
                                       gfdl_salts1, larval_formula)
 
 # Combine into one data frame
@@ -730,8 +728,8 @@ dev.off()
 gfdl_temps2 <- readRDS(here('data', 'gfdl_forecast_temp2.rds'))
 gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
-preds_yfslarvae2_gfdl585 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                      5, 'ssp585', gfdl_temps2, 
+preds_yfslarvae2_gfdl585 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                      9, 'ssp585', gfdl_temps2, 
                                       gfdl_salts2, larval_formula)
 
 # Combine into one data frame
@@ -778,8 +776,8 @@ dev.off()
 gfdl_temps3 <- readRDS(here('data', 'gfdl_forecast_temp3.rds'))
 gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
-preds_yfslarvae3_gfdl585 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                      5, 'ssp585', gfdl_temps3, 
+preds_yfslarvae3_gfdl585 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                      9, 'ssp585', gfdl_temps3, 
                                       gfdl_salts3, larval_formula)
 
 # Combine into one data frame
@@ -830,8 +828,8 @@ rm(gfdl_temps1, gfdl_temps2, gfdl_temps3,
 miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
 miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
-preds_yfslarvae1_miroc126 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                       5, 'ssp126', miroc_temps1, 
+preds_yfslarvae1_miroc126 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                       9, 'ssp126', miroc_temps1, 
                                        miroc_salts1, larval_formula)
 
 # Combine into one data frame
@@ -876,8 +874,8 @@ dev.off()
 miroc_temps2 <- readRDS(here('data', 'miroc_forecast_temp2.rds'))
 miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
-preds_yfslarvae2_miroc126 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                       5, 'ssp126', miroc_temps2, 
+preds_yfslarvae2_miroc126 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                       9, 'ssp126', miroc_temps2, 
                                        miroc_salts2, larval_formula)
 
 # Combine into one data frame
@@ -924,8 +922,8 @@ dev.off()
 miroc_temps3 <- readRDS(here('data', 'miroc_forecast_temp3.rds'))
 miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
-preds_yfslarvae3_miroc126 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                       5, 'ssp126', miroc_temps3, 
+preds_yfslarvae3_miroc126 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                       9, 'ssp126', miroc_temps3, 
                                        miroc_salts3, larval_formula)
 
 # Combine into one data frame
@@ -976,8 +974,8 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 miroc_temps1 <- readRDS(here('data', 'miroc_forecast_temp1.rds'))
 miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
-preds_yfslarvae1_miroc585 <- pred_loop(2015:2039, yfs_larvae, 130,
-                                       5, 'ssp585', miroc_temps1, 
+preds_yfslarvae1_miroc585 <- pred_loop(2015:2039, yfs_larvae, 254,
+                                       9, 'ssp585', miroc_temps1, 
                                        miroc_salts1, larval_formula)
 
 # Combine into one data frame
@@ -1022,8 +1020,8 @@ dev.off()
 miroc_temps2 <- readRDS(here('data', 'miroc_forecast_temp2.rds'))
 miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
-preds_yfslarvae2_miroc585 <- pred_loop(2040:2069, yfs_larvae, 130,
-                                       5, 'ssp585', miroc_temps2, 
+preds_yfslarvae2_miroc585 <- pred_loop(2040:2069, yfs_larvae, 254,
+                                       9, 'ssp585', miroc_temps2, 
                                        miroc_salts2, larval_formula)
 
 # Combine into one data frame
@@ -1070,8 +1068,8 @@ dev.off()
 miroc_temps3 <- readRDS(here('data', 'miroc_forecast_temp3.rds'))
 miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
-preds_yfslarvae3_miroc585 <- pred_loop(2070:2099, yfs_larvae, 130,
-                                       5, 'ssp585', miroc_temps3, 
+preds_yfslarvae3_miroc585 <- pred_loop(2070:2099, yfs_larvae, 254,
+                                       9, 'ssp585', miroc_temps3, 
                                        miroc_salts3, larval_formula)
 
 # Combine into one data frame
