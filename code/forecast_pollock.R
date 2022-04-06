@@ -15,20 +15,15 @@ library(RANN)
 library(scales)
 source(here('code/functions', 'distance_function.R'))
 
-
 # Load ROMS temperature means and forecast
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
-pk_egg <- as.data.frame(filter((readRDS(here('data', 'pk_egg.rds'))),
-                                lat >= 52 & lat <= 60,
-                                lon >= -176.5 & lon <= -156.5))
+pk_egg <- as.data.frame(filter(readRDS(here('data', 'pk_egg.rds'))))
 pk_egg$mean_temp <- roms_temps$mean[match(pk_egg$year, roms_temps$year)]
 pk_egg$catch <- pk_egg$larvalcatchper10m2 + 1
 
-pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds')),
-                                   lat >= 52 & lat <= 60,
-                                   lon >= -176.5 & lon <= -156.5))
+pk_larvae <- as.data.frame(filter(readRDS(here('data', 'pk_larvae.rds'))))
 pk_larvae$mean_temp <- roms_temps$mean[match(pk_larvae$year, roms_temps$year)]
 pk_larvae$catch <- pk_larvae$larvalcatchper10m2 + 1
 
@@ -266,12 +261,6 @@ df_pkegg1_cesm126 <- list(preds_pkegg1_cesm126[[1]], preds_pkegg1_cesm126[[2]],
                            preds_pkegg1_cesm126[[23]], preds_pkegg1_cesm126[[24]],
                            preds_pkegg1_cesm126[[25]]) %>%
   reduce(inner_join, by = c("lon", "lat", "dist", "doy")) 
-
-
-# Calculate index of abundance per year
-# df_pkegg1_cesm126_abund <- map(preds_pkegg1_cesm126, ~ .x %>%
-#                                  mutate(rel_abund = pred / sum(pred, na.rm = T)))
-# abundances <- sapply(df_pkegg1_cesm126_abund, function(x) colMeans(select(x, rel_abund), na.rm = T))
 
 # Calculate mean predicted abundance per year
 preds_pkegg1_cesm126_avgs <- sapply(preds_pkegg1_cesm126, function(x) colMeans(select(x, pred), na.rm = T))
