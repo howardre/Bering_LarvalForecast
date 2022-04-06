@@ -71,7 +71,7 @@ cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
 cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 pkegg_formula <- formula_pheno(pk_egg)
 
-df_pkegg1_cesm126 <- pred_list1(2015:2039, pk_egg, 130,
+df_pkegg1_cesm126 <- pred_list1(2015:2039, pk_egg, 134,
                                 5, 'ssp126', cesm_temps1, 
                                 cesm_salts1, pkegg_formula)
 avgs_pkegg1_cesm126 <- pred_avgs1(df_pkegg1_cesm126)
@@ -79,7 +79,7 @@ saveRDS(avgs_pkegg1_cesm126, file = here("data", "avgs_pkegg1_cesm126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avgs_pkegg1_cesm1236, 
+grid_predict(avgs_pkegg1_cesm126, 
              "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
