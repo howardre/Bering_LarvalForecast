@@ -39,9 +39,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
 clean_data <- function(file, temperature){
-df <- as.data.frame(filter((readRDS(here('data', file))),
-                 lat >= 52 & lat <= 62,
-                  lon >= -176.5 & lon <= -156.5))
+df <- as.data.frame(readRDS(here('data', file)))
 df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
 df$catch <- log(df$larvalcatchper10m2 + 1)
 df$presence <- 1 * (df$count > 0)
@@ -2218,7 +2216,7 @@ tiff(here('results',
      width = 65,
      height = 90,
      res = 300)
-par(mfrow = c(7, 5),
+par(mfrow = c(9, 5),
     mar = c(11, 15, 5, 1.5) + 0.1,
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
