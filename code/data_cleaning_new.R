@@ -290,20 +290,31 @@ table(yfs_egg_clean$primary_net)
 table(yfs_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward, remove 1997 and 2011 for sporadic sampling
+# Year: 1988 forward, remove other years for sporadic sampling
 # Month: remove May & June for larvae
-# Latitude: all
+# Latitude: between 56 and 62
 yfs_egg_trim <- trim_data(yfs_egg_clean)
 yfs_egg_trim <- filter(yfs_egg_trim,
                        month > 7,
-                       year != 1997, year != 2011)
+                       year != 1997, 
+                       year != 2000,
+                       year != 2011,
+                       lat >= 56 & lat <= 62,
+                       lon >= -176.5 & lon <= -156.5)
 yfs_larvae_trim <- trim_data(yfs_larvae_clean)
 yfs_larvae_trim <- filter(yfs_larvae_trim,
                           month > 7,
-                          year != 1997, year != 2011)
+                          year != 1994,
+                          year != 1996,
+                          year != 1997,
+                          year != 2000,
+                          year != 2011,
+                          lat >= 56 & lat <= 62,
+                          lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(yfs_egg_trim, yfs_larvae_trim)
+table(yfs_larvae_trim$month)
 
 # Select data for constrained analyses, including stations that are <30km away from the closest positive catch
 yfs_subset_egg <- final_data(yfs_egg_trim)
@@ -328,63 +339,21 @@ yfs_subset_egg7 <- filter(yfs_subset_egg, year > 2014 & year < 2020)
 yfs_complete_larvae7 <- filter(yfs_subset_larvae, year > 2014 & year < 2020)
 
 # Add Bering10K model temperatures and salinities
-yfs_complete_egg1 <- varid_match(yfs_subset_egg1, temp_output1, salt_output1, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 1)
-yfs_complete_egg2 <- varid_match(yfs_subset_egg2, temp_output2, salt_output2, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 2)
-yfs_complete_egg3 <- varid_match(yfs_subset_egg3, temp_output3, salt_output3, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 3)
-yfs_complete_egg4 <- varid_match(yfs_subset_egg4, temp_output4, salt_output4, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 4)
-yfs_complete_egg5 <- varid_match(yfs_subset_egg5, temp_output5, salt_output5, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 5)
-yfs_complete_egg6 <- varid_match(yfs_subset_egg6, temp_output6, salt_output6, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 6)
-yfs_complete_egg7 <- varid_match(yfs_subset_egg7, temp_output7, salt_output7, 
-                                 temps_cesm_historical, salts_cesm_historical,
-                                 temps_gfdl_historical, salts_gfdl_historical,
-                                 temps_miroc_historical, salts_miroc_historical, 7)
+yfs_complete_egg1 <- varid_match(yfs_subset_egg1, temp_output1, salt_output1)
+yfs_complete_egg2 <- varid_match(yfs_subset_egg2, temp_output2, salt_output2)
+yfs_complete_egg3 <- varid_match(yfs_subset_egg3, temp_output3, salt_output3)
+yfs_complete_egg4 <- varid_match(yfs_subset_egg4, temp_output4, salt_output4)
+yfs_complete_egg5 <- varid_match(yfs_subset_egg5, temp_output5, salt_output5)
+yfs_complete_egg6 <- varid_match(yfs_subset_egg6, temp_output6, salt_output6)
+yfs_complete_egg7 <- varid_match(yfs_subset_egg7, temp_output7, salt_output7)
 
-yfs_complete_larvae1 <- varid_match(yfs_complete_larvae1, temp_output1, salt_output1, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 1)
-yfs_complete_larvae2 <- varid_match(yfs_complete_larvae2, temp_output2, salt_output2, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 2)
-yfs_complete_larvae3 <- varid_match(yfs_complete_larvae3, temp_output3, salt_output3, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 3)
-yfs_complete_larvae4 <- varid_match(yfs_complete_larvae4, temp_output4, salt_output4, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 4)
-yfs_complete_larvae5 <- varid_match(yfs_complete_larvae5, temp_output5, salt_output5, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 5)
-yfs_complete_larvae6 <- varid_match(yfs_complete_larvae6, temp_output6, salt_output6, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 6)
-yfs_complete_larvae7 <- varid_match(yfs_complete_larvae7, temp_output7, salt_output7, 
-                                    temps_cesm_historical, salts_cesm_historical,
-                                    temps_gfdl_historical, salts_gfdl_historical,
-                                    temps_miroc_historical, salts_miroc_historical, 7)
+yfs_complete_larvae1 <- varid_match(yfs_complete_larvae1, temp_output1, salt_output1)
+yfs_complete_larvae2 <- varid_match(yfs_complete_larvae2, temp_output2, salt_output2)
+yfs_complete_larvae3 <- varid_match(yfs_complete_larvae3, temp_output3, salt_output3)
+yfs_complete_larvae4 <- varid_match(yfs_complete_larvae4, temp_output4, salt_output4)
+yfs_complete_larvae5 <- varid_match(yfs_complete_larvae5, temp_output5, salt_output5)
+yfs_complete_larvae6 <- varid_match(yfs_complete_larvae6, temp_output6, salt_output6)
+yfs_complete_larvae7 <- varid_match(yfs_complete_larvae7, temp_output7, salt_output7)
 
 # combine to create whole datasets for each
 yfs_complete_egg <- rbind(yfs_complete_egg1, yfs_complete_egg2, yfs_complete_egg3,
@@ -399,36 +368,6 @@ yfs_complete_egg$count <- round(yfs_complete_egg$larvalcatchper1000m3 *
                                   yfs_complete_egg$volume_filtered / 1000, 0)
 yfs_complete_larvae$count <- round(yfs_complete_larvae$larvalcatchper1000m3 * 
                                      yfs_complete_larvae$volume_filtered / 1000, 0)
-
-## bias correction
-# calculate means by week for hindcast and historical
-yfs_complete_egg$week <- week(yfs_complete_egg$date)
-yfs_egg_data_baseline <- yfs_complete_egg %>%
-  group_by(week, lat, lon) %>%
-  summarise(week_baseline_temp = mean(roms_temperature),
-            week_baseline_salt = mean(roms_salinity),
-            week_cesm_temp = mean(roms_temp_hist_cesm),
-            week_cesm_salt = mean(roms_salt_hist_cesm),
-            week_gfdl_temp = mean(roms_temp_hist_gfdl),
-            week_gfdl_salt = mean(roms_salt_hist_gfdl),
-            week_miroc_temp = mean(roms_temp_hist_miroc),
-            week_miroc_salt = mean(roms_salt_hist_miroc))
-
-# Match back to the main data frame
-
-
-# import the forecast, summarize means by year, lat, lon, month
-temps_cesm_ssp126 <- readRDS(here('data', 'temps_cesm_ssp126.rds'))
-salts_cesm_ssp126 <- readRDS(here('data', 'salts_cesm_ssp126.rds'))
-
-# create dataframes of hindcast, historical, and forecast
-temp_vec <- as.vector(temps_cesm_ssp126[[1]][[4]])
-temp_mat <- matrix(temp_vec, nrow = 182 * 258, ncol = 261)
-lonlat <- as.matrix(expand.grid(temps_cesm_ssp126[[1]][[1]], temps_cesm_ssp126[[1]][[2]]))
-temp_df <- data.frame(cbind(lonlat, temp_mat))
-
-# subtract 
-
 
 # save
 saveRDS(yfs_complete_egg, file = here('data', 'yfs_egg.rds'))
@@ -454,17 +393,31 @@ table(akp_egg_clean$primary_net)
 table(akp_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward, 1997 and 2011 for sporadic sampling
+# Year: 1988 forward, others for sporadic sampling
 # Month: 4 - 6 for eggs, 5 - 7 for larvae
-# Latitude: all
+# Latitude: 54 - 60 for eggs, 52 - 60 for larvae
 akp_egg_trim <- trim_data(akp_egg_clean)
 akp_egg_trim <- filter(akp_egg_trim,
                        month > 3, month < 7,
-                       year != 1997, year != 2011)
+                       year != 1992,
+                       year != 1996,
+                       year != 1997,
+                       year != 1998,
+                       year != 2011,
+                       lat >= 54 & lat <= 60,
+                       lon >= -176.5 & lon <= -156.5)
 akp_larvae_trim <- trim_data(akp_larvae_clean)
 akp_larvae_trim <- filter(akp_larvae_trim,
                           month > 4, month < 8,
-                          year != 1997, year != 2011)
+                          year != 1996,
+                          year != 1997,
+                          year != 2001,
+                          year != 2004,
+                          year != 2011,
+                          year != 2013,
+                          year != 2015,
+                          lat >= 52 & lat <= 60,
+                          lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(akp_egg_trim, akp_larvae_trim)
@@ -545,20 +498,37 @@ table(fhs_egg_clean$primary_net)
 table(fhs_larvae_clean$primary_net)
 
 # Trim egg and larval data
-# Year: 1988 forward, remove 1997 and 2011 for sporadic samping
+# Year: 1988 forward, others for sporadic sampling
 # Month: 5 - 9 for eggs, 4 - 7 for larvae
 # Latitude: all
 fhs_egg_trim <- trim_data(fhs_egg_clean)
 fhs_egg_trim <- filter(fhs_egg_trim,
                        month > 4, month < 10,
-                       year != 1997, year != 2011)
+                       year != 1994,
+                       year != 1996,
+                       year != 1997,
+                       year != 2001,
+                       year != 2011,
+                       year != 2013,
+                       lat >= 52 & lat <= 59,
+                       lon >= -176.5 & lon <= -156.5)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
 fhs_larvae_trim <- filter(fhs_larvae_trim,
                           month > 4, month < 8,
-                          year != 1997, year != 2011)
+                          year != 1996,
+                          year != 1997,
+                          year != 2001,
+                          year != 2004,
+                          year != 2011,
+                          year != 2013,
+                          year != 2015,
+                          lat >= 54 & lat <= 58,
+                          lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(fhs_egg_trim, fhs_larvae_trim)
+table(fhs_egg_trim$month)
+table(fhs_larvae_trim$month)
 
 # Select data for constrained analyses, including stations that are <30km away from the closest positive catch
 fhs_subset_egg <- final_data(fhs_egg_trim)
@@ -637,7 +607,7 @@ table(pk_larvae_clean$primary_net)
 
 # Trim egg and larval data
 # Year: 1988 forward, remove 1997 and 2011 as well
-# Month: 3 - 7
+# Month: 4 - 6
 # Latitude: all
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
@@ -646,7 +616,9 @@ pk_egg_trim <- filter(pk_egg_trim,
                       year != 1997, 
                       year != 1998, 
                       year != 2000,
-                      year != 2013)
+                      year != 2013,
+                      lat >= 54 & lat <= 60,
+                      lon >= -176.5 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
                          month > 3, month < 7,
@@ -654,7 +626,9 @@ pk_larvae_trim <- filter(pk_larvae_trim,
                          year != 1997, 
                          year != 1998, 
                          year != 2000,
-                         year != 2013)
+                         year != 2013,
+                         lat >= 54 & lat <= 60,
+                         lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(pk_egg_trim, pk_larvae_trim)
@@ -737,7 +711,16 @@ table(pcod_larvae_clean$primary_net)
 pcod_larvae_trim <- trim_data(pcod_larvae_clean)
 pcod_larvae_trim <- filter(pcod_larvae_trim,
                          month > 3, month < 7,
-                         year != 1997, year != 2011)
+                         year != 1992,
+                         year != 1996,
+                         year != 1997,
+                         year != 1998,
+                         year != 2000,
+                         year != 2011,
+                         year != 2013,
+                         year != 2015,
+                         lat >= 54 & lat <= 58,
+                         lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(pk_egg_trim, pcod_larvae_trim)
@@ -795,8 +778,16 @@ table(nrs_larvae_clean$primary_net)
 # Latitude: all
 nrs_larvae_trim <- trim_data(nrs_larvae_clean)
 nrs_larvae_trim <- filter(nrs_larvae_trim,
-                           month > 3, month < 7,
-                           year != 1997, year != 2011)
+                          month > 3, month < 7,
+                          year != 1992,
+                          year != 1996,
+                          year != 1997, 
+                          year != 1998,
+                          year != 2000,
+                          year != 2011,
+                          year != 2013,
+                          lat >= 54 & lat <= 58,
+                          lon >= -175 & lon <= -156.5)
 
 # Inspect new data
 data_check(pk_egg_trim, nrs_larvae_trim)
@@ -833,3 +824,113 @@ nrs_complete_larvae$count <- round(nrs_complete_larvae$larvalcatchper1000m3 *
                                       nrs_complete_larvae$volume_filtered / 1000, 0)
 
 saveRDS(nrs_complete_larvae, file = here('data', 'nrs_larvae.rds'))
+
+
+### Outlier removal ----
+### Load fish data 
+yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
+yfs_larvae <- readRDS(here('data', 'yfs_larvae.rds'))
+akp_egg <- readRDS(here('data', 'akp_egg.rds'))
+akp_larvae <- readRDS(here('data', 'akp_larvae.rds'))
+fhs_egg <- readRDS(here('data', 'fhs_egg.rds'))
+fhs_larvae <- readRDS(here('data', 'fhs_larvae.rds'))
+pk_egg <- readRDS(here('data', 'pk_egg.rds'))
+pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+pcod_larvae <- readRDS(here('data', 'pcod_larvae.rds'))
+nrs_larvae <- readRDS(here('data', 'nrs_larvae.rds'))
+
+### Data exploration 
+# Yellowfin
+ggplot(yfs_egg) +
+  geom_point(aes(larvalcatchper10m2, year)) 
+ggplot(yfs_larvae) +
+  geom_point(aes(larvalcatchper10m2, year)) # outlier above 30000 <- remove
+
+# AKP
+ggplot(akp_egg) +
+  geom_point(aes(larvalcatchper10m2, year)) # possibly several outliers
+# two really high above 7000
+ggplot(akp_larvae) +
+  geom_point(aes(larvalcatchper10m2, year)) 
+
+# FHS
+ggplot(fhs_egg) +
+  geom_point(aes(larvalcatchper10m2, year)) # outliers above ~2000
+ggplot(fhs_larvae) +
+  geom_point(aes(larvalcatchper10m2, year)) # outlier above 9000 <- remove
+
+# Pollock
+ggplot(pk_egg) +
+  geom_point(aes(larvalcatchper10m2, year))
+# 3 extreme above 3.5 * 10^5 <- likely remove these
+# 7 above 1.25 * 10^5
+ggplot(pk_larvae) +
+  geom_point(aes(larvalcatchper10m2, year)) # remove above 1*10^5
+
+# Pcod
+ggplot(pcod_larvae) +
+  geom_point(aes(larvalcatchper10m2, year))
+
+# NRS
+ggplot(nrs_larvae) +
+  geom_point(aes(larvalcatchper10m2, year))
+
+# temperature
+ggplot(pk_larvae) +
+  geom_point(aes(roms_temperature, year))
+ggplot(yfs_larvae) +
+  geom_point(aes(roms_temperature, year))
+ggplot(fhs_larvae) +
+  geom_point(aes(roms_temperature, year))
+ggplot(akp_larvae) +
+  geom_point(aes(roms_temperature, year))
+ggplot(pk_egg) +
+  geom_point(aes(roms_temperature, year))
+ggplot(yfs_egg) +
+  geom_point(aes(roms_temperature, year))
+ggplot(fhs_egg) +
+  geom_point(aes(roms_temperature, year))
+ggplot(akp_egg) +
+  geom_point(aes(roms_temperature, year))
+# nothing of note
+
+# salinity
+ggplot(pk_larvae) +
+  geom_point(aes(roms_salinity, year))
+ggplot(yfs_larvae) +
+  geom_point(aes(roms_salinity, year)) 
+ggplot(akp_larvae) +
+  geom_point(aes(roms_salinity, year)) 
+ggplot(fhs_larvae) +
+  geom_point(aes(roms_salinity, year)) 
+ggplot(pk_egg) +
+  geom_point(aes(roms_salinity, year)) 
+ggplot(yfs_egg) +
+  geom_point(aes(roms_salinity, year))
+ggplot(fhs_egg) +
+  geom_point(aes(roms_salinity, year)) 
+ggplot(akp_egg) +
+  geom_point(aes(roms_salinity, year))
+
+# Remove outliers
+yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000,
+                     roms_salinity > 25)
+akp_egg <- filter(akp_egg, larvalcatchper10m2 < 7000)
+akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500,
+                     roms_salinity > 29)
+fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 2000,
+                  roms_salinity > 29)
+fhs_larvae <- filter(fhs_larvae, larvalcatchper10m2 < 9000)
+pk_egg <- filter(pk_egg, larvalcatchper10m2 < 200000,
+                 roms_salinity > 29)
+pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000,
+                    roms_salinity > 29)
+
+# Save files
+saveRDS(yfs_larvae, file = here('data', 'yfs_larvae.rds'))
+saveRDS(akp_egg, file = here('data', 'akp_egg.rds'))
+saveRDS(akp_larvae, file = here('data', 'akp_larvae.rds'))
+saveRDS(fhs_egg, file = here('data', 'fhs_egg.rds'))
+saveRDS(fhs_larvae, file = here('data', 'fhs_larvae.rds'))
+saveRDS(pk_egg, file = here('data', 'pk_egg.rds'))
+saveRDS(pk_larvae, file = here('data', 'pk_larvae.rds'))
