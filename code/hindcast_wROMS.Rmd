@@ -31,6 +31,9 @@ source(here('code/functions', 'vc_grids_presentation.R'))
 source(here('code/functions', 'vc_grids.R'))
 source(here('code/functions', 'plot_variable.R'))
 source(here('code/functions', 'location_plot.R'))
+source(here('code/functions', 'variable_coefficient.R'))
+source(here('code/functions', 'phenology_change.R'))
+source(here('code/functions', 'distribution_change.R'))
 ```
 
 ```{r}
@@ -39,9 +42,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
 clean_data <- function(file, temperature){
-df <- as.data.frame(filter((readRDS(here('data', file))),
-                 lat >= 52 & lat <= 62,
-                  lon >= -176.5 & lon <= -156.5))
+df <- as.data.frame(filter(readRDS(here('data', file))))
 df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
 df$catch <- df$larvalcatchper10m2 + 1
 df <- na.omit(df)
@@ -94,7 +95,6 @@ summary(pk_larvae_base_t)
 
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
-This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
 pk_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                             s(doy) +
@@ -105,7 +105,7 @@ pk_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                           method =  'REML')
 summary(pk_egg_phenology_t)
 AIC(pk_egg_phenology_t)
-# AIC: 33996
+# AIC: 29859
 
 pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                             s(lon, lat) +
@@ -116,7 +116,7 @@ pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                           method = 'REML')
 summary(pk_egg_geography_t)
 AIC(pk_egg_geography_t)
-# AIC: 33177
+# AIC: 29912
 ```
 
 Ratio for comparison between base and flexible models 
@@ -124,11 +124,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pkegg_phenology_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_phenology_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_phenology_t #0.111
+ratio_pkegg_phenology_t #0.054
 
 ratio_pkegg_geography_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_geography_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_geography_t #0.310
+ratio_pkegg_geography_t #0.041
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -140,17 +140,17 @@ AIC(pkegg_gams_t[[1]][[1]])
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
 summary(pkegg_gams_t[[2]]) # best model is temporal VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 63.6
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 1.63                    
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(pkegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(pkegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -165,10 +165,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(pkegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(pkegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -185,11 +185,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.0418
+var_ratio_pkegg_month_t #0.103
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.0562
+var_ratio_pkegg_space_t #0.080
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -291,13 +291,13 @@ vis.gam(pkegg_gams_t[[2]],
         main = 'All Years - All temps',
         ylab = 'Latitude',
         xlab = 'Longitude')
-# symbols(pk_egg$lon[pk_egg$sign_slope_pos],
-#         pk_egg$lat[pk_egg$sign_slope_pos],
-#         circle = pk_egg$pred_slope[pk_egg$sign_slope_pos],
-#         inches = 0.08,
-#         add = T,
-#         bg = alpha('darkred', 0.4),
-#         fg = alpha('black', 0.08))
+symbols(pk_egg$lon[pk_egg$sign_slope_pos],
+        pk_egg$lat[pk_egg$sign_slope_pos],
+        circle = pk_egg$pred_slope[pk_egg$sign_slope_pos],
+        inches = 0.08,
+        add = T,
+        bg = alpha('darkred', 0.4),
+        fg = alpha('black', 0.08))
 symbols(pk_egg$lon[pk_egg$sign_slope_neg],
         pk_egg$lat[pk_egg$sign_slope_neg],
         circle = (-1) * pk_egg$pred_slope[pk_egg$sign_slope_neg],
@@ -333,7 +333,7 @@ pk_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              method = 'REML')
 summary(pk_larvae_phenology_t)
 AIC(pk_larvae_phenology_t)
-# AIC: 32891
+# AIC: 29749
 
 pk_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                s(lon, lat) +
@@ -344,7 +344,7 @@ pk_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                              method = 'REML')
 summary(pk_larvae_geography_t)
 AIC(pk_larvae_geography_t)
-# AIC: 31370
+# AIC: 29368
 ```
 
 Ratio for comparison between base and flexible models 
@@ -352,31 +352,31 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pklarvae_phenology_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_phenology_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_phenology_t # 0.119
+ratio_pklarvae_phenology_t # 0.080
 
 ratio_pklarvae_geography_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_geography_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_geography_t # 0.426
+ratio_pklarvae_geography_t # 0.167
 ```
 
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pklarvae_gams_t <- gam_selection(pk_larvae)
-AIC(pklarvae_gams_t[[1]][[1]]) #33345
-AIC(pklarvae_gams_t[[1]][[2]]) #33102
-AIC(pklarvae_gams_t[[1]][[3]]) #33238
+AIC(pklarvae_gams_t[[1]][[1]]) #29463
+AIC(pklarvae_gams_t[[1]][[2]]) #29208
+AIC(pklarvae_gams_t[[1]][[3]]) #29356
 summary(pklarvae_gams_t[[2]]) # best model is temporal, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #242.8
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #255
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pklarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(pklarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(pklarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(pklarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(pklarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -391,10 +391,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pklarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(pklarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(pklarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(pklarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(pklarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(pklarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(pklarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(pklarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -411,11 +411,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pklarvae_month_t <- (summary(pk_larvae_base_t)$scale - 
                          summary(pklarvae_gams_t[[1]][[2]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_month_t #0.0737
+var_ratio_pklarvae_month_t #0.205
 
 var_ratio_pklarvae_space_t <- (summary(pk_larvae_base_t)$scale - 
                          summary(pklarvae_gams_t[[1]][[3]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_space_t #0.0900
+var_ratio_pklarvae_space_t #0.173
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -581,7 +581,7 @@ fhs_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                            method = 'REML')
 summary(fhs_egg_phenology_t)
 AIC(fhs_egg_phenology_t)
-# AIC: 9907
+# AIC: 14217
 
 fhs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                              s(lon, lat) +
@@ -592,7 +592,7 @@ fhs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                            method =  'REML')
 summary(fhs_egg_geography_t)
 AIC(fhs_egg_geography_t)
-# AIC: 8939
+# AIC: 14210
 ```
 
 Ratio for comparison between base and flexible models 
@@ -600,11 +600,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhsegg_phenology_t <- (summary(fhs_egg_base_t)$scale - 
                       summary(fhs_egg_phenology_t)$scale) / summary(fhs_egg_base_t)$scale
-ratio_fhsegg_phenology_t #0.171
+ratio_fhsegg_phenology_t #0.009
 
 ratio_fhsegg_geography_t <- (summary(fhs_egg_base_t)$scale - 
                       summary(fhs_egg_geography_t)$scale) / summary(fhs_egg_base_t)$scale
-ratio_fhsegg_geography_t #0.496
+ratio_fhsegg_geography_t #0.012
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -613,21 +613,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 fhsegg_gams_t <- gam_selection(fhs_egg)
-AIC(fhsegg_gams_t[[1]][[1]]) # 13559
-AIC(fhsegg_gams_t[[1]][[2]]) # 13343
-AIC(fhsegg_gams_t[[1]][[3]]) # 13536
+AIC(fhsegg_gams_t[[1]][[1]]) # 13021
+AIC(fhsegg_gams_t[[1]][[2]]) # 12668
+AIC(fhsegg_gams_t[[1]][[3]]) # 12887
 summary(fhsegg_gams_t[[2]]) # best model is doy VC
-AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) #216.7
+AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) #353
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(fhsegg_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(fhsegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(fhsegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(fhsegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(fhsegg_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(fhsegg_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(fhsegg_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(fhsegg_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -642,10 +642,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(fhsegg_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(fhsegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(fhsegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(fhsegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(fhsegg_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(fhsegg_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(fhsegg_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(fhsegg_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -662,11 +662,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_fhsegg_month_t <- (summary(fhs_egg_base_t)$scale - 
                          summary(fhsegg_gams_t[[1]][[2]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_month_t #0.230
+var_ratio_fhsegg_month_t #0.345
 
 var_ratio_fhsegg_space_t <- (summary(fhs_egg_base_t)$scale - 
                          summary(fhsegg_gams_t[[1]][[3]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_space_t #0.189
+var_ratio_fhsegg_space_t #0.304
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -771,7 +771,7 @@ fhs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(fhs_larvae_phenology_t)
 AIC(fhs_larvae_phenology_t)
-# AIC: 22747
+# AIC: 14198
 
 fhs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
@@ -782,7 +782,7 @@ fhs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(fhs_larvae_geography_t)
 AIC(fhs_larvae_geography_t)
-# AIC: 21956
+# AIC: 14164
 ```
 
 Ratio for comparison between base and flexible models 
@@ -790,11 +790,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhslarvae_phenology_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_phenology_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_phenology_t # 0.121
+ratio_fhslarvae_phenology_t # 0.017
 
 ratio_fhslarvae_geography_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_geography_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_geography_t # 0.271
+ratio_fhslarvae_geography_t # 0.030
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -802,21 +802,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 fhslarvae_gams_t <- gam_selection(fhs_larvae)
-AIC(fhslarvae_gams_t[[1]][[1]]) #14864
-AIC(fhslarvae_gams_t[[1]][[2]]) #14847
-AIC(fhslarvae_gams_t[[1]][[3]]) #14843
+AIC(fhslarvae_gams_t[[1]][[1]]) #14099
+AIC(fhslarvae_gams_t[[1]][[2]]) #14050
+AIC(fhslarvae_gams_t[[1]][[3]]) #14080
 summary(fhslarvae_gams_t[[2]]) # best model is phenology VC, keep all smooth terms
-AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) #20.2
+AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) #49
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(fhslarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(fhslarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(fhslarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(fhslarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(fhslarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(fhslarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(fhslarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(fhslarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -831,10 +831,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(fhslarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(fhslarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(fhslarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(fhslarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(fhslarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(fhslarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(fhslarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(fhslarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/flathead_hindcast', 'flathead_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -851,11 +851,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_fhslarvae_month_t <- (summary(fhs_larvae_base_t)$scale - 
                          summary(fhslarvae_gams_t[[1]][[2]])$scale) / summary(fhs_larvae_base_t)$scale
-var_ratio_fhslarvae_month_t #0.0701
+var_ratio_fhslarvae_month_t #0.078
 
 var_ratio_fhslarvae_space_t <- (summary(fhs_larvae_base_t)$scale - 
                          summary(fhslarvae_gams_t[[1]][[3]])$scale) / summary(fhs_larvae_base_t)$scale
-var_ratio_fhslarvae_space_t #0.0725
+var_ratio_fhslarvae_space_t #0.066
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1168,7 +1168,7 @@ yfs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                               method =  'REML')
 summary(yfs_larvae_phenology_t)
 AIC(yfs_larvae_phenology_t)
-# AIC: 8269
+# AIC: 7594
 
 yfs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
@@ -1179,7 +1179,7 @@ yfs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(yfs_larvae_geography_t)
 AIC(yfs_larvae_geography_t)
-# AIC: 7970
+# AIC: 7597
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1187,11 +1187,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_yfslarvae_phenology_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_phenology_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_phenology_t # 0.166
+ratio_yfslarvae_phenology_t # -0.0006
 
 ratio_yfslarvae_geography_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_geography_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_geography_t # 0.371
+ratio_yfslarvae_geography_t # -0.0017
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1199,21 +1199,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 yfslarvae_gams_t <- gam_selection(yfs_larvae)
-AIC(yfslarvae_gams_t[[1]][[1]]) # 7932
-AIC(yfslarvae_gams_t[[1]][[2]]) # 7891
-AIC(yfslarvae_gams_t[[1]][[3]]) # 7852
+AIC(yfslarvae_gams_t[[1]][[1]]) # 7512
+AIC(yfslarvae_gams_t[[1]][[2]]) # 7367
+AIC(yfslarvae_gams_t[[1]][[3]]) # 7317
 summary(yfslarvae_gams_t[[2]]) # best is spatial VC, keep all smooth terms
-AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 80.3
+AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 195
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(yfslarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(yfslarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(yfslarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(yfslarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(yfslarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(yfslarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(yfslarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(yfslarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1228,10 +1228,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(yfslarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(yfslarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(yfslarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(yfslarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(yfslarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(yfslarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(yfslarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(yfslarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1248,11 +1248,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_yfslarvae_month_t <- (summary(yfs_larvae_base_t)$scale - 
                          summary(yfslarvae_gams_t[[1]][[2]])$scale) / summary(yfs_larvae_base_t)$scale
-var_ratio_yfslarvae_month_t #0.078
+var_ratio_yfslarvae_month_t #0.147
 
 var_ratio_yfslarvae_space_t <- (summary(yfs_larvae_base_t)$scale - 
                          summary(yfslarvae_gams_t[[1]][[3]])$scale) / summary(yfs_larvae_base_t)$scale
-var_ratio_yfslarvae_space_t #0.956
+var_ratio_yfslarvae_space_t #0.177
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1377,7 +1377,7 @@ akp_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                            method =  'REML')
 summary(akp_egg_phenology_t)
 AIC(akp_egg_phenology_t)
-# AIC: 13892
+# AIC: 15230
 
 akp_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                              s(lon, lat) +
@@ -1388,7 +1388,7 @@ akp_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                            method =  'REML')
 summary(akp_egg_geography_t)
 AIC(akp_egg_geography_t)
-# AIC: 13005
+# AIC: 15137
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1396,11 +1396,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akpegg_phenology_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_phenology_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_phenology_t # 0.195
+ratio_akpegg_phenology_t # 0.003
 
 ratio_akpegg_geography_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_geography_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_geography_t # 0.443
+ratio_akpegg_geography_t # 0.032
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -1409,21 +1409,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akpegg_gams_t <- gam_selection(akp_egg)
-AIC(akpegg_gams_t[[1]][[1]]) # 14191
-AIC(akpegg_gams_t[[1]][[2]]) # 14140
-AIC(akpegg_gams_t[[1]][[3]]) # 14143
+AIC(akpegg_gams_t[[1]][[1]]) # 14184
+AIC(akpegg_gams_t[[1]][[2]]) # 14125
+AIC(akpegg_gams_t[[1]][[3]]) # 14114
 summary(akpegg_gams_t[[2]]) # best model is location VC, keep all terms
-AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #50.4
+AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #70
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(akpegg_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(akpegg_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(akpegg_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(akpegg_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(akpegg_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(akpegg_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(akpegg_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(akpegg_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1438,10 +1438,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(akpegg_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(akpegg_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(akpegg_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(akpegg_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(akpegg_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(akpegg_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(akpegg_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(akpegg_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1458,11 +1458,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akpegg_month_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[2]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_month_t # 0.122
+var_ratio_akpegg_month_t # 0.302
 
 var_ratio_akpegg_space_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[3]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_space_t # 0.111
+var_ratio_akpegg_space_t # 0.305
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1565,7 +1565,7 @@ akp_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(akp_larvae_phenology_t)
 AIC(akp_larvae_phenology_t)
-# AIC: 6035
+# AIC: 5920
 
 akp_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
@@ -1576,7 +1576,7 @@ akp_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(akp_larvae_geography_t)
 AIC(akp_larvae_geography_t)
-# AIC: 5071
+# AIC: 5870
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1584,11 +1584,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akplarvae_phenology_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_phenology_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_phenology_t # 0.132
+ratio_akplarvae_phenology_t # -0.0007
 
 ratio_akplarvae_geography_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_geography_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_geography_t # 0.554
+ratio_akplarvae_geography_t # 0.030
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1596,21 +1596,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akplarvae_gams_t <- gam_selection(akp_larvae)
-AIC(akplarvae_gams_t[[1]][[1]]) # 5768
-AIC(akplarvae_gams_t[[1]][[2]]) # 5654
-AIC(akplarvae_gams_t[[1]][[3]]) # 5660
+AIC(akplarvae_gams_t[[1]][[1]]) # 5634
+AIC(akplarvae_gams_t[[1]][[2]]) # 5447
+AIC(akplarvae_gams_t[[1]][[3]]) # 5485
 summary(akplarvae_gams_t[[2]]) # best is phenology VC
-AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) #114.1
+AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) #188
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(akplarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(akplarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(akplarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(akplarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(akplarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(akplarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(akplarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(akplarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1625,10 +1625,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(akplarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(akplarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(akplarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(akplarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(akplarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(akplarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(akplarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(akplarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1645,11 +1645,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akplarvae_month_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[2]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_month_t # 0.169
+var_ratio_akplarvae_month_t # 0.254
 
 var_ratio_akplarvae_space_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[3]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_space_t # 0.166
+var_ratio_akplarvae_space_t # 0.236
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1771,7 +1771,7 @@ pcod_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(pcod_larvae_phenology_t)
 AIC(pcod_larvae_phenology_t)
-# AIC: 8606
+# AIC: 8388
 
 pcod_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
@@ -1782,7 +1782,7 @@ pcod_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(pcod_larvae_geography_t)
 AIC(pcod_larvae_geography_t)
-# AIC: 8237
+# AIC: 8372
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1790,11 +1790,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pcodlarvae_phenology_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_phenology_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_phenology_t # 0.148
+ratio_pcodlarvae_phenology_t # 0.021
 
 ratio_pcodlarvae_geography_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_geography_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_geography_t # 0.313
+ratio_pcodlarvae_geography_t # 0.028
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1802,21 +1802,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pcodlarvae_gams_t <- gam_selection(pcod_larvae)
-AIC(pcodlarvae_gams_t[[1]][[1]]) # 8862
-AIC(pcodlarvae_gams_t[[1]][[2]]) # 8808
-AIC(pcodlarvae_gams_t[[1]][[3]]) # 8808
+AIC(pcodlarvae_gams_t[[1]][[1]]) # 8229
+AIC(pcodlarvae_gams_t[[1]][[2]]) # 8087
+AIC(pcodlarvae_gams_t[[1]][[3]]) # 8124
 summary(pcodlarvae_gams_t[[2]]) # best is phenology VC
-AIC(pcodlarvae_gams_t[[1]][[1]]) - AIC(pcodlarvae_gams_t[[2]]) # 54
+AIC(pcodlarvae_gams_t[[1]][[1]]) - AIC(pcodlarvae_gams_t[[2]]) # 143
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pcodlarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(pcodlarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(pcodlarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(pcodlarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(pcodlarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(pcodlarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(pcodlarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(pcodlarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/cod_hindcast', 'cod_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1831,10 +1831,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pcodlarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(pcodlarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(pcodlarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(pcodlarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(pcodlarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(pcodlarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(pcodlarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(pcodlarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/cod_hindcast', 'cod_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1851,11 +1851,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pcodlarvae_month_t <- (summary(pcod_larvae_base_t)$scale - 
                          summary(pcodlarvae_gams_t[[1]][[2]])$scale) / summary(pcod_larvae_base_t)$scale
-var_ratio_pcodlarvae_month_t # 0.06
+var_ratio_pcodlarvae_month_t # 0.146
 
 var_ratio_pcodlarvae_space_t <- (summary(pcod_larvae_base_t)$scale - 
                          summary(pcodlarvae_gams_t[[1]][[3]])$scale) / summary(pcod_larvae_base_t)$scale
-var_ratio_pcodlarvae_space_t #  0.06
+var_ratio_pcodlarvae_space_t #  0.131
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1976,7 +1976,7 @@ nrs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(nrs_larvae_phenology_t)
 AIC(nrs_larvae_phenology_t)
-# AIC: 15687
+# AIC: 14754
 
 nrs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                                 s(lon, lat) +
@@ -1987,7 +1987,7 @@ nrs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
                               method = 'REML')
 summary(nrs_larvae_geography_t)
 AIC(nrs_larvae_geography_t)
-# AIC: 14868
+# AIC: 14745
 ```
 
 Ratio for comparison between base and flexible models 
@@ -1995,11 +1995,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_nrslarvae_phenology_t <- (summary(nrs_larvae_base_t)$scale - 
                       summary(nrs_larvae_phenology_t)$scale) / summary(nrs_larvae_base_t)$scale
-ratio_nrslarvae_phenology_t # 0.073
+ratio_nrslarvae_phenology_t # 0.051
 
 ratio_nrslarvae_geography_t <- (summary(nrs_larvae_base_t)$scale - 
                       summary(nrs_larvae_geography_t)$scale) / summary(nrs_larvae_base_t)$scale
-ratio_nrslarvae_geography_t # 0.334
+ratio_nrslarvae_geography_t # 0.053
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -2007,21 +2007,21 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 nrslarvae_gams_t <- gam_selection(nrs_larvae)
-AIC(nrslarvae_gams_t[[1]][[1]]) # 15633
-AIC(nrslarvae_gams_t[[1]][[2]]) # 15623
-AIC(nrslarvae_gams_t[[1]][[3]]) # 15589
-summary(nrslarvae_gams_t[[2]]) # best is phenology VC
-AIC(nrslarvae_gams_t[[1]][[1]]) - AIC(nrslarvae_gams_t[[2]]) # 43.4
+AIC(nrslarvae_gams_t[[1]][[1]]) # 14559
+AIC(nrslarvae_gams_t[[1]][[2]]) # 14521
+AIC(nrslarvae_gams_t[[1]][[3]]) # 14505
+summary(nrslarvae_gams_t[[2]]) # best is location VC
+AIC(nrslarvae_gams_t[[1]][[1]]) - AIC(nrslarvae_gams_t[[2]]) # 55
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(nrslarvae_gams_t[[1]][[2]], select = 1, main = "DOY")
-plot(nrslarvae_gams_t[[1]][[2]], select = 3, main = "Temperature")
-plot(nrslarvae_gams_t[[1]][[2]], select = 4, main = "Salinity")
-plot(nrslarvae_gams_t[[1]][[2]], select = 5, main = "DOY by Mean ROMS SST")
+plot(nrslarvae_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(nrslarvae_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(nrslarvae_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(nrslarvae_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/rocksole_hindcast', 'rocksole_larvae_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -2036,10 +2036,10 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(nrslarvae_gams_t[[1]][[3]], select = 1, main = "DOY")
-plot(nrslarvae_gams_t[[1]][[3]], select = 3, main = "Temperature")
-plot(nrslarvae_gams_t[[1]][[3]], select = 4, main = "Salinity")
-plot(nrslarvae_gams_t[[1]][[3]], select = 5, main = "Location by Mean ROMS SST")
+plot(nrslarvae_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(nrslarvae_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(nrslarvae_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(nrslarvae_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/rocksole_hindcast', 'rocksole_larvae_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -2056,11 +2056,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_nrslarvae_month_t <- (summary(nrs_larvae_base_t)$scale - 
                          summary(nrslarvae_gams_t[[1]][[2]])$scale) / summary(nrs_larvae_base_t)$scale
-var_ratio_nrslarvae_month_t # 0.079
+var_ratio_nrslarvae_month_t # 0.125
 
 var_ratio_nrslarvae_space_t <- (summary(nrs_larvae_base_t)$scale - 
                          summary(nrslarvae_gams_t[[1]][[3]])$scale) / summary(nrs_larvae_base_t)$scale
-var_ratio_nrslarvae_space_t # 0.089
+var_ratio_nrslarvae_space_t # 0.130
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -2159,163 +2159,176 @@ tiff(here('results',
      width = 65,
      height = 90,
      res = 300)
-par(mfrow = c(7, 5),
+par(mfrow = c(9, 5),
     mar = c(11, 15, 5, 1.5) + 0.1,
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
 plot_variable(pkegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-5.5, 7),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(pkegg_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-5.5, 7),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(pkegg_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-5.5, 7),
               "Salinity",
               " ",
               "n")
-plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(pkegg_gams_t,
+              covariate = 6,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              " ",
+              "n")
 location_plot(pkegg_gams_t,
               pk_egg)
 plot_variable(pklarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-5.5, 7),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(pklarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-5.5, 7),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(pklarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-5.5, 7),
               "Salinity",
               " ",
               "n")
-plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(pklarvae_gams_t,
+              covariate = 6,
+              bounds = c(-5.5, 7),
+              "Day of Year",
+              " ",
+              "n")
 location_plot(pklarvae_gams_t,
               pk_larvae)
 plot_variable(fhsegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-6, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(fhsegg_gams_t,
-              covariate = 3,
-              bounds = c(-6, 3),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n")
-plot_variable(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6, 3),
-              "Salinity",
+              expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(fhsegg_gams_t,
               covariate = 5,
               bounds = c(-6, 3),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(fhsegg_gams_t,
+              covariate = 6,
+              bounds = c(-6, 3),
               "Day of Year",
               " ",
               "n")
-plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(fhsegg_gams_t,
+              fhs_egg)
 plot_variable(fhslarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-6, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(fhslarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-6, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(fhslarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-6, 3),
               "Salinity",
               " ",
               "n")
-plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot_variable(fhslarvae_gams_t,
+              covariate = 6,
+              bounds = c(-6, 3),
+              "Day of Year",
+              " ",
+              "n")
 location_plot(fhslarvae_gams_t,
               fhs_larvae)
 plot_variable(akpegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-7, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(akpegg_gams_t,
-              covariate = 3,
-              bounds = c(-7, 3),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n")
-plot_variable(akpegg_gams_t,
               covariate = 4,
               bounds = c(-7, 3),
-              "Salinity",
+              expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(akpegg_gams_t,
               covariate = 5,
               bounds = c(-7, 3),
-              "Day of Year",
+              "Salinity",
               " ",
               "n")
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(akpegg_gams_t,
+              akp_egg)
 plot_variable(akplarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-7, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(akplarvae_gams_t,
-              covariate = 3,
-              bounds = c(-7, 3),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n")
-plot_variable(akplarvae_gams_t,
               covariate = 4,
               bounds = c(-7, 3),
-              "Salinity",
+              expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(akplarvae_gams_t,
               covariate = 5,
               bounds = c(-7, 3),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(akplarvae_gams_t,
+              covariate = 6,
+              bounds = c(-7, 3),
               "Day of Year",
               " ",
               "n")
-plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(akplarvae_gams_t,
+              akp_larvae)
 plot_variable(yfslarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-4, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(yfslarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-4, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(yfslarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-4, 3),
               "Salinity",
               " ",
@@ -2323,30 +2336,89 @@ plot_variable(yfslarvae_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(yfslarvae_gams_t,
               yfs_larvae)
+plot_variable(pcodlarvae_gams_t,
+              covariate = 2,
+              bounds = c(-7, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pcodlarvae_gams_t,
+              covariate = 4,
+              bounds = c(-7, 3),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(pcodlarvae_gams_t,
+              covariate = 5,
+              bounds = c(-7, 3),
+              "Salinity",
+              " ",
+              "n")
+plot_variable(pcodlarvae_gams_t,
+              covariate = 6,
+              bounds = c(-7, 3),
+              "Day of Year",
+              " ",
+              "n")
+location_plot(pcodlarvae_gams_t,
+              pcod_larvae)
+plot_variable(nrslarvae_gams_t,
+              covariate = 2,
+              bounds = c(-4, 2),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(nrslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-4, 2),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(nrslarvae_gams_t,
+              covariate = 5,
+              bounds = c(-4, 2),
+              "Salinity",
+              " ",
+              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+location_plot(nrslarvae_gams_t,
+              nrs_larvae)
 mtext("Walleye Pollock", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.86)
+      at = 0.89)
 mtext("Flathead Sole", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.58)
+      at = 0.67)
 mtext("Alaska Plaice", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.29)
+      at = 0.45)
 mtext("Yellowfin Sole", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.08)
+      at = 0.28)
+mtext("Pacific Cod", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.17)
+mtext("Northern Rock Sole", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.06)
 mtext("Day of Year", 
       side = 3, 
       line = 2, 
@@ -2382,43 +2454,55 @@ mtext("Eggs",
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.93)
+      at = 0.95)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.79)
+      at = 0.84)
 mtext("Eggs", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.65)
+      at = 0.73)
 mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.62)
+mtext("Eggs", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
       at = 0.51)
-mtext("Eggs", 
-      side = 2, 
-      line = 10, 
-      outer = TRUE, 
-      cex = 6,
-      at = 0.36)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.22)
+      at = 0.40)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.08)
+      at = 0.28)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.17)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.06)
 dev.off()
 ```
 
@@ -2431,25 +2515,25 @@ tiff(here('results',
      width = 65,
      height = 90,
      res = 300)
-par(mfrow = c(7, 5),
+par(mfrow = c(9, 5),
     mar = c(11, 15, 5, 1.5) + 0.1,
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
 plot_variable(pkegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-5.5, 7),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(pkegg_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-5.5, 7),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(pkegg_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-5.5, 7),
               "Salinity",
               " ",
@@ -2458,19 +2542,19 @@ phenology_change(pkegg_vcgrids_t)
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
 plot_variable(pklarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-5.5, 7),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(pklarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-5.5, 7),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(pklarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-5.5, 7),
               "Salinity",
               " ",
@@ -2479,19 +2563,19 @@ phenology_change(pklarvae_vcgrids_t)
 distribution_change(pk_larvae,
                     pklarvae_vcgrids_t)
 plot_variable(fhsegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-6, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(fhsegg_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-6, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(fhsegg_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-6, 3),
               "Salinity",
               " ",
@@ -2500,19 +2584,19 @@ phenology_change(fhsegg_vcgrids_t)
 distribution_change(fhs_egg,
                     fhsegg_vcgrids_t)
 plot_variable(fhslarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-6, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(fhslarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-6, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(fhslarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-6, 3),
               "Salinity",
               " ",
@@ -2521,19 +2605,19 @@ phenology_change(fhslarvae_vcgrids_t)
 distribution_change(fhs_larvae,
                     fhslarvae_vcgrids_t)
 plot_variable(akpegg_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-7, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(akpegg_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-7, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(akpegg_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-7, 3),
               "Salinity",
               " ",
@@ -2542,19 +2626,19 @@ phenology_change(akpegg_vcgrids_t)
 distribution_change(akp_egg,
                     akpegg_vcgrids_t)
 plot_variable(akplarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-7, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(akplarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-7, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(akplarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-7, 3),
               "Salinity",
               " ",
@@ -2563,19 +2647,19 @@ phenology_change(akplarvae_vcgrids_t)
 distribution_change(akp_larvae,
                     akplarvae_vcgrids_t)
 plot_variable(yfslarvae_gams_t,
-              covariate = 1,
+              covariate = 2,
               bounds = c(-4, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
 plot_variable(yfslarvae_gams_t,
-              covariate = 3,
+              covariate = 4,
               bounds = c(-4, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
 plot_variable(yfslarvae_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-4, 3),
               "Salinity",
               " ",
@@ -2583,30 +2667,84 @@ plot_variable(yfslarvae_gams_t,
 phenology_change(yfslarvae_vcgrids_t)
 distribution_change(yfs_larvae,
                     yfslarvae_vcgrids_t)
+plot_variable(pcodlarvae_gams_t,
+              covariate = 2,
+              bounds = c(-7, 3),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(pcodlarvae_gams_t,
+              covariate = 4,
+              bounds = c(-7, 3),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(pcodlarvae_gams_t,
+              covariate = 5,
+              bounds = c(-7, 3),
+              "Salinity",
+              " ",
+              "n")
+phenology_change(pcodlarvae_vcgrids_t)
+distribution_change(pcod_larvae,
+                    pcodlarvae_vcgrids_t)
+plot_variable(nrslarvae_gams_t,
+              covariate = 2,
+              bounds = c(-4, 2),
+              "Day of Year",
+              "Species Abundance Anomalies",
+              "s")
+plot_variable(nrslarvae_gams_t,
+              covariate = 4,
+              bounds = c(-4, 2),
+              expression(paste("Temperature ("^0, 'C)')),
+              " ",
+              "n")
+plot_variable(nrslarvae_gams_t,
+              covariate = 5,
+              bounds = c(-4, 2),
+              "Salinity",
+              " ",
+              "n")
+phenology_change(nrslarvae_vcgrids_t)
+distribution_change(nrs_larvae,
+                    nrslarvae_vcgrids_t)
 mtext("Walleye Pollock", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.86)
+      at = 0.89)
 mtext("Flathead Sole", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.58)
+      at = 0.67)
 mtext("Alaska Plaice", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.29)
+      at = 0.45)
 mtext("Yellowfin Sole", 
       side = 2, 
       line = 25, 
       outer = TRUE, 
       cex = 7,
-      at = 0.08)
+      at = 0.28)
+mtext("Pacific Cod", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.17)
+mtext("Northern Rock Sole", 
+      side = 2, 
+      line = 25, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.06)
 mtext("Day of Year", 
       side = 3, 
       line = 2, 
@@ -2642,42 +2780,54 @@ mtext("Eggs",
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.93)
+      at = 0.95)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.79)
+      at = 0.84)
 mtext("Eggs", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.65)
+      at = 0.73)
 mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.62)
+mtext("Eggs", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
       at = 0.51)
-mtext("Eggs", 
-      side = 2, 
-      line = 10, 
-      outer = TRUE, 
-      cex = 6,
-      at = 0.36)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.22)
+      at = 0.40)
 mtext("Larvae", 
       side = 2, 
       line = 10, 
       outer = TRUE, 
       cex = 6,
-      at = 0.08)
+      at = 0.28)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.17)
+mtext("Larvae", 
+      side = 2, 
+      line = 10, 
+      outer = TRUE, 
+      cex = 6,
+      at = 0.06)
 dev.off()
 ```
