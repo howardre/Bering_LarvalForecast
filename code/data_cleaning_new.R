@@ -611,7 +611,7 @@ table(pk_larvae_clean$primary_net)
 # Latitude: all
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
-                      month > 3, month < 7, 
+                      month > 2, month < 8, 
                       year != 1996, 
                       year != 1997, 
                       year != 1998, 
@@ -621,7 +621,7 @@ pk_egg_trim <- filter(pk_egg_trim,
                       lon >= -176.5 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
-                         month > 3, month < 7,
+                         month > 2, month < 8,
                          year != 1996, 
                          year != 1997, 
                          year != 1998, 
@@ -913,18 +913,13 @@ ggplot(akp_egg) +
   geom_point(aes(roms_salinity, year))
 
 # Remove outliers
-yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000,
-                     roms_salinity > 25)
+yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000)
 akp_egg <- filter(akp_egg, larvalcatchper10m2 < 7000)
-akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500,
-                     roms_salinity > 29)
-fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 2000,
-                  roms_salinity > 29)
+akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500)
+fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 2000)
 fhs_larvae <- filter(fhs_larvae, larvalcatchper10m2 < 9000)
-pk_egg <- filter(pk_egg, larvalcatchper10m2 < 200000,
-                 roms_salinity > 29)
-pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000,
-                    roms_salinity > 29)
+pk_egg <- filter(pk_egg, larvalcatchper10m2 < 200000)
+pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000)
 
 # Save files
 saveRDS(yfs_larvae, file = here('data', 'yfs_larvae.rds'))
