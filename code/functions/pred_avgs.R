@@ -1,16 +1,10 @@
 # Prediction function for the first time period (2015 - 2039)
-pred_list1 <- function(range, data, day, month, scenario, temps, salts, formula){
+pred_list1 <- function(range, data, day, 
+                       month, scenario, temps, 
+                       salts, formula){
   preds <- pred_loop(range, data, day,
                      month, scenario, temps,
                      salts, formula)
-  # Plot
-  pred_means <- sapply(preds, function(x) colMeans(select(x, pred), na.rm = T))
-  avgs <- data.frame(year = c(range), 
-                     avg_pred = pred_means)
-  avgs$avg_scaled <- rescale(avgs$avg_pred)
-  plot <- ggplot(avgs) +
-    geom_line(aes(x = year,
-                  y = avg_scaled))
   # Combine into one data frame
   df <- list(preds[[1]], preds[[2]],
              preds[[3]], preds[[4]],
@@ -36,14 +30,6 @@ pred_list2 <- function(range, data, day,
   preds <- pred_loop(range, data, day,
                      month, scenario, temps,
                      salts, formula)
-  # Plot
-  pred_means <- sapply(preds, function(x) colMeans(select(x, pred), na.rm = T))
-  avgs <- data.frame(year = c(range), 
-                     avg_pred = pred_means)
-  avgs$avg_scaled <- rescale(avgs$avg_pred)
-  plot <- ggplot(avgs) +
-    geom_line(aes(x = year,
-                  y = avg_scaled))
   # Combine into one data frame
   df <- list(preds[[1]], preds[[2]],
              preds[[3]], preds[[4]],
