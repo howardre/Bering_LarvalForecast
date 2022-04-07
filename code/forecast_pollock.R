@@ -13,6 +13,7 @@ library(RColorBrewer)
 library(mgcv)
 library(RANN)
 library(scales)
+library(matrixStats)
 source(here('code/functions', 'distance_function.R'))
 
 # Load ROMS temperature means and forecast
@@ -35,7 +36,8 @@ egg_formula <- gam(catch ~ s(year, bs = 're') +
                      s(roms_salinity, k = 6) +
                      s(doy, by = mean_temp, k = 6),
                    data = pk_egg,
-                   family = tw(link = 'log'))
+                   family = tw(link = 'log'),
+                   method = 'REML')
 
 larval_formula <- gam(catch ~ s(year, bs = 're') + 
                         s(doy, k = 8) +
@@ -246,6 +248,25 @@ preds_pkegg1_cesm126 <- pred_loop(2015:2039, pk_egg, 130,
                                    5, 'ssp126', cesm_temps1, 
                                    cesm_salts1, egg_formula)
 
+
+
+lapply(names(preds_pkegg1_cesm126), 
+       function(x , d){
+  geom_histogram(
+    d[[x]][d[[x]]$pred > quantile(d[[x]]$pred, 0.95, na.rm = T), ], 
+    aes(x = roms_temperature))
+         }, 
+  d = preds_pkegg1_cesm126)
+
+
+
+lapply(names(preds_pkegg1_cesm126), function(x , d){
+  ggplot(d[[x]][d[[x]]$pred > quantile(d[[x]]$pred, 0.95, na.rm = T), ], 
+         aes(x = roms_temperature)) +
+    geom_histogram() +
+    labs(title = x)
+}, d = preds_pkegg1_cesm126)
+
 # Combine into one data frame
 df_pkegg1_cesm126 <- list(preds_pkegg1_cesm126[[1]], preds_pkegg1_cesm126[[2]],
                            preds_pkegg1_cesm126[[3]], preds_pkegg1_cesm126[[4]],
@@ -277,7 +298,7 @@ x <- grepl("pred", names(df_pkegg1_cesm126), fixed = T)
 df_pkegg_avg1_cesm126 <- data.frame(lat = df_pkegg1_cesm126$lat, 
                                      lon = df_pkegg1_cesm126$lon, 
                                      dist = df_pkegg1_cesm126$dist,
-                                     avg_pred = rowSums(df_pkegg1_cesm126[, x])/25)
+                                     avg_pred = rowMedians(as.matrix(df_pkegg1_cesm126[, x])/25))
 df_pkegg_avg1_cesm126$pred_scaled <- rescale(df_pkegg_avg1_cesm126$avg_pred)
 saveRDS(df_pkegg_avg1_cesm126, file = here("data", "df_pkegg_avg1_cesm126.rds"))
 
