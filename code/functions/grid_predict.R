@@ -53,6 +53,6 @@ grid_predict <- function(grid, title){
              legend.mar = 6,
              zlim = c(min(grid$pred_scaled, na.rm = T), 
                       max(grid$pred_scaled, na.rm = T)),
-             legend.args = list("Avg. Predicted \n Occurrence",
+             legend.args = list("Scaled Abundance",
                                 side = 2, cex = 1))
 }
