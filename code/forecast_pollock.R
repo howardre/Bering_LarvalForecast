@@ -248,7 +248,9 @@ preds_pkegg1_cesm126 <- pred_loop(2015:2039, pk_egg, 130,
                                    5, 'ssp126', cesm_temps1, 
                                    cesm_salts1, egg_formula)
 
-
+df <- data.frame(lat = preds_pkegg1_cesm126[[1]]$lat,
+                 lon = preds_pkegg1_cesm126[[1]]$lon,
+                 avg_pred = rowMedians(as.matrix(do.call(cbind, lapply(preds_pkegg1_cesm126, "[", "pred")))))
 
 lapply(names(preds_pkegg1_cesm126), 
        function(x , d){
@@ -304,7 +306,7 @@ saveRDS(df_pkegg_avg1_cesm126, file = here("data", "df_pkegg_avg1_cesm126.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(df_pkegg_avg1_cesm126, "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
+grid_predict(test_df, "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_cesm_ssp126_1.jpg'),
