@@ -452,15 +452,15 @@ dev.copy(jpeg,
 dev.off()
 
 ## 2070 - 2099
-df_pkegg3_miroc585 <- pred_list2(2070:2099, pk_egg, 134,
-                                5, 'ssp585', miroc_temps3, 
-                                miroc_salts3, pkegg_formula)
+df_pkegg3_miroc585 <- predict_cells(2070:2099, pk_egg, 134,
+                                    5, 'ssp585', miroc_temps3,
+                                    miroc_salts3, pkegg_formula)
 avgs_pkegg3_miroc585 <- pred_avgs2(df_pkegg3_miroc585)
 saveRDS(avgs_pkegg3_miroc585, file = here("data", "avgs_pkegg3_miroc585.rds"))
 
 # Plot
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avgs_pkegg3_miroc585, 
+grid_predict(df_pkegg3_miroc585, 
              "Forecasted Distribution 2070 - 2099 \n MIROC SSP585")
 dev.copy(jpeg,
          here('results/pollock_forecast',
@@ -473,6 +473,55 @@ dev.off()
 
 rm(miroc_temps1, miroc_temps2, miroc_temps3,
    miroc_salts1, miroc_salts2, miroc_salts3)
+
+##### Multi-panel figure
+tiff(here('results/pollock_forecast',
+          'pollockegg_multipanel.tiff'),
+     units = "in",
+     width = 65,
+     height = 90,
+     res = 300)
+par(mfrow = c(18, 3),
+    mar = c(1, 1, 1, 1),
+    family = "serif")
+grid_predict(avgs_pkegg1_cesm126, 
+             "Forecasted Distribution 2015 - 2039 \n CESM SSP126")
+grid_predict(avgs_pkegg2_cesm126, 
+             "Forecasted Distribution 2040 - 2069 \n CESM SSP126")
+grid_predict(avgs_pkegg3_cesm126, 
+             "Forecasted Distribution 2070 - 2099 \n CESM SSP126")
+grid_predict(avgs_pkegg1_cesm585, 
+             "Forecasted Distribution 2015 - 2039 \n CESM SSP585")
+grid_predict(avgs_pkegg2_cesm585, 
+             "Forecasted Distribution 2040 - 2069 \n CESM SSP585")
+grid_predict(avgs_pkegg3_cesm585, 
+             "Forecasted Distribution 2070 - 2099 \n CESM SSP585")
+grid_predict(avgs_pkegg1_gfdl126, 
+             "Forecasted Distribution 2015 - 2039 \n GFDL SSP126")
+grid_predict(avgs_pkegg2_gfdl126, 
+             "Forecasted Distribution 2040 - 2069 \n GFDL SSP126")
+grid_predict(avgs_pkegg3_gfdl126, 
+             "Forecasted Distribution 2070 - 2099 \n GFDL SSP126")
+grid_predict(avgs_pkegg1_gfdl585, 
+             "Forecasted Distribution 2015 - 2039 \n GFDL SSP585")
+grid_predict(avgs_pkegg2_gfdl585, 
+             "Forecasted Distribution 2040 - 2069 \n GFDL SSP585")
+grid_predict(avgs_pkegg3_gfdl585, 
+             "Forecasted Distribution 2070 - 2099 \n GFDL SSP585")
+grid_predict(avgs_pkegg1_miroc126, 
+             "Forecasted Distribution 2015 - 2039 \n MIROC SSP126")
+grid_predict(avgs_pkegg2_miroc126, 
+             "Forecasted Distribution 2040 - 2069 \n MIROC SSP126")
+grid_predict(avgs_pkegg3_miroc126, 
+             "Forecasted Distribution 2070 - 2099 \n MIROC SSP126")
+grid_predict(avgs_pkegg1_miroc585, 
+             "Forecasted Distribution 2015 - 2039 \n MIROC SSP585")
+grid_predict(avgs_pkegg2_miroc585, 
+             "Forecasted Distribution 2040 - 2069 \n MIROC SSP585")
+grid_predict(avgs_pkegg3_miroc585, 
+             "Forecasted Distribution 2070 - 2099 \n MIROC SSP585")
+
+
 
 ##### Averages ---------------------------------------------------------------------------------------------------------------------------
 df_pkegg_merged1 <- list(avgs_pkegg1_cesm126, avgs_pkegg1_cesm585,
