@@ -30,11 +30,11 @@ load_data <- function(file, data, temps){
 # Create GAM formulas
 formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
-        s(doy, k = 8) +
+        s(doy) +
         s(lon, lat) +
-        s(roms_temperature, k = 6) +
-        s(roms_salinity, k = 6) +
-        s(doy, by = mean_temp, k = 6), # phenology
+        s(roms_temperature) +
+        s(roms_salinity) +
+        s(doy, by = mean_temp), # phenology
       data = data,
       family = tw(link = 'log'),
       method = 'REML')
