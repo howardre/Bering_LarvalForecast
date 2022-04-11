@@ -32,8 +32,8 @@ pk_larvae$catch <- pk_larvae$larvalcatchper10m2 + 1
 egg_formula <- gam(catch ~ s(year, bs = 're') +
                      s(doy, k = 8) +
                      s(lon, lat) +
-                     s(roms_temperature, k = 6) +
-                     s(roms_salinity, k = 6) +
+                     s(roms_salinity) +
+                     s(roms_temperature) +
                      s(doy, by = mean_temp, k = 6),
                    data = pk_egg,
                    family = tw(link = 'log'),
@@ -1145,6 +1145,7 @@ df_pkegg_avg3_miroc585 <- data.frame(lat = df_pkegg3_miroc585$lat,
                                       lon = df_pkegg3_miroc585$lon, 
                                       dist = df_pkegg3_miroc585$dist,
                                       avg_pred = rowSums(df_pkegg3_miroc585[, x])/30)
+df_pkegg_avg3_miroc585$pred_scaled <- rescale(df_pkegg_avg3_miroc585$avg_pred)
 saveRDS(df_pkegg_avg3_miroc585, file = here("data", "df_pkegg_avg3_miroc585.rds"))
 
 # Plot
