@@ -47,7 +47,7 @@ map_vc_presentation <- function(data, gam, grids, title){
              legend.width = 0.8,
              legend.mar = 6,
              zlim = c(0, 26000),
-             legend.args = list("Occurrence",
+             legend.args = list("Abundance",
                                 side = 2, cex = 0.8))
   my_color <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
   image(lond,
