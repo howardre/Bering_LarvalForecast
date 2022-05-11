@@ -44,12 +44,12 @@ years_list_historical <- list('1980-1984', '1985-1989', '1990-1994', '1995-1999'
                               '2000-2004', '2005-2009', '2010-2014')
 
 get_temp_filepath <- function(model, years){
-  filepath = paste('D:/B10K-K20P19_CMIP6_', model, '/Level1/B10K-K20P19_CMIP6_', model, '_', years, '_average_temp.nc', sep = '')
+  filepath = paste('F:/B10K-K20P19_CMIP6_', model, '/Level1/B10K-K20P19_CMIP6_', model, '_', years, '_average_temp.nc', sep = '')
   return(filepath)
 }
 
 get_salt_filepath <- function(model, years){
-  filepath = paste('D:/B10K-K20P19_CMIP6_', model, '/Level1/B10K-K20P19_CMIP6_', model, '_', years, '_average_salt.nc', sep = '')
+  filepath = paste('F:/B10K-K20P19_CMIP6_', model, '/Level1/B10K-K20P19_CMIP6_', model, '_', years, '_average_salt.nc', sep = '')
   return(filepath)
 }
 
