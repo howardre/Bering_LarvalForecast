@@ -26,8 +26,15 @@ get_preds <- function(data, the_year, doy,
   grid_extent$doy <- rep(doy, length(grid_extent))
   grid_extent$month <- the_month
   
-  temp_output$lon <- -temp_output$lon
-  salt_output$lon <- -salt_output$lon
+  temp_output <- temp_output %>% 
+    mutate(lat = lat,
+           lon = case_when(lon >= 180 ~ lon - 360,
+                           lon < 180 ~ lon))
+  salt_output <- salt_output %>% 
+    mutate(lat = lat,
+           lon = case_when(lon >= 180 ~ lon - 360,
+                           lon < 180 ~ lon))
+  
   
   # Use RANN package to match nearest temperature value based on lat, lon, month, year
   bc_temps <- temp_output %>% filter(month == the_month & year == the_year & projection == proj)
