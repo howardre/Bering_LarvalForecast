@@ -105,7 +105,7 @@ pk_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                           method =  'REML')
 summary(pk_egg_phenology_t)
 AIC(pk_egg_phenology_t)
-# AIC: 29859
+# AIC: 32036
 
 pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                             s(lon, lat) +
@@ -116,7 +116,7 @@ pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
                           method = 'REML')
 summary(pk_egg_geography_t)
 AIC(pk_egg_geography_t)
-# AIC: 29912
+# AIC: 32044
 ```
 
 Ratio for comparison between base and flexible models 
@@ -124,11 +124,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pkegg_phenology_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_phenology_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_phenology_t #0.054
+ratio_pkegg_phenology_t #0.039
 
 ratio_pkegg_geography_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_geography_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_geography_t #0.041
+ratio_pkegg_geography_t #0.038
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -140,7 +140,7 @@ AIC(pkegg_gams_t[[1]][[1]])
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
 summary(pkegg_gams_t[[2]]) # best model is temporal VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 1.63                    
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 255                    
 ```
 
 Plot best model for phenology
@@ -185,11 +185,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.103
+var_ratio_pkegg_month_t #0.113
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.080
+var_ratio_pkegg_space_t #0.144
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -366,7 +366,7 @@ AIC(pklarvae_gams_t[[1]][[1]]) #29463
 AIC(pklarvae_gams_t[[1]][[2]]) #29208
 AIC(pklarvae_gams_t[[1]][[3]]) #29356
 summary(pklarvae_gams_t[[2]]) # best model is temporal, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #255
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #273
 ```
 
 Plot best model for phenology
@@ -616,7 +616,7 @@ fhsegg_gams_t <- gam_selection(fhs_egg)
 AIC(fhsegg_gams_t[[1]][[1]]) # 13021
 AIC(fhsegg_gams_t[[1]][[2]]) # 12668
 AIC(fhsegg_gams_t[[1]][[3]]) # 12887
-summary(fhsegg_gams_t[[2]]) # best model is doy VC
+summary(fhsegg_gams_t[[2]]) # best model is spatial VC
 AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) #353
 ```
 
@@ -805,7 +805,7 @@ fhslarvae_gams_t <- gam_selection(fhs_larvae)
 AIC(fhslarvae_gams_t[[1]][[1]]) #14099
 AIC(fhslarvae_gams_t[[1]][[2]]) #14050
 AIC(fhslarvae_gams_t[[1]][[3]]) #14080
-summary(fhslarvae_gams_t[[2]]) # best model is phenology VC, keep all smooth terms
+summary(fhslarvae_gams_t[[2]]) # best model is temporal VC, keep all smooth terms
 AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) #49
 ```
 
@@ -1412,7 +1412,7 @@ akpegg_gams_t <- gam_selection(akp_egg)
 AIC(akpegg_gams_t[[1]][[1]]) # 14184
 AIC(akpegg_gams_t[[1]][[2]]) # 14125
 AIC(akpegg_gams_t[[1]][[3]]) # 14114
-summary(akpegg_gams_t[[2]]) # best model is location VC, keep all terms
+summary(akpegg_gams_t[[2]]) # best model is spatial VC, keep all terms
 AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) #70
 ```
 
@@ -1599,7 +1599,7 @@ akplarvae_gams_t <- gam_selection(akp_larvae)
 AIC(akplarvae_gams_t[[1]][[1]]) # 5634
 AIC(akplarvae_gams_t[[1]][[2]]) # 5447
 AIC(akplarvae_gams_t[[1]][[3]]) # 5485
-summary(akplarvae_gams_t[[2]]) # best is phenology VC
+summary(akplarvae_gams_t[[2]]) # best is temporal VC
 AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) #188
 ```
 
@@ -2010,7 +2010,7 @@ nrslarvae_gams_t <- gam_selection(nrs_larvae)
 AIC(nrslarvae_gams_t[[1]][[1]]) # 14559
 AIC(nrslarvae_gams_t[[1]][[2]]) # 14521
 AIC(nrslarvae_gams_t[[1]][[3]]) # 14505
-summary(nrslarvae_gams_t[[2]]) # best is location VC
+summary(nrslarvae_gams_t[[2]]) # best is spatial VC
 AIC(nrslarvae_gams_t[[1]][[1]]) - AIC(nrslarvae_gams_t[[2]]) # 55
 ```
 
