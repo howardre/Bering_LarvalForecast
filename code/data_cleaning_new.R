@@ -97,14 +97,6 @@ nc_close(bering_model_salt5)
 nc_close(bering_model_salt6)
 nc_close(bering_model_salt7)
 
-# Load historical
-temps_cesm_historical <- readRDS(here('data', 'temps_cesm_historical.rds'))
-salts_cesm_historical <- readRDS(here('data', 'salts_cesm_historical.rds'))
-temps_gfdl_historical <- readRDS(here('data', 'temps_gfdl_historical.rds'))
-salts_gfdl_historical <- readRDS(here('data', 'salts_gfdl_historical.rds'))
-temps_miroc_historical <- readRDS(here('data', 'temps_miroc_historical.rds'))
-salts_miroc_historical <- readRDS(here('data', 'salts_miroc_historical.rds'))
-
 # Use if want to see dimensions of .nc variables
 # dim(temp)
 # range(temp, na.rm = T)
@@ -411,6 +403,7 @@ akp_larvae_trim <- filter(akp_larvae_trim,
                           month > 4, month < 8,
                           year != 1996,
                           year != 1997,
+                          year != 2000,
                           year != 2001,
                           year != 2004,
                           year != 2011,
@@ -503,13 +496,15 @@ table(fhs_larvae_clean$primary_net)
 # Latitude: all
 fhs_egg_trim <- trim_data(fhs_egg_clean)
 fhs_egg_trim <- filter(fhs_egg_trim,
-                       month > 4, month < 10,
+                       month > 4, month < 8,
                        year != 1994,
                        year != 1996,
                        year != 1997,
                        year != 2001,
+                       year != 2004,
                        year != 2011,
                        year != 2013,
+                       year != 2015,
                        lat >= 52 & lat <= 59,
                        lon >= -176.5 & lon <= -156.5)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
@@ -612,21 +607,28 @@ table(pk_larvae_clean$primary_net)
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
                       month > 2, month < 8, 
+                      year != 1992,
                       year != 1996, 
                       year != 1997, 
                       year != 1998, 
                       year != 2000,
+                      year != 2001,
+                      year != 2004,
                       year != 2013,
                       lat >= 54 & lat <= 60,
                       lon >= -176.5 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
                          month > 2, month < 8,
+                         year != 1992,
                          year != 1996, 
                          year != 1997, 
                          year != 1998, 
                          year != 2000,
+                         year != 2001,
+                         year != 2004,
                          year != 2013,
+                         year != 2015,
                          lat >= 54 & lat <= 60,
                          lon >= -176.5 & lon <= -156.5)
 
