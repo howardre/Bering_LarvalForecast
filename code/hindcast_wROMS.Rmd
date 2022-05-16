@@ -20,6 +20,7 @@ library(raster)
 library(rgdal)
 library(viridis)
 library(RColorBrewer)
+library(colorspace)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 source(here('code/functions', 'distance_function.R'))
 source(here('code/functions', 'gam_selection.R'))
@@ -34,6 +35,7 @@ source(here('code/functions', 'location_plot.R'))
 source(here('code/functions', 'variable_coefficient.R'))
 source(here('code/functions', 'phenology_change.R'))
 source(here('code/functions', 'distribution_change.R'))
+source(here('code/functions', 'plot_var_coef.R'))
 ```
 
 ```{r}
@@ -63,11 +65,7 @@ nrs_larvae <- clean_data('nrs_larvae.rds', roms_temps)
 # Colors
 contour_col <- rgb(0, 0, 255, max = 255, alpha = 0, names = "white")
 
-jet.colors = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
-                                    "#F5D363", "#EFBA55", "#EAA352",
-                                    "#E68C51", "#E0754F", "#D75C4D",
-                                    "#BB4A48", "#994240", "#763931", 
-                                    "#542D20", "#352311", "#191900")))
+jet.colors <- colorRampPalette(c(sequential_hcl(15, palette = "Mint")))
 ```
 
 ## Pollock
@@ -124,11 +122,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pkegg_phenology_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_phenology_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_phenology_t #0.039
+ratio_pkegg_phenology_t #0.038
 
 ratio_pkegg_geography_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_geography_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_geography_t #0.038
+ratio_pkegg_geography_t #0.036
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -139,8 +137,8 @@ pkegg_gams_t <- gam_selection(pk_egg)
 AIC(pkegg_gams_t[[1]][[1]]) 
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
-summary(pkegg_gams_t[[2]]) # best model is temporal VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 255                    
+summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 251                    
 ```
 
 Plot best model for phenology
@@ -185,11 +183,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.113
+var_ratio_pkegg_month_t #0.106
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.144
+var_ratio_pkegg_space_t #0.138
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -280,42 +278,11 @@ dev.off()
 
 Plot the variable coefficient term
 ```{r}
-pk_egg <- variable_coefficient(pkegg_gams_t, pk_egg)
+pred_pkegg_t <- variable_coefficient(pkegg_gams_t, pk_egg)
 
-vis.gam(pkegg_gams_t[[2]],
-        view = c('lon', 'lat'),
-        plot.type = "contour",
-        color = "gray",
-        too.far = 0.07,
-        type = 'response',
-        main = 'All Years - All temps',
-        ylab = 'Latitude',
-        xlab = 'Longitude')
-symbols(pk_egg$lon[pk_egg$sign_slope_pos],
-        pk_egg$lat[pk_egg$sign_slope_pos],
-        circle = pk_egg$pred_slope[pk_egg$sign_slope_pos],
-        inches = 0.08,
-        add = T,
-        bg = alpha('darkred', 0.4),
-        fg = alpha('black', 0.08))
-symbols(pk_egg$lon[pk_egg$sign_slope_neg],
-        pk_egg$lat[pk_egg$sign_slope_neg],
-        circle = (-1) * pk_egg$pred_slope[pk_egg$sign_slope_neg],
-        inches = 0.08,
-        add = T,
-        bg = alpha('darkslateblue', 0.4),
-        fg = alpha('black', 0.08))
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-dev.copy(jpeg,
-         here('results/pollock_hindcast',
-         'pollock_egg_vcterm.jpg'),
-         height = 10,
-         width = 10,
-         res = 200,
-         units = 'in')
+plot_var_coef(pkegg_gams_t, pk_egg, pred_pkegg_t)
+dev.copy(jpeg, here('results/pollock_hindcast', 'pkegg_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
@@ -365,7 +332,7 @@ pklarvae_gams_t <- gam_selection(pk_larvae)
 AIC(pklarvae_gams_t[[1]][[1]]) #29463
 AIC(pklarvae_gams_t[[1]][[2]]) #29208
 AIC(pklarvae_gams_t[[1]][[3]]) #29356
-summary(pklarvae_gams_t[[2]]) # best model is temporal, retain all smooth terms
+summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
 AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #273
 ```
 
@@ -507,42 +474,11 @@ dev.off()
 
 Plot the variable coefficient term
 ```{r}
-pk_larvae <- variable_coefficient(pklarvae_gams_t, pk_larvae)
+pred_pklarvae_t <- variable_coefficient(pklarvae_gams_t, pk_larvae)
 
-vis.gam(pklarvae_gams_t[[2]],
-        view = c('lon', 'lat'),
-        plot.type = "contour",
-        color = "gray",
-        too.far = 0.07,
-        type = 'response',
-        main = 'All Years - All temps',
-        ylab = 'Latitude',
-        xlab = 'Longitude')
-# symbols(pk_larvae$lon[pk_larvae$sign_slope_pos],
-#         pk_larvae$lat[pk_larvae$sign_slope_pos],
-#         circle = pk_larvae$pred_slope[pk_larvae$sign_slope_pos],
-#         inches = 0.08,
-#         add = T,
-#         bg = alpha('darkred', 0.4),
-#         fg = alpha('black', 0.08))
-symbols(pk_larvae$lon[pk_larvae$sign_slope_neg],
-        pk_larvae$lat[pk_larvae$sign_slope_neg],
-        circle = (-1) * pk_larvae$pred_slope[pk_larvae$sign_slope_neg],
-        inches = 0.08,
-        add = T,
-        bg = alpha('darkslateblue', 0.4),
-        fg = alpha('black', 0.08))
-map("worldHires",
-    fill = T,
-    col = "wheat4",
-    add = T)
-dev.copy(jpeg,
-         here('results/pollock_hindcast',
-         'pollock_larvae_vcterm.jpg'),
-         height = 10,
-         width = 10,
-         res = 200,
-         units = 'in')
+plot_var_coef(pklarvae_gams_t, pk_larvae, pred_pklarvae_t)
+dev.copy(jpeg, here('results/pollock_hindcast', 'pklarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
@@ -756,6 +692,15 @@ plot_variable(fhsegg_gams_t,
 dev.off()
 ```
 
+Plot the variable coefficient term
+```{r}
+pred_fhsegg_t <- variable_coefficient(fhsegg_gams_t, fhs_egg)
+
+plot_var_coef(fhsegg_gams_t, fhs_egg, pred_fhsegg_t)
+dev.copy(jpeg, here('results/flathead_hindcast', 'fhsegg_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
+```
 
 #### Larvae
 
@@ -805,7 +750,7 @@ fhslarvae_gams_t <- gam_selection(fhs_larvae)
 AIC(fhslarvae_gams_t[[1]][[1]]) #14099
 AIC(fhslarvae_gams_t[[1]][[2]]) #14050
 AIC(fhslarvae_gams_t[[1]][[3]]) #14080
-summary(fhslarvae_gams_t[[2]]) # best model is temporal VC, keep all smooth terms
+summary(fhslarvae_gams_t[[2]]) # best model is spatial VC, keep all smooth terms
 AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) #49
 ```
 
@@ -941,6 +886,15 @@ plot_variable(fhslarvae_gams_t,
               "Salinity",
               " ",
               "n")
+dev.off()
+```
+
+```{r}
+pred_fhslarvae_t <- variable_coefficient(fhslarvae_gams_t, fhs_larvae)
+
+plot_var_coef(fhslarvae_gams_t, fhs_larvae, pred_fhslarvae_t)
+dev.copy(jpeg, here('results/flathead_hindcast', 'fhslarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
@@ -1342,6 +1296,16 @@ plot_variable(yfslarvae_gams_t,
 dev.off()
 ```
 
+Plot variable coefficient term
+```{r}
+pred_yfslarvae_t <- variable_coefficient(yfslarvae_gams_t, yfs_larvae)
+
+plot_var_coef(yfslarvae_gams_t, yfs_larvae, pred_yfslarvae_t)
+dev.copy(jpeg, here('results/yellowfin_hindcast', 'yfslarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
+```
+
 ## Alaska Plaice
 ### Tweedie
 ```{r}
@@ -1551,6 +1515,16 @@ plot_variable(akpegg_gams_t,
 dev.off()
 ```
 
+Plot variable coefficient term
+```{r}
+pred_akpegg_t <- variable_coefficient(akpegg_gams_t, akp_egg)
+
+plot_var_coef(akpegg_gams_t, akp_egg, pred_akpegg_t)
+dev.copy(jpeg, here('results/plaice_hindcast', 'akpegg_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
+```
+
 #### Larvae
 
 Models with flexible phenology or geography 
@@ -1599,7 +1573,7 @@ akplarvae_gams_t <- gam_selection(akp_larvae)
 AIC(akplarvae_gams_t[[1]][[1]]) # 5634
 AIC(akplarvae_gams_t[[1]][[2]]) # 5447
 AIC(akplarvae_gams_t[[1]][[3]]) # 5485
-summary(akplarvae_gams_t[[2]]) # best is temporal VC
+summary(akplarvae_gams_t[[2]]) # best is spatial VC
 AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) #188
 ```
 
@@ -1744,6 +1718,15 @@ plot_variable(akplarvae_gams_t,
 dev.off()
 ```
 
+Plot variable coefficient term
+```{r}
+pred_akplarvae_t <- variable_coefficient(akplarvae_gams_t, akp_larvae)
+
+plot_var_coef2(akplarvae_gams_t, akp_larvae, pred_akplarvae_t)
+dev.copy(jpeg, here('results/plaice_hindcast', 'akplarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
+```
 
 ## Pacific Cod
 ### Tweedie
@@ -1805,7 +1788,7 @@ pcodlarvae_gams_t <- gam_selection(pcod_larvae)
 AIC(pcodlarvae_gams_t[[1]][[1]]) # 8229
 AIC(pcodlarvae_gams_t[[1]][[2]]) # 8087
 AIC(pcodlarvae_gams_t[[1]][[3]]) # 8124
-summary(pcodlarvae_gams_t[[2]]) # best is phenology VC
+summary(pcodlarvae_gams_t[[2]]) # best is temporal VC
 AIC(pcodlarvae_gams_t[[1]][[1]]) - AIC(pcodlarvae_gams_t[[2]]) # 143
 ```
 
@@ -1947,6 +1930,16 @@ plot_variable(pcodlarvae_gams_t,
               "Day of Year",
               " ",
               "n")
+dev.off()
+```
+
+Plot variable coefficient term
+```{r}
+pred_pcodlarvae_t <- variable_coefficient(pcodlarvae_gams_t, pcod_larvae)
+
+plot_var_coef(pcodlarvae_gams_t, pcod_larvae, pred_pcodlarvae_t)
+dev.copy(jpeg, here('results/cod_hindcast', 'pcodlarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 ```
 
@@ -2149,6 +2142,15 @@ plot_variable(nrslarvae_gams_t,
 dev.off()
 ```
 
+Plot variable coefficient term
+```{r}
+pred_nrslarvae_t <- variable_coefficient(nrslarvae_gams_t, nrs_larvae)
+
+plot_var_coef(nrslarvae_gams_t, nrs_larvae, pred_nrslarvae_t)
+dev.copy(jpeg, here('results/rocksole_hindcast', 'nrslarvae_var_coef.jpg'), 
+         height = 10, width = 10, units = 'in', res = 200)
+dev.off()
+```
 
 ## GAM multipanel figures
 ```{r}
