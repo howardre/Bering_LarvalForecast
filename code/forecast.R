@@ -30,24 +30,24 @@ load_data <- function(file, data, temps){
 
 # Create GAM formulas
 formula_pheno <- function(data){
-  gam(catch ~ s(year, bs = 're', k = 9) +
-        s(doy, k = 9) +
+  gam(catch ~ s(year, bs = 're') +
+        s(doy) +
         s(lon, lat) +
         s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
-        s(doy, by = mean_temp, k = 9), # phenology
+        s(doy, by = mean_temp), # phenology
       data = data,
       family = tw(link = "log"),
       method = 'REML')
 }
 
 formula_geog <- function(data){
-  gam(catch ~ s(year, bs = 're', k = 9) +
-        s(doy, k = 9) +
+  gam(catch ~ s(year, bs = 're') +
+        s(doy) +
         s(lon, lat) +
         s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
-        s(lat, lon, by = mean_temp, k = 9), # geography
+        s(lat, lon, by = mean_temp), # geography
       data = data,
       family = tw(link = "log"),
       method = 'REML')
@@ -60,7 +60,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
-pkegg_formula <- formula_pheno(pk_egg)
+pkegg_formula <- formula_geog(pk_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -622,7 +622,7 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
 
 ### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
 pk_larvae <- load_data('pk_larvae.rds', pk_larvae, roms_temps)
-pklarvae_formula <- formula_pheno(pk_larvae)
+pklarvae_formula <- formula_geog(pk_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -1183,7 +1183,7 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
 
 ### Flathead Eggs --------------------------------------------------------------------------------------------------------------------------
 fhs_egg <- load_data('fhs_egg.rds', fhs_egg, roms_temps)
-fhsegg_formula <- formula_pheno(fhs_egg)
+fhsegg_formula <- formula_geog(fhs_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -1745,7 +1745,7 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
 
 ### Flathead Larvae --------------------------------------------------------------------------------------------------------------------------
 fhs_larvae <- load_data('fhs_larvae.rds', fhs_larvae, roms_temps)
-fhslarvae_formula <- formula_pheno(fhs_larvae)
+fhslarvae_formula <- formula_geog(fhs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -2306,7 +2306,7 @@ rm(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585,
 
 ### Alaska Plaice Eggs --------------------------------------------------------------------------------------------------------------------------
 akp_egg <- load_data('akp_egg.rds', akp_egg, roms_temps)
-akpegg_formula <- formula_pheno(akp_egg)
+akpegg_formula <- formula_geog(akp_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -2868,7 +2868,7 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
 
 ### Alaska Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
 akp_larvae <- load_data('akp_larvae.rds', akp_larvae, roms_temps)
-akplarvae_formula <- formula_pheno(akp_larvae)
+akplarvae_formula <- formula_geog(akp_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -3430,7 +3430,7 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
 
 ### Yellowfin Sole Larvae --------------------------------------------------------------------------------------------------------------------------
 yfs_larvae <- load_data('yfs_larvae.rds', yfs_larvae, roms_temps)
-yfslarvae_formula <- formula_pheno(yfs_larvae)
+yfslarvae_formula <- formula_geog(yfs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -3992,7 +3992,7 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
 
 ### Northern Rock Sole Larvae --------------------------------------------------------------------------------------------------------------------------
 nrs_larvae <- load_data('nrs_larvae.rds', nrs_larvae, roms_temps)
-nrslarvae_formula <- formula_pheno(nrs_larvae)
+nrslarvae_formula <- formula_geog(nrs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
