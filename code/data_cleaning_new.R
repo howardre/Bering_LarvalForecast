@@ -914,15 +914,6 @@ ggplot(fhs_egg) +
 ggplot(akp_egg) +
   geom_point(aes(roms_salinity, year))
 
-# Remove outliers
-yfs_larvae <- filter(yfs_larvae, larvalcatchper10m2 < 30000)
-akp_egg <- filter(akp_egg, larvalcatchper10m2 < 7000)
-akp_larvae <- filter(akp_larvae, larvalcatchper10m2 < 500)
-fhs_egg <- filter(fhs_egg, larvalcatchper10m2 < 2000)
-fhs_larvae <- filter(fhs_larvae, larvalcatchper10m2 < 9000)
-pk_egg <- filter(pk_egg, larvalcatchper10m2 < 200000)
-pk_larvae <- filter(pk_larvae, larvalcatchper10m2 < 100000)
-
 # Save files
 saveRDS(yfs_larvae, file = here('data', 'yfs_larvae.rds'))
 saveRDS(akp_egg, file = here('data', 'akp_egg.rds'))
