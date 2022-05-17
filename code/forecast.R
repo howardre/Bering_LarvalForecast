@@ -31,7 +31,7 @@ load_data <- function(file, data, temps){
 # Create GAM formulas
 formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
-        s(doy) +
+        s(doy, k = 9) +
         s(lon, lat) +
         s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
@@ -43,7 +43,7 @@ formula_pheno <- function(data){
 
 formula_geog <- function(data){
   gam(catch ~ s(year, bs = 're') +
-        s(doy) +
+        s(doy, k = 9) +
         s(lon, lat) +
         s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
