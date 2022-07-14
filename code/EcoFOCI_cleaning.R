@@ -289,17 +289,13 @@ yfs_egg_trim <- trim_data(yfs_egg_clean)
 yfs_egg_trim <- filter(yfs_egg_trim,
                        month > 7,
                        year != 1997, 
-                       year != 2000,
                        year != 2011,
                        lat >= 56 & lat <= 62,
                        lon >= -176.5 & lon <= -156.5)
 yfs_larvae_trim <- trim_data(yfs_larvae_clean)
 yfs_larvae_trim <- filter(yfs_larvae_trim,
                           month > 7,
-                          year != 1994,
-                          year != 1996,
                           year != 1997,
-                          year != 2000,
                           year != 2011,
                           lat >= 56 & lat <= 62,
                           lon >= -176.5 & lon <= -156.5)
@@ -391,24 +387,15 @@ table(akp_larvae_clean$primary_net)
 akp_egg_trim <- trim_data(akp_egg_clean)
 akp_egg_trim <- filter(akp_egg_trim,
                        month > 3, month < 7,
-                       year != 1992,
-                       year != 1996,
                        year != 1997,
-                       year != 1998,
                        year != 2011,
                        lat >= 54 & lat <= 60,
                        lon >= -176.5 & lon <= -156.5)
 akp_larvae_trim <- trim_data(akp_larvae_clean)
 akp_larvae_trim <- filter(akp_larvae_trim,
                           month > 4, month < 8,
-                          year != 1996,
                           year != 1997,
-                          year != 2000,
-                          year != 2001,
-                          year != 2004,
                           year != 2011,
-                          year != 2013,
-                          year != 2015,
                           lat >= 52 & lat <= 60,
                           lon >= -176.5 & lon <= -156.5)
 
@@ -496,27 +483,16 @@ table(fhs_larvae_clean$primary_net)
 # Latitude: all
 fhs_egg_trim <- trim_data(fhs_egg_clean)
 fhs_egg_trim <- filter(fhs_egg_trim,
-                       month > 4, month < 8,
-                       year != 1994,
-                       year != 1996,
+                       month > 4, month < 10,
                        year != 1997,
-                       year != 2001,
-                       year != 2004,
                        year != 2011,
-                       year != 2013,
-                       year != 2015,
                        lat >= 52 & lat <= 59,
                        lon >= -176.5 & lon <= -156.5)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
 fhs_larvae_trim <- filter(fhs_larvae_trim,
                           month > 4, month < 8,
-                          year != 1996,
                           year != 1997,
-                          year != 2001,
-                          year != 2004,
                           year != 2011,
-                          year != 2013,
-                          year != 2015,
                           lat >= 54 & lat <= 58,
                           lon >= -176.5 & lon <= -156.5)
 
@@ -607,28 +583,15 @@ table(pk_larvae_clean$primary_net)
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
                       month > 2, month < 8, 
-                      year != 1992,
-                      year != 1996, 
-                      year != 1997, 
-                      year != 1998, 
-                      year != 2000,
-                      year != 2001,
-                      year != 2004,
-                      year != 2013,
+                      year != 1997,
+                      year != 2011,
                       lat >= 54 & lat <= 60,
                       lon >= -176.5 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
-                         month > 2, month < 8,
-                         year != 1992,
-                         year != 1996, 
-                         year != 1997, 
-                         year != 1998, 
-                         year != 2000,
-                         year != 2001,
-                         year != 2004,
-                         year != 2013,
-                         year != 2015,
+                         month > 2, month < 8, 
+                         year != 1997,
+                         year != 2011,
                          lat >= 54 & lat <= 60,
                          lon >= -176.5 & lon <= -156.5)
 
@@ -713,14 +676,8 @@ table(pcod_larvae_clean$primary_net)
 pcod_larvae_trim <- trim_data(pcod_larvae_clean)
 pcod_larvae_trim <- filter(pcod_larvae_trim,
                          month > 3, month < 7,
-                         year != 1992,
-                         year != 1996,
                          year != 1997,
-                         year != 1998,
-                         year != 2000,
                          year != 2011,
-                         year != 2013,
-                         year != 2015,
                          lat >= 54 & lat <= 58,
                          lon >= -176.5 & lon <= -156.5)
 
@@ -781,13 +738,8 @@ table(nrs_larvae_clean$primary_net)
 nrs_larvae_trim <- trim_data(nrs_larvae_clean)
 nrs_larvae_trim <- filter(nrs_larvae_trim,
                           month > 3, month < 7,
-                          year != 1992,
-                          year != 1996,
-                          year != 1997, 
-                          year != 1998,
-                          year != 2000,
+                          year != 1997,
                           year != 2011,
-                          year != 2013,
                           lat >= 54 & lat <= 58,
                           lon >= -175 & lon <= -156.5)
 
@@ -830,95 +782,95 @@ saveRDS(nrs_complete_larvae, file = here('data', 'nrs_larvae.rds'))
 
 ### Outlier removal ----
 ### Load fish data 
-yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
-yfs_larvae <- readRDS(here('data', 'yfs_larvae.rds'))
-akp_egg <- readRDS(here('data', 'akp_egg.rds'))
-akp_larvae <- readRDS(here('data', 'akp_larvae.rds'))
-fhs_egg <- readRDS(here('data', 'fhs_egg.rds'))
-fhs_larvae <- readRDS(here('data', 'fhs_larvae.rds'))
-pk_egg <- readRDS(here('data', 'pk_egg.rds'))
-pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
-pcod_larvae <- readRDS(here('data', 'pcod_larvae.rds'))
-nrs_larvae <- readRDS(here('data', 'nrs_larvae.rds'))
+# yfs_egg <- readRDS(here('data', 'yfs_egg.rds'))
+# yfs_larvae <- readRDS(here('data', 'yfs_larvae.rds'))
+# akp_egg <- readRDS(here('data', 'akp_egg.rds'))
+# akp_larvae <- readRDS(here('data', 'akp_larvae.rds'))
+# fhs_egg <- readRDS(here('data', 'fhs_egg.rds'))
+# fhs_larvae <- readRDS(here('data', 'fhs_larvae.rds'))
+# pk_egg <- readRDS(here('data', 'pk_egg.rds'))
+# pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+# pcod_larvae <- readRDS(here('data', 'pcod_larvae.rds'))
+# nrs_larvae <- readRDS(here('data', 'nrs_larvae.rds'))
 
 ### Data exploration 
-# Yellowfin
-ggplot(yfs_egg) +
-  geom_point(aes(larvalcatchper10m2, year)) 
-ggplot(yfs_larvae) +
-  geom_point(aes(larvalcatchper10m2, year)) # outlier above 30000 <- remove
+# # Yellowfin
+# ggplot(yfs_egg) +
+#   geom_point(aes(larvalcatchper10m2, year)) 
+# ggplot(yfs_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year)) # outlier above 30000 <- remove
+# 
+# # AKP
+# ggplot(akp_egg) +
+#   geom_point(aes(larvalcatchper10m2, year)) # possibly several outliers
+# # two really high above 7000
+# ggplot(akp_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year)) 
+# 
+# # FHS
+# ggplot(fhs_egg) +
+#   geom_point(aes(larvalcatchper10m2, year)) # outliers above ~2000
+# ggplot(fhs_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year)) # outlier above 9000 <- remove
+# 
+# # Pollock
+# ggplot(pk_egg) +
+#   geom_point(aes(larvalcatchper10m2, year))
+# # 3 extreme above 3.5 * 10^5 <- likely remove these
+# # 7 above 1.25 * 10^5
+# ggplot(pk_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year)) # remove above 1*10^5
+# 
+# # Pcod
+# ggplot(pcod_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year))
+# 
+# # NRS
+# ggplot(nrs_larvae) +
+#   geom_point(aes(larvalcatchper10m2, year))
+# 
+# # temperature
+# ggplot(pk_larvae) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(yfs_larvae) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(fhs_larvae) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(akp_larvae) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(pk_egg) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(yfs_egg) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(fhs_egg) +
+#   geom_point(aes(roms_temperature, year))
+# ggplot(akp_egg) +
+#   geom_point(aes(roms_temperature, year))
+# # nothing of note
+# 
+# # salinity
+# ggplot(pk_larvae) +
+#   geom_point(aes(roms_salinity, year))
+# ggplot(yfs_larvae) +
+#   geom_point(aes(roms_salinity, year)) 
+# ggplot(akp_larvae) +
+#   geom_point(aes(roms_salinity, year)) 
+# ggplot(fhs_larvae) +
+#   geom_point(aes(roms_salinity, year)) 
+# ggplot(pk_egg) +
+#   geom_point(aes(roms_salinity, year)) 
+# ggplot(yfs_egg) +
+#   geom_point(aes(roms_salinity, year))
+# ggplot(fhs_egg) +
+#   geom_point(aes(roms_salinity, year)) 
+# ggplot(akp_egg) +
+#   geom_point(aes(roms_salinity, year))
 
-# AKP
-ggplot(akp_egg) +
-  geom_point(aes(larvalcatchper10m2, year)) # possibly several outliers
-# two really high above 7000
-ggplot(akp_larvae) +
-  geom_point(aes(larvalcatchper10m2, year)) 
-
-# FHS
-ggplot(fhs_egg) +
-  geom_point(aes(larvalcatchper10m2, year)) # outliers above ~2000
-ggplot(fhs_larvae) +
-  geom_point(aes(larvalcatchper10m2, year)) # outlier above 9000 <- remove
-
-# Pollock
-ggplot(pk_egg) +
-  geom_point(aes(larvalcatchper10m2, year))
-# 3 extreme above 3.5 * 10^5 <- likely remove these
-# 7 above 1.25 * 10^5
-ggplot(pk_larvae) +
-  geom_point(aes(larvalcatchper10m2, year)) # remove above 1*10^5
-
-# Pcod
-ggplot(pcod_larvae) +
-  geom_point(aes(larvalcatchper10m2, year))
-
-# NRS
-ggplot(nrs_larvae) +
-  geom_point(aes(larvalcatchper10m2, year))
-
-# temperature
-ggplot(pk_larvae) +
-  geom_point(aes(roms_temperature, year))
-ggplot(yfs_larvae) +
-  geom_point(aes(roms_temperature, year))
-ggplot(fhs_larvae) +
-  geom_point(aes(roms_temperature, year))
-ggplot(akp_larvae) +
-  geom_point(aes(roms_temperature, year))
-ggplot(pk_egg) +
-  geom_point(aes(roms_temperature, year))
-ggplot(yfs_egg) +
-  geom_point(aes(roms_temperature, year))
-ggplot(fhs_egg) +
-  geom_point(aes(roms_temperature, year))
-ggplot(akp_egg) +
-  geom_point(aes(roms_temperature, year))
-# nothing of note
-
-# salinity
-ggplot(pk_larvae) +
-  geom_point(aes(roms_salinity, year))
-ggplot(yfs_larvae) +
-  geom_point(aes(roms_salinity, year)) 
-ggplot(akp_larvae) +
-  geom_point(aes(roms_salinity, year)) 
-ggplot(fhs_larvae) +
-  geom_point(aes(roms_salinity, year)) 
-ggplot(pk_egg) +
-  geom_point(aes(roms_salinity, year)) 
-ggplot(yfs_egg) +
-  geom_point(aes(roms_salinity, year))
-ggplot(fhs_egg) +
-  geom_point(aes(roms_salinity, year)) 
-ggplot(akp_egg) +
-  geom_point(aes(roms_salinity, year))
-
-# Save files
-saveRDS(yfs_larvae, file = here('data', 'yfs_larvae.rds'))
-saveRDS(akp_egg, file = here('data', 'akp_egg.rds'))
-saveRDS(akp_larvae, file = here('data', 'akp_larvae.rds'))
-saveRDS(fhs_egg, file = here('data', 'fhs_egg.rds'))
-saveRDS(fhs_larvae, file = here('data', 'fhs_larvae.rds'))
-saveRDS(pk_egg, file = here('data', 'pk_egg.rds'))
-saveRDS(pk_larvae, file = here('data', 'pk_larvae.rds'))
+# # Save files
+# saveRDS(yfs_larvae, file = here('data', 'yfs_larvae.rds'))
+# saveRDS(akp_egg, file = here('data', 'akp_egg.rds'))
+# saveRDS(akp_larvae, file = here('data', 'akp_larvae.rds'))
+# saveRDS(fhs_egg, file = here('data', 'fhs_egg.rds'))
+# saveRDS(fhs_larvae, file = here('data', 'fhs_larvae.rds'))
+# saveRDS(pk_egg, file = here('data', 'pk_egg.rds'))
+# saveRDS(pk_larvae, file = here('data', 'pk_larvae.rds'))
