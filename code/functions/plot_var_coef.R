@@ -33,10 +33,10 @@ plot_var_coef <- function(gam, data, predictions){
           add = T,
           bg = alpha('navy', 0.4),
           fg = alpha('black', 0.08))
-  map("worldHires",
-      fill = T,
-      col = "wheat4",
-      add = T)
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
   image.plot(legend.only = T,
              col = jet.colors(100),
              legend.shrink = 0.2,
@@ -87,10 +87,10 @@ plot_var_coef2 <- function(gam, data, predictions){
   #         add = T,
   #         bg = alpha('navy', 0.4),
   #         fg = alpha('black', 0.08))
-  map("worldHires",
-      fill = T,
-      col = "wheat4",
-      add = T)
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
   image.plot(legend.only = T,
              col = jet.colors(100),
              legend.shrink = 0.2,
@@ -142,10 +142,10 @@ plot_var_coef3 <- function(gam, data, predictions){
           add = T,
           bg = alpha('navy', 0.4),
           fg = alpha('black', 0.08))
-  map("worldHires",
-      fill = T,
-      col = "wheat4",
-      add = T)
+  maps::map("worldHires",
+            fill = T,
+            col = "wheat4",
+            add = T)
   image.plot(legend.only = T,
              col = jet.colors(100),
              legend.shrink = 0.2,
