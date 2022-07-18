@@ -41,13 +41,14 @@ map_vc_presentation <- function(data, gam, grids, title){
   image.plot(legend.only = T,
              col = jet.colors(100),
              legend.shrink = 0.2,
-             smallplot = c(.7, .73, .24, .38),
+             smallplot = c(.66, .69, .23, .37),
              legend.cex = 0.7,
              axis.args = list(cex.axis = 0.9),
              legend.width = 0.8,
              legend.mar = 6,
-             zlim = c(0, 26000),
-             legend.args = list("Abundance",
+             zlim = c(min(gam$fitted.values), 
+                      max(gam$fitted.values)),
+             legend.args = list("Catch",
                                 side = 2, cex = 0.8))
   my_color <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
   image(lond,
@@ -78,7 +79,8 @@ map_vc_presentation <- function(data, gam, grids, title){
         cex.main = 1.5,
         cex.lab = 1.5,
         cex.axis = 1.5,
-        zlim = c(-34051, 34051))
+        zlim = c(min(grids[[1]]$diff, na.rm = T), 
+                 max(grids[[1]]$diff, na.rm = T)))
   maps::map("worldHires",
             fill = T,
             col = "wheat4",
@@ -91,7 +93,8 @@ map_vc_presentation <- function(data, gam, grids, title){
              axis.args = list(cex.axis = 0.9),
              legend.width = 0.8,
              legend.mar = 6,
-             zlim = c(-34051, 34051),
+             zlim = c(min(grids[[1]]$diff, na.rm = T), 
+                      max(grids[[1]]$diff, na.rm = T)),
              legend.args = list("Predicted \n Change",
                                 side = 2, cex = 0.8))
   plot(grids[[2]]$doy,
