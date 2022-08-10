@@ -18,7 +18,7 @@ $$
 VGAMs allow a coefficient to vary with change in another variable. In this application, the coefficient is location of a species which varies with a given environmental variable. Our models use mean temperature on the Bering Sea shelf for this variable. Below is an example equation, with the last term being the variable coefficient term:
 
 $$
-log(CPUE + 1) = re(year) + s(latitude, longitude) + s(day of year) + s(depth) + s(SST) + s(latitude, longitude, by = mean temperature)
+log(CPUE + 1) = re(year) + s(lat, lon) + s(day\ of\ year) + s(depth) + s(SST) + s(lat, lon, by = temp)
 $$
 
 - To prepare models for projecting future distributions, we parameterized using the Bering10K hindcasts [here](code/hindcast_wROMS.Rmd/).
