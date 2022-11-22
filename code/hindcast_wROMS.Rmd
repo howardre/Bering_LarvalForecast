@@ -74,7 +74,7 @@ Base models
 ```{r}
 # Tweedie
 pk_egg_base_t <- gam(catch ~ s(year, bs = 're') +
-                       s(lon, lat) + 
+                       s(lon, lat, bs = "gp", k = 100, m = c(-1, 0.5)) + 
                        s(doy),
                     data = pk_egg,
                     family = tw(link = 'log'),
@@ -82,7 +82,7 @@ pk_egg_base_t <- gam(catch ~ s(year, bs = 're') +
 summary(pk_egg_base_t)
 
 pk_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                       s(lon, lat) + 
+                       s(lon, lat, bs = "gp", k = 100, m = c(-1, 0.5)) + 
                        s(doy),
                     data = pk_larvae,
                     family = tw(link = 'log'),
