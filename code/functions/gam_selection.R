@@ -1,27 +1,27 @@
 gam_selection <- function(data){
   gam_base <- gam(catch ~ s(year, bs = 're') + 
-                    s(doy, k = 9) +
-                    s(lon, lat) +
-                    s(roms_temperature, k = 9) +
-                    s(roms_salinity, k = 9),
+                    s(doy, k = 9, bs = "gp") +
+                    s(lon, lat, bs = "gp") +
+                    s(roms_temperature, k = 9, bs = "gp") +
+                    s(roms_salinity, k = 9, bs = "gp"),
                   data = data,
                   family = tw(link = 'log'),
                   method = 'REML')
   gam_vc_phen <- gam(catch ~ s(year, bs = 're') +
-                       s(doy, k = 9) +
-                       s(lon, lat) +
-                       s(roms_temperature, k = 9) +
-                       s(roms_salinity, k = 9) +
-                       s(doy, by = mean_temp),
+                       s(doy, k = 9, bs = "gp") +
+                       s(lon, lat, bs = "gp") +
+                       s(roms_temperature, k = 9, bs = "gp") +
+                       s(roms_salinity, k = 9, bs = "gp") +
+                       s(doy, by = mean_temp, bs = "gp"),
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
   gam_vc_geog <- gam(catch ~ s(year, bs = 're') +
-                       s(doy, k = 9) +
-                       s(lon, lat) +
-                       s(roms_temperature, k = 9) +
-                       s(roms_salinity, k = 9) +
-                       s(lon, lat, by = mean_temp),
+                       s(doy, k = 9, bs = "gp") +
+                       s(lon, lat, bs = "gp") +
+                       s(roms_temperature, k = 9, bs = "gp") +
+                       s(roms_salinity, k = 9, bs = "gp") +
+                       s(lon, lat, by = mean_temp, bs = "gp"),
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
