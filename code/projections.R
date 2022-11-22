@@ -32,7 +32,7 @@ load_data <- function(file, data, temps){
 formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
-        s(lon, lat) +
+        s(lon, lat, bs = "gp") +
         s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
         s(doy, by = mean_temp), # phenology
@@ -44,16 +44,24 @@ formula_pheno <- function(data){
 formula_geog <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
-        s(lon, lat) +
-        s(roms_temperature, k = 9) +
-        s(roms_salinity, k = 9) +
-        s(lat, lon, by = mean_temp), # geography
+        s(lon, lat, bs = "gp", k = 100, m = c(-2, r, 0.5)) +
+        s(roms_temperature, bs = "gp", k = 100, m = c(-2, r, 0.5)) +
+        s(roms_salinity, bs = "gp", k = 100, m = c(-2, r, 0.5)) +
+        s(lat, lon, by = mean_temp, bs = "gp", k = 100, m = c(-2, r, 0.5)), # geography
       data = data,
       family = tw(link = "log"),
       method = 'REML')
 }
 
 base_dir <- getwd()
+
+# Gaussian process Matern function
+# Based on email from Kirsten, code from Jim
+dist <- .1 
+x <- seq(0, 25, dist)
+dist <- 0.1
+qlIN <- 0.9
+r <- dist / (1 - qlIN ^ 2)
 
 # Load ROMS temperature means and forecast
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
