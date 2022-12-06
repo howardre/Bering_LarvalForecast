@@ -290,14 +290,18 @@ yfs_egg_trim <- filter(yfs_egg_trim,
                        month > 7,
                        year != 1997, 
                        year != 2011,
-                       lat >= 56 & lat <= 62,
+                       lat >= 55 & lat <= 62,
                        lon >= -176.5 & lon <= -156.5)
 yfs_larvae_trim <- trim_data(yfs_larvae_clean)
 yfs_larvae_trim <- filter(yfs_larvae_trim,
-                          month > 7,
+                          month > 6 & month < 10,
+                          year != 1994,
+                          year != 1996,
                           year != 1997,
+                          year != 2000,
+                          year != 2001,
                           year != 2011,
-                          lat >= 56 & lat <= 62,
+                          lat >= 55,
                           lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
@@ -387,14 +391,17 @@ table(akp_larvae_clean$primary_net)
 akp_egg_trim <- trim_data(akp_egg_clean)
 akp_egg_trim <- filter(akp_egg_trim,
                        month > 3, month < 7,
+                       year != 1992,
+                       year != 1996,
                        year != 1997,
                        year != 2011,
                        lat >= 54 & lat <= 60,
                        lon >= -176.5 & lon <= -156.5)
 akp_larvae_trim <- trim_data(akp_larvae_clean)
 akp_larvae_trim <- filter(akp_larvae_trim,
-                          month > 4, month < 8,
+                          month > 4, month < 9,
                           year != 1997,
+                          year != 2001,
                           year != 2011,
                           lat >= 52 & lat <= 60,
                           lon >= -176.5 & lon <= -156.5)
@@ -485,6 +492,7 @@ fhs_egg_trim <- trim_data(fhs_egg_clean)
 fhs_egg_trim <- filter(fhs_egg_trim,
                        month > 4, month < 10,
                        year != 1997,
+                       year != 2001,
                        year != 2011,
                        lat >= 52 & lat <= 59,
                        lon >= -176.5 & lon <= -156.5)
@@ -492,14 +500,16 @@ fhs_larvae_trim <- trim_data(fhs_larvae_clean)
 fhs_larvae_trim <- filter(fhs_larvae_trim,
                           month > 4, month < 8,
                           year != 1997,
+                          year != 2001,
+                          year != 2004,
                           year != 2011,
-                          lat >= 54 & lat <= 58,
+                          lat >= 54 & lat <= 59,
                           lon >= -176.5 & lon <= -156.5)
 
 # Inspect new data
 data_check(fhs_egg_trim, fhs_larvae_trim)
-table(fhs_egg_trim$month)
-table(fhs_larvae_trim$month)
+table(fhs_egg_trim$year)
+table(fhs_larvae_trim$year)
 
 # Select data for constrained analyses, including stations that are <30km away from the closest positive catch
 fhs_subset_egg <- final_data(fhs_egg_trim)
@@ -584,6 +594,8 @@ pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
                       month > 2, month < 8, 
                       year != 1997,
+                      year != 2001,
+                      year != 2004,
                       year != 2011,
                       lat >= 54 & lat <= 60,
                       lon >= -176.5 & lon <= -156.5)
@@ -591,6 +603,8 @@ pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
                          month > 2, month < 8, 
                          year != 1997,
+                         year != 2001,
+                         year != 2004,
                          year != 2011,
                          lat >= 54 & lat <= 60,
                          lon >= -176.5 & lon <= -156.5)
@@ -675,8 +689,12 @@ table(pcod_larvae_clean$primary_net)
 # Latitude: all
 pcod_larvae_trim <- trim_data(pcod_larvae_clean)
 pcod_larvae_trim <- filter(pcod_larvae_trim,
-                         month > 3, month < 7,
+                         month > 3, month < 8,
+                         year != 1992,
+                         year != 1996,
                          year != 1997,
+                         year != 2001,
+                         year != 2004,
                          year != 2011,
                          lat >= 54 & lat <= 58,
                          lon >= -176.5 & lon <= -156.5)
@@ -737,8 +755,10 @@ table(nrs_larvae_clean$primary_net)
 # Latitude: all
 nrs_larvae_trim <- trim_data(nrs_larvae_clean)
 nrs_larvae_trim <- filter(nrs_larvae_trim,
-                          month > 3, month < 7,
+                          month > 3, month < 8,
                           year != 1997,
+                          year != 2001,
+                          year != 2004,
                           year != 2011,
                           lat >= 54 & lat <= 58,
                           lon >= -175 & lon <= -156.5)
