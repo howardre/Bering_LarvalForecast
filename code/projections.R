@@ -32,8 +32,8 @@ load_data <- function(file, data, temps){
 formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
-        s(lon, lat, bs = "gp") +
-        s(roms_temperature, k = 9) +
+        s(lon, lat, k = 9) +
+        s(roms_temperature) +
         s(roms_salinity, k = 9) +
         s(doy, by = mean_temp), # phenology
       data = data,
@@ -44,10 +44,10 @@ formula_pheno <- function(data){
 formula_geog <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
-        te(lon, lat, bs = "gp", m = mp, d = 2) +
-        s(roms_temperature, bs = "gp", m = c(-2, r, 0.5)) +
-        s(roms_salinity, bs = "gp", m = c(-2, r, 0.5)) +
-        te(lat, lon, by = mean_temp, bs = "gp", m = mp, d = 2), # geography
+        te(lon, lat) +
+        s(roms_temperature, k = 9) +
+        s(roms_salinity, k = 9) +
+        te(lat, lon, by = mean_temp), # geography
       data = data,
       family = tw(link = "log"),
       method = 'REML')
@@ -57,19 +57,20 @@ base_dir <- getwd()
 
 # Gaussian process splines with specified r for Matern function
 # Based on email from Kirsten, code from Jim
-dist <- .1 
-x <- seq(0, 25, dist)
-dist <- 0.1
-qlIN <- 0.9
-r <- dist / (1 - qlIN ^ 2)
-
-mp <- list(c(-2, r, 0.5))
+# dist <- .1 
+# x <- seq(0, 25, dist)
+# dist <- 0.1
+# qlIN <- 0.9
+# r <- dist / (1 - qlIN ^ 2)
+# 
+# mp <- list(c(-2, r, 0.5))
 
 # Load ROMS temperature means and forecast
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
+pk_egg <- filter(pk_egg, lon > -173)
 pkegg_formula <- formula_geog(pk_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
