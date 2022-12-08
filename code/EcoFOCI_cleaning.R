@@ -44,9 +44,6 @@ bering_model_salt6 <- nc_open(here('data/salinity_netcdf',
 bering_model_salt7 <- nc_open(here('data/salinity_netcdf', 
                                    'B10K-K20_CORECFS_2015-2019_average_salt_surface5m.nc'))
 
-# open cesm file
-cesm_dfs <- readRDS('D:/data/cesm_dfs_trim.rds')
-
 # check to see contents
 print(bering_model_temp1)
 
@@ -592,7 +589,7 @@ table(pk_larvae_clean$primary_net)
 # Latitude: all
 pk_egg_trim <- trim_data(pk_egg_clean)
 pk_egg_trim <- filter(pk_egg_trim,
-                      month > 2, month < 8, 
+                      month > 2, month < 8,
                       year != 1997,
                       year != 2001,
                       year != 2004,
@@ -601,7 +598,7 @@ pk_egg_trim <- filter(pk_egg_trim,
                       lon >= -176.5 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
-                         month > 2, month < 8, 
+                         month > 2, month < 8,
                          year != 1997,
                          year != 2001,
                          year != 2004,
@@ -836,8 +833,8 @@ saveRDS(nrs_complete_larvae, file = here('data', 'nrs_larvae.rds'))
 # # Pollock
 # ggplot(pk_egg) +
 #   geom_point(aes(larvalcatchper10m2, year))
-# # 3 extreme above 3.5 * 10^5 <- likely remove these
-# # 7 above 1.25 * 10^5
+# # # 3 extreme above 3.5 * 10^5 <- likely remove these
+# # # 7 above 1.25 * 10^5
 # ggplot(pk_larvae) +
 #   geom_point(aes(larvalcatchper10m2, year)) # remove above 1*10^5
 # 
