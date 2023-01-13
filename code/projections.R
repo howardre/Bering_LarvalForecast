@@ -32,7 +32,7 @@ load_data <- function(file, data, temps){
 formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
-        s(lon, lat, k = 9) +
+        te(lon, lat) +
         s(roms_temperature) +
         s(roms_salinity, k = 9) +
         s(doy, by = mean_temp), # phenology
@@ -70,7 +70,6 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
-pk_egg <- filter(pk_egg, lon > -173)
 pkegg_formula <- formula_geog(pk_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
