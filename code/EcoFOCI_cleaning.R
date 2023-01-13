@@ -595,7 +595,7 @@ pk_egg_trim <- filter(pk_egg_trim,
                       year != 2004,
                       year != 2011,
                       lat >= 54 & lat <= 60,
-                      lon >= -176.5 & lon <= -156.5)
+                      lon >= -173 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
                          month > 2, month < 8,
@@ -604,7 +604,7 @@ pk_larvae_trim <- filter(pk_larvae_trim,
                          year != 2004,
                          year != 2011,
                          lat >= 54 & lat <= 60,
-                         lon >= -176.5 & lon <= -156.5)
+                         lon >= -173 & lon <= -156.5)
 
 # Inspect new data
 data_check(pk_egg_trim, pk_larvae_trim)
