@@ -483,18 +483,10 @@ table(fhs_larvae_clean$primary_net)
 
 # Trim egg and larval data
 # Year: 1988 forward, others for sporadic sampling
-# Month: 5 - 9 for eggs, 4 - 7 for larvae
+# Month: 4 - 7 for eggs, 5 - 9 for larvae
 # Latitude: all
 fhs_egg_trim <- trim_data(fhs_egg_clean)
 fhs_egg_trim <- filter(fhs_egg_trim,
-                       month > 4, month < 10,
-                       year != 1997,
-                       year != 2001,
-                       year != 2011,
-                       lat >= 52 & lat <= 59,
-                       lon >= -176.5 & lon <= -156.5)
-fhs_larvae_trim <- trim_data(fhs_larvae_clean)
-fhs_larvae_trim <- filter(fhs_larvae_trim,
                           month > 4, month < 8,
                           year != 1997,
                           year != 2001,
@@ -502,6 +494,15 @@ fhs_larvae_trim <- filter(fhs_larvae_trim,
                           year != 2011,
                           lat >= 54 & lat <= 59,
                           lon >= -176.5 & lon <= -156.5)
+fhs_larvae_trim <- trim_data(fhs_larvae_clean)
+fhs_larvae_trim <- filter(fhs_larvae_trim,
+                       month > 4, month < 10,
+                       year != 1997,
+                       year != 2001,
+                       year != 2011,
+                       lat >= 52 & lat <= 59,
+                       lon >= -176.5 & lon <= -156.5)
+
 
 # Inspect new data
 data_check(fhs_egg_trim, fhs_larvae_trim)
