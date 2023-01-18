@@ -74,7 +74,7 @@ Base models
 ```{r}
 # Tweedie
 pk_egg_base_t <- gam(catch ~ s(year, bs = 're') +
-                       s(lon, lat, bs = "gp", k = 100, m = c(-1, 0.5)) + 
+                       te(lon, lat) + 
                        s(doy),
                     data = pk_egg,
                     family = tw(link = 'log'),
@@ -82,7 +82,7 @@ pk_egg_base_t <- gam(catch ~ s(year, bs = 're') +
 summary(pk_egg_base_t)
 
 pk_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                       s(lon, lat, bs = "gp", k = 100, m = c(-1, 0.5)) + 
+                       te(lon, lat) + 
                        s(doy),
                     data = pk_larvae,
                     family = tw(link = 'log'),
@@ -96,7 +96,7 @@ Note variable coefficient by year for each
 ```{r}
 pk_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                             s(doy) +
-                            s(lon, lat) +
+                            te(lon, lat) +
                             s(doy, by = year),
                           data = pk_egg,
                           family = tw(link = 'log'),
@@ -106,8 +106,8 @@ AIC(pk_egg_phenology_t)
 # AIC: 33474
 
 pk_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
-                            s(lon, lat) +
-                            s(lon, lat, by = year) +
+                            te(lon, lat) +
+                            te(lon, lat, by = year) +
                             s(doy),
                           data = pk_egg,
                           family = tw(link = 'log'),
@@ -122,11 +122,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pkegg_phenology_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_phenology_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_phenology_t #0.040
+ratio_pkegg_phenology_t #0.043
 
 ratio_pkegg_geography_t <- (summary(pk_egg_base_t)$scale - 
                       summary(pk_egg_geography_t)$scale) / summary(pk_egg_base_t)$scale
-ratio_pkegg_geography_t #0.037
+ratio_pkegg_geography_t #0.038
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -138,7 +138,7 @@ AIC(pkegg_gams_t[[1]][[1]])
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
 summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 254                    
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 222                    
 ```
 
 Plot best model for phenology
@@ -183,11 +183,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.111
+var_ratio_pkegg_month_t #0.110
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.137
+var_ratio_pkegg_space_t #0.130
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -293,25 +293,25 @@ Note variable coefficient by year for each
 ```{r}
 pk_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                s(doy) +
-                               s(lon, lat) +
+                               te(lon, lat) +
                                s(doy, by = year),
                              data = pk_larvae,
                              family = tw(link = 'log'),
                              method = 'REML')
 summary(pk_larvae_phenology_t)
 AIC(pk_larvae_phenology_t)
-# AIC: 32913
+# AIC: 32610
 
 pk_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                               s(lon, lat) +
-                               s(lon, lat, by = year) +
+                               te(lon, lat) +
+                               te(lon, lat, by = year) +
                                s(doy),
                              data = pk_larvae,
                              family = tw(link = 'log'),
                              method = 'REML')
 summary(pk_larvae_geography_t)
 AIC(pk_larvae_geography_t)
-# AIC: 32476
+# AIC: 32200
 ```
 
 Ratio for comparison between base and flexible models 
@@ -319,21 +319,21 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pklarvae_phenology_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_phenology_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_phenology_t # 0.071
+ratio_pklarvae_phenology_t # 0.078
 
 ratio_pklarvae_geography_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_geography_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_geography_t # 0.160
+ratio_pklarvae_geography_t # 0.163
 ```
 
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pklarvae_gams_t <- gam_selection(pk_larvae)
-AIC(pklarvae_gams_t[[1]][[1]]) #32460
-AIC(pklarvae_gams_t[[1]][[2]]) #32171
-AIC(pklarvae_gams_t[[1]][[3]]) #32106
+AIC(pklarvae_gams_t[[1]][[1]]) #32225
+AIC(pklarvae_gams_t[[1]][[2]]) #31938
+AIC(pklarvae_gams_t[[1]][[3]]) #31805
 summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #354
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #420
 ```
 
 Plot best model for phenology
@@ -378,11 +378,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pklarvae_month_t <- (summary(pk_larvae_base_t)$scale - 
                          summary(pklarvae_gams_t[[1]][[2]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_month_t #0.222
+var_ratio_pklarvae_month_t #0.217
 
 var_ratio_pklarvae_space_t <- (summary(pk_larvae_base_t)$scale - 
                          summary(pklarvae_gams_t[[1]][[3]])$scale) / summary(pk_larvae_base_t)$scale
-var_ratio_pklarvae_space_t #0.237
+var_ratio_pklarvae_space_t #0.244
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -486,7 +486,7 @@ dev.off()
 ### Tweedie
 ```{r}
 fhs_egg_base_t <- gam(catch ~ s(year, bs = 're') +
-                        s(lon, lat) +
+                        te(lon, lat) +
                         s(doy),
                       data = fhs_egg,
                       family = tw(link = 'log'),
@@ -494,7 +494,7 @@ fhs_egg_base_t <- gam(catch ~ s(year, bs = 're') +
 summary(fhs_egg_base_t)
 
 fhs_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                           s(lon, lat) +
+                           te(lon, lat) +
                            s(doy),
                          data = fhs_larvae,
                          family = tw(link = 'log'),
@@ -510,7 +510,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
 fhs_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
-                             s(lon, lat) +
+                             te(lon, lat) +
                              s(doy, by = year),
                            data = fhs_egg,
                            family = tw(link = 'log'),
@@ -520,8 +520,8 @@ AIC(fhs_egg_phenology_t)
 # AIC: 14710
 
 fhs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
-                             s(lon, lat) +
-                             s(lon, lat, by = year) +
+                             te(lon, lat) +
+                             te(lon, lat, by = year) +
                              s(doy),
                            data = fhs_egg,
                            family = tw(link = 'log'),
@@ -709,7 +709,7 @@ Note variable coefficient by year for each
 ```{r}
 fhs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
-                                s(lon, lat) +
+                                te(lon, lat) +
                                 s(doy, by = year),
                               data = fhs_larvae,
                               family = tw(link = 'log'),
@@ -719,8 +719,8 @@ AIC(fhs_larvae_phenology_t)
 # AIC: 14599
 
 fhs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                                s(lon, lat) +
-                                s(lon, lat, by = year) +
+                                te(lon, lat) +
+                                te(lon, lat, by = year) +
                                 s(doy),
                               data = fhs_larvae,
                               family = tw(link = 'log'),
@@ -902,7 +902,7 @@ dev.off()
 ### Tweedie
 ```{r}
 yfs_egg_base_t <- gam(catch ~ s(year, bs = 're') +
-                        s(lon, lat) +
+                        te(lon, lat) +
                         s(doy),
                       data = yfs_egg,
                       family = tw(link = 'log'),
@@ -910,7 +910,7 @@ yfs_egg_base_t <- gam(catch ~ s(year, bs = 're') +
 summary(yfs_egg_base_t)
 
 yfs_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                           s(lon, lat) +
+                           te(lon, lat) +
                            s(doy),
                          data = yfs_larvae,
                          family = tw(link = 'log'),
@@ -926,7 +926,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
 yfs_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
-                             s(lon, lat) +
+                             te(lon, lat) +
                              s(doy, by = year),
                            data = yfs_egg,
                            family = tw(link = 'log'),
@@ -936,8 +936,8 @@ AIC(yfs_egg_phenology_t)
 # AIC: 459
 
 yfs_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
-                             s(lon, lat) +
-                             s(lon, lat, by = year) +
+                             te(lon, lat) +
+                             te(lon, lat, by = year) +
                              s(doy),
                            data = yfs_egg,
                            family = tw(link = 'log'),
@@ -1115,7 +1115,7 @@ Note variable coefficient by year for each
 ```{r}
 yfs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
-                                s(lon, lat) +
+                                te(lon, lat) +
                                 s(doy, by = year),
                               data = yfs_larvae,
                               family = tw(link = 'log'),
@@ -1125,8 +1125,8 @@ AIC(yfs_larvae_phenology_t)
 # AIC: 7702
 
 yfs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                                s(lon, lat) +
-                                s(lon, lat, by = year) +
+                                te(lon, lat) +
+                                te(lon, lat, by = year) +
                                 s(doy),
                               data = yfs_larvae,
                               family = tw(link = 'log'),
@@ -1310,7 +1310,7 @@ dev.off()
 ### Tweedie
 ```{r}
 akp_egg_base_t <- gam(catch ~ s(year, bs = 're') +
-                        s(lon, lat) +
+                        te(lon, lat) +
                         s(doy),
                       data = akp_egg,
                       family = tw(link = 'log'),
@@ -1318,7 +1318,7 @@ akp_egg_base_t <- gam(catch ~ s(year, bs = 're') +
 summary(akp_egg_base_t)
 
 akp_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                           s(lon, lat) +
+                           te(lon, lat) +
                            s(doy),
                          data = akp_larvae,
                          family = tw(link = 'log'),
@@ -1334,7 +1334,7 @@ This takes forever to run, don't do unless necessary to recreate figure
 ```{r}
 akp_egg_phenology_t <- gam(catch ~ s(year, bs = 're') +
                              s(doy) +
-                             s(lon, lat) +
+                             te(lon, lat) +
                              s(doy, by = year),
                            data = akp_egg,
                            family = tw(link = 'log'),
@@ -1344,8 +1344,8 @@ AIC(akp_egg_phenology_t)
 # AIC: 15449
 
 akp_egg_geography_t <- gam(catch ~ s(year, bs = 're') +
-                             s(lon, lat) +
-                             s(lon, lat, by = year) +
+                             te(lon, lat) +
+                             te(lon, lat, by = year) +
                              s(doy),
                            data = akp_egg,
                            family = tw(link = 'log'),
@@ -1532,7 +1532,7 @@ Note variable coefficient by year for each
 ```{r}
 akp_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
-                                s(lon, lat) +
+                                te(lon, lat) +
                                 s(doy, by = year),
                               data = akp_larvae,
                               family = tw(link = 'log'),
@@ -1542,8 +1542,8 @@ AIC(akp_larvae_phenology_t)
 # AIC: 6156
 
 akp_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                                s(lon, lat) +
-                                s(lon, lat, by = year) +
+                                te(lon, lat) +
+                                te(lon, lat, by = year) +
                                 s(doy),
                               data = akp_larvae,
                               family = tw(link = 'log'),
@@ -1725,7 +1725,7 @@ dev.off()
 ### Tweedie
 ```{r}
 pcod_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                           s(lon, lat) +
+                           te(lon, lat) +
                            s(doy),
                          data = pcod_larvae,
                          family = tw(link = 'log'),
@@ -1740,7 +1740,7 @@ Note variable coefficient by year for each
 ```{r}
 pcod_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
-                                s(lon, lat) +
+                                te(lon, lat) +
                                 s(doy, by = year),
                               data = pcod_larvae,
                               family = tw(link = 'log'),
@@ -1750,8 +1750,8 @@ AIC(pcod_larvae_phenology_t)
 # AIC: 8829
 
 pcod_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                                s(lon, lat) +
-                                s(lon, lat, by = year) +
+                                te(lon, lat) +
+                                te(lon, lat, by = year) +
                                 s(doy),
                               data = pcod_larvae,
                               family = tw(link = 'log'),
@@ -1940,7 +1940,7 @@ dev.off()
 ### Tweedie
 ```{r}
 nrs_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
-                           s(lon, lat) +
+                           te(lon, lat) +
                            s(doy),
                          data = nrs_larvae,
                          family = tw(link = 'log'),
@@ -1955,7 +1955,7 @@ Note variable coefficient by year for each
 ```{r}
 nrs_larvae_phenology_t <- gam(catch ~ s(year, bs = 're') +
                                 s(doy) +
-                                s(lon, lat) +
+                                te(lon, lat) +
                                 s(doy, by = year),
                               data = nrs_larvae,
                               family = tw(link = 'log'),
@@ -1965,8 +1965,8 @@ AIC(nrs_larvae_phenology_t)
 # AIC: 15266
 
 nrs_larvae_geography_t <- gam(catch ~ s(year, bs = 're') +
-                                s(lon, lat) +
-                                s(lon, lat, by = year) +
+                                te(lon, lat) +
+                                te(lon, lat, by = year) +
                                 s(doy),
                               data = nrs_larvae,
                               family = tw(link = 'log'),
