@@ -496,7 +496,10 @@ fhs_egg_trim <- filter(fhs_egg_trim,
                           lon >= -176.5 & lon <= -156.5)
 fhs_larvae_trim <- trim_data(fhs_larvae_clean)
 fhs_larvae_trim <- filter(fhs_larvae_trim,
-                       month > 4, month < 9,
+                       month > 4, month < 8,
+                       year != 1991,
+                       year != 1992,
+                       year != 1996,
                        year != 1997,
                        year != 2001,
                        year != 2004,
@@ -600,9 +603,10 @@ pk_egg_trim <- filter(pk_egg_trim,
                       lon >= -173 & lon <= -156.5)
 pk_larvae_trim <- trim_data(pk_larvae_clean)
 pk_larvae_trim <- filter(pk_larvae_trim,
-                         month > 2, month < 8,
+                         month > 3, month < 7,
                          year != 1996,
                          year != 1997,
+                         year != 1998,
                          year != 2001,
                          year != 2004,
                          year != 2011,
