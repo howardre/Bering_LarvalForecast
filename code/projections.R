@@ -33,9 +33,9 @@ formula_pheno <- function(data){
   gam(catch ~ s(year, bs = 're') +
         s(doy, k = 9) +
         te(lon, lat) +
-        s(roms_temperature) +
+        s(roms_temperature, k = 9) +
         s(roms_salinity, k = 9) +
-        s(doy, by = mean_temp), # phenology
+        s(doy, by = mean_temp, k = 9), # phenology
       data = data,
       family = tw(link = "log"),
       method = 'REML')
