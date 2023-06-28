@@ -44,11 +44,11 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
 clean_data <- function(file, temperature){
-df <- as.data.frame(filter(readRDS(here('data', file))))
-df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
-df$catch <- df$larvalcatchper10m2 + 1
-df <- na.omit(df)
-return(df)
+  df <- as.data.frame(filter(readRDS(here('data', file))))
+  df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
+  df$catch <- df$larvalcatchper10m2 + 1
+  df <- na.omit(df)
+  return(df)
 }
 
 pk_egg <- clean_data('pk_egg.rds', roms_temps)
@@ -64,8 +64,6 @@ nrs_larvae <- clean_data('nrs_larvae.rds', roms_temps)
 
 # Colors
 contour_col <- rgb(0, 0, 255, max = 255, alpha = 0, names = "white")
-
-jet.colors <- colorRampPalette(c(sequential_hcl(15, palette = "Mint")))
 ```
 
 ## Pollock
@@ -80,6 +78,7 @@ pk_egg_base_t <- gam(catch ~ s(year, bs = 're') +
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(pk_egg_base_t)
+AIC(pk_egg_base_t)
 
 pk_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
                        te(lon, lat) + 
@@ -88,6 +87,7 @@ pk_larvae_base_t <- gam(catch ~ s(year, bs = 're') +
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(pk_larvae_base_t)
+AIC(pk_larvae_base_t)
 ```
 #### Eggs
 
@@ -138,23 +138,39 @@ AIC(pkegg_gams_t[[1]][[1]])
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
 summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 222                    
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 222   
+summary(pkegg_gams_t[[1]][[1]])
+summary(pkegg_gams_t[[1]][[2]])
+pkegg_gams_t <- replace(pkegg_gams_t, which)
+
+# Remove salinity due to insignificance and model improvement
+better_pkegg <- gam(data = pk_egg, 
+                    formula = catch ~ s(year, bs = "re") + 
+                      s(doy, k = 9) + 
+                      te(lon, lat) + s(roms_temperature, k = 9) + 
+                      te(lon, lat, by = mean_temp),
+                    family = tw(link = 'log'),
+                    method = 'REML')
+summary(better_pkegg)
+AIC(better_pkegg)
+
+pkegg_gams_t_final <- list(pkegg_gams_t[[1]], better_pkegg)
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[2]], select = 2, main = "DOY")
-plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Temperature")
-plot(pkegg_gams_t[[1]][[2]], select = 5, main = "Salinity")
-plot(pkegg_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t_final[[1]][[2]], select = 2, main = "DOY")
+plot(pkegg_gams_t_final[[1]][[2]], select = 4, main = "Temperature")
+plot(pkegg_gams_t_final[[1]][[2]], select = 5, main = "Salinity")
+plot(pkegg_gams_t_final[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t[[1]][[2]])
+gam.check(pkegg_gams_t_final[[1]][[2]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -163,16 +179,15 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t[[1]][[3]], select = 2, main = "DOY")
-plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Temperature")
-plot(pkegg_gams_t[[1]][[3]], select = 5, main = "Salinity")
-plot(pkegg_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
+plot(pkegg_gams_t_final[[1]][[3]], select = 2, main = "DOY")
+plot(pkegg_gams_t_final[[1]][[3]], select = 4, main = "Temperature")
+plot(pkegg_gams_t_final[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t[[1]][[3]])
+gam.check(pkegg_gams_t_final[[1]][[3]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -182,11 +197,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
+                         summary(pkegg_gams_t_final[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
 var_ratio_pkegg_month_t #0.110
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
+                         summary(pkegg_gams_t_final[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
 var_ratio_pkegg_space_t #0.130
 ```
 
@@ -216,17 +231,24 @@ dev.copy(jpeg,
 
 Fill grids with output from SST VC GAMs
 ```{r}
-pkegg_vcgrids_t <- vc_grids_presentation(pk_egg, pkegg_gams_t)
+pkegg_vcgrids_t <- vc_grids_presentation(pk_egg, pkegg_gams_t_final)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
+# The warning seems to have something to do with using RMarkdown, not the script
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t, "Hindcast")
+map_vc_presentation(pk_egg, pkegg_gams_t_final[[2]], pkegg_vcgrids_t)
 legend(50,
-       6,
+       5,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -248,39 +270,35 @@ tiff(here('results/pollock_hindcast/outputs',
          'pollock_egg_output.jpg'),
      units = "in",
      width = 40,
-     height = 12,
+     height = 20,
      res = 200)
-par(mfrow = c(1, 3),
+par(mfrow = c(1, 2),
     mar = c(11, 15, .5, 0.6) + 0.1,
     oma = c(3, 1, 1, 1),
     mgp = c(9, 4, 0))
-plot_variable(pkegg_gams_t,
+plot_variable(pkegg_gams_t_final,
               covariate = 2,
               bounds = c(-6.5, 9),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(pkegg_gams_t,
+plot_variable(pkegg_gams_t_final,
               covariate = 4,
               bounds = c(-6.5, 9),
               "Temperature",
               " ",
               "n")
-plot_variable(pkegg_gams_t,
-              covariate = 5,
-              bounds = c(-6.5, 9),
-              "Salinity",
-              " ",
-              "n")
-
 dev.off()
 ```
 
 Plot the variable coefficient term
-```{r}
-pred_pkegg_t <- variable_coefficient(pkegg_gams_t, pk_egg)
+```{r, warning = FALSE}
+pred_pkegg_t <- variable_coefficient2(pkegg_gams_t_final, pk_egg)
 
-plot_var_coef(pkegg_gams_t, pk_egg, pred_pkegg_t)
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
+
+plot_var_coef(pkegg_gams_t_final, pk_egg, pred_pkegg_t)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pkegg_var_coef.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -329,11 +347,13 @@ ratio_pklarvae_geography_t # 0.163
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pklarvae_gams_t <- gam_selection(pk_larvae)
-AIC(pklarvae_gams_t[[1]][[1]]) #32225
-AIC(pklarvae_gams_t[[1]][[2]]) #31938
-AIC(pklarvae_gams_t[[1]][[3]]) #31805
+AIC(pklarvae_gams_t[[1]][[1]]) #29891
+AIC(pklarvae_gams_t[[1]][[2]]) #29625
+AIC(pklarvae_gams_t[[1]][[3]]) #29517
 summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
-AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) #420
+AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) # 374
+summary(pkegg_gams_t[[1]][[1]])
+summary(pkegg_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -416,10 +436,16 @@ pklarvae_vcgrids_t <- vc_grids_presentation(pk_larvae, pklarvae_gams_t)
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(pk_larvae, pklarvae_gams_t[[2]], pklarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(pk_larvae, pklarvae_gams_t[[2]], pklarvae_vcgrids_t)
 legend(70,
        3,
        legend = c('Mean SST', '+ 1C'),
@@ -475,6 +501,9 @@ dev.off()
 Plot the variable coefficient term
 ```{r}
 pred_pklarvae_t <- variable_coefficient(pklarvae_gams_t, pk_larvae)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef(pklarvae_gams_t, pk_larvae, pred_pklarvae_t)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pklarvae_var_coef.jpg'), 
@@ -1025,6 +1054,11 @@ Plot the results of the GAMs that vary by year This generates a three panel figu
 ```{r}
 yfsegg_grids_t <- threepanel_base_mse(yfs_egg, yfs_egg_base_t)
 ```
+
+```{r}
+distribution_change(yfs_egg, yfsegg_vcgrids_t)
+```
+
 
 Plots:
 ```{r}
