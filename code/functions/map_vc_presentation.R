@@ -1,4 +1,9 @@
-map_vc_presentation <- function(data, gam, grids, title){
+map_vc_presentation <- function(data, gam, grids){
+  jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                       "#F5D363", "#EFBA55", "#EAA352",
+                                       "#E68C51", "#E0754F", "#D75C4D",
+                                       "#BB4A48", "#994240", "#763931", 
+                                       "#542D20", "#352311", "#191900")))
   nlat = 80
   nlon = 120
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
@@ -30,7 +35,7 @@ map_vc_presentation <- function(data, gam, grids, title){
             family = "serif",
             xlab = "Longitude",
             ylab = "Latitude",
-            main = title,
+            main = "Hindcast distribution",
             cex.main = 1.5,
             cex.lab = 1.5,
             cex.axis = 1.5)
@@ -50,7 +55,14 @@ map_vc_presentation <- function(data, gam, grids, title){
                       max(gam$fitted.values)),
              legend.args = list("Catch",
                                 side = 2, cex = 0.8))
-  my_color <- colorRampPalette(rev(brewer.pal(11, "RdBu")))
+  my_color = colorRampPalette(rev(brewer.pal(11, "RdBu")))
+  color_levels = 100
+  max_absolute_value = max(abs(c(min(grids[[1]]$diff, na.rm = T), max(grids[[1]]$diff, na.rm = T)))) 
+  color_sequence = seq(-max_absolute_value, max_absolute_value, 
+                       length.out = color_levels + 1)
+  n_in_class = hist(grids[[1]]$diff, breaks = color_sequence, plot = F)$counts > 0
+  col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
+  breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
   image(lond,
         latd,
         t(matrix(grids[[1]]$diff,
@@ -70,7 +82,8 @@ map_vc_presentation <- function(data, gam, grids, title){
                  nrow = length(latd),
                  ncol = length(lond),
                  byrow = T)),
-        col = my_color(100),
+        col = my_color(n = color_levels)[col_to_include], 
+        breaks = color_sequence[breaks_to_include],
         xlab = "Longitude",
         ylab = "Latitude",
         xlim = c(-176.5, -156.5),
@@ -86,7 +99,7 @@ map_vc_presentation <- function(data, gam, grids, title){
             col = "wheat4",
             add = T)
   image.plot(legend.only = T,
-             col = my_color(100),
+             col = my_color(n = color_levels)[col_to_include],
              legend.shrink = 0.2,
              smallplot = c(.7, .73, .24, .38),
              legend.cex = 0.7,
