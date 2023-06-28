@@ -1,9 +1,4 @@
 map_vc_presentation <- function(data, gam, grids){
-  jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
-                                       "#F5D363", "#EFBA55", "#EAA352",
-                                       "#E68C51", "#E0754F", "#D75C4D",
-                                       "#BB4A48", "#994240", "#763931", 
-                                       "#542D20", "#352311", "#191900")))
   nlat = 80
   nlon = 120
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
