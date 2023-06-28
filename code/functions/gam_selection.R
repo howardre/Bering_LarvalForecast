@@ -21,7 +21,7 @@ gam_selection <- function(data){
                        te(lon, lat) +
                        s(roms_temperature, k = 9) +
                        s(roms_salinity, k = 9) +
-                       s(lon, lat, by = mean_temp),
+                       te(lon, lat, by = mean_temp),
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
