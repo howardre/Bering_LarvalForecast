@@ -1,6 +1,5 @@
 # Plot variable coefficient term
 plot_var_coef <- function(gam, data, predictions){
-  jet.colors <- colorRampPalette(c(sequential_hcl(15, palette = "Mint")))
   par(mar = c(6.4, 7.2, .5, 0.6) + 0.1,
       oma = c(1, 1, 1, 1),
       mgp = c(5, 2, 0))
@@ -9,7 +8,7 @@ plot_var_coef <- function(gam, data, predictions){
             too.far = 0.07,
             plot.type = 'contour',
             contour.col = contour_col,
-            color = "jet" ,
+            color = "jet",
             type = 'response',
             xlim = c(-176.5, -156.5),
             ylim = c(52, 62),
@@ -31,7 +30,7 @@ plot_var_coef <- function(gam, data, predictions){
           circle = (-1) * predictions[[3]][predictions[[1]]],
           inches = 0.12,
           add = T,
-          bg = alpha('navy', 0.4),
+          bg = alpha('midnightblue', 0.4),
           fg = alpha('black', 0.08))
   maps::map("worldHires",
             fill = T,
@@ -54,7 +53,6 @@ plot_var_coef <- function(gam, data, predictions){
 }
 
 plot_var_coef2 <- function(gam, data, predictions){
-  jet.colors <- colorRampPalette(c(sequential_hcl(15, palette = "Mint")))
   par(mar = c(6.4, 7.2, .5, 0.6) + 0.1,
       oma = c(1, 1, 1, 1),
       mgp = c(5, 2, 0))
@@ -85,7 +83,7 @@ plot_var_coef2 <- function(gam, data, predictions){
   #         circle = (-1) * predictions[[3]][predictions[[1]]],
   #         inches = 0.12,
   #         add = T,
-  #         bg = alpha('navy', 0.4),
+  #         bg = alpha('midnightblue', 0.4),
   #         fg = alpha('black', 0.08))
   maps::map("worldHires",
             fill = T,
@@ -109,7 +107,6 @@ plot_var_coef2 <- function(gam, data, predictions){
 
 
 plot_var_coef3 <- function(gam, data, predictions){
-  jet.colors <- colorRampPalette(c(sequential_hcl(15, palette = "Mint")))
   par(mar = c(6.4, 7.2, .5, 0.6) + 0.1,
       oma = c(1, 1, 1, 1),
       mgp = c(5, 2, 0))
@@ -118,7 +115,7 @@ plot_var_coef3 <- function(gam, data, predictions){
             too.far = 0.07,
             plot.type = 'contour',
             contour.col = contour_col,
-            color = "jet" ,
+            color = "jet",
             type = 'response',
             xlim = c(-176.5, -156.5),
             ylim = c(52, 62),
@@ -140,7 +137,7 @@ plot_var_coef3 <- function(gam, data, predictions){
           circle = (-1) * predictions[[3]][predictions[[1]]],
           inches = 0.12,
           add = T,
-          bg = alpha('navy', 0.4),
+          bg = alpha('midnightblue', 0.4),
           fg = alpha('black', 0.08))
   maps::map("worldHires",
             fill = T,
