@@ -137,40 +137,39 @@ pkegg_gams_t <- gam_selection(pk_egg)
 AIC(pkegg_gams_t[[1]][[1]]) 
 AIC(pkegg_gams_t[[1]][[2]]) 
 AIC(pkegg_gams_t[[1]][[3]]) 
-summary(pkegg_gams_t[[2]]) # best model is spatial VC, retain all smooth terms
-AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 222   
+summary(pkegg_gams_t[[2]]) # best model is spatial VC, remove salinity
+AIC(pkegg_gams_t[[1]][[1]]) - AIC(pkegg_gams_t[[1]][[3]]) # 
 summary(pkegg_gams_t[[1]][[1]])
 summary(pkegg_gams_t[[1]][[2]])
-pkegg_gams_t <- replace(pkegg_gams_t, which)
 
-# Remove salinity due to insignificance and model improvement
 better_pkegg <- gam(data = pk_egg, 
                     formula = catch ~ s(year, bs = "re") + 
-                      s(doy, k = 9) + 
-                      te(lon, lat) + s(roms_temperature, k = 9) + 
+                      s(doy) + 
+                      te(lon, lat) + 
+                      s(roms_temperature, k = 5) + 
                       te(lon, lat, by = mean_temp),
                     family = tw(link = 'log'),
                     method = 'REML')
 summary(better_pkegg)
 AIC(better_pkegg)
 
-pkegg_gams_t_final <- list(pkegg_gams_t[[1]], better_pkegg)
+pkegg_gams_t <- list(pkegg_gams_t[[1]], better_pkegg) # switch in better GAM
 ```
 
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t_final[[1]][[2]], select = 2, main = "DOY")
-plot(pkegg_gams_t_final[[1]][[2]], select = 4, main = "Temperature")
-plot(pkegg_gams_t_final[[1]][[2]], select = 5, main = "Salinity")
-plot(pkegg_gams_t_final[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[2]], select = 2, main = "DOY")
+plot(pkegg_gams_t[[1]][[2]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[2]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[2]], select = 6, main = "DOY by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t_final[[1]][[2]])
+gam.check(pkegg_gams_t[[1]][[2]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_monthvc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -179,15 +178,16 @@ dev.off()
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
-plot(pkegg_gams_t_final[[1]][[3]], select = 2, main = "DOY")
-plot(pkegg_gams_t_final[[1]][[3]], select = 4, main = "Temperature")
-plot(pkegg_gams_t_final[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
+plot(pkegg_gams_t[[1]][[3]], select = 2, main = "DOY")
+plot(pkegg_gams_t[[1]][[3]], select = 4, main = "Temperature")
+plot(pkegg_gams_t[[1]][[3]], select = 5, main = "Salinity")
+plot(pkegg_gams_t[[1]][[3]], select = 6, main = "Location by Mean ROMS SST")
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
 
 par(mfrow = c(2, 2))
-gam.check(pkegg_gams_t_final[[1]][[3]])
+gam.check(pkegg_gams_t[[1]][[3]])
 dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_egg_roms_spacevc_resid_t.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -197,11 +197,11 @@ VC GAM ratios
 ```{r}
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t_final[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
+                         summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
 var_ratio_pkegg_month_t #0.110
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
-                         summary(pkegg_gams_t_final[[1]][[3]])$scale) / summary(pk_egg_base_t)$scale
+                         summary(pkegg_gams_t[[2]])$scale) / summary(pk_egg_base_t)$scale
 var_ratio_pkegg_space_t #0.130
 ```
 
@@ -231,7 +231,7 @@ dev.copy(jpeg,
 
 Fill grids with output from SST VC GAMs
 ```{r}
-pkegg_vcgrids_t <- vc_grids_presentation(pk_egg, pkegg_gams_t_final)
+pkegg_vcgrids_t <- vc_grids_presentation(pk_egg, pkegg_gams_t)
 ```
 
 Create two panel plot Map of distribution & phenology curves with +1 temperature change
@@ -246,7 +246,7 @@ jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(pk_egg, pkegg_gams_t_final[[2]], pkegg_vcgrids_t)
+map_vc_presentation(pk_egg, pkegg_gams_t[[2]], pkegg_vcgrids_t)
 legend(50,
        5,
        legend = c('Mean SST', '+ 1C'),
@@ -276,13 +276,13 @@ par(mfrow = c(1, 2),
     mar = c(11, 15, .5, 0.6) + 0.1,
     oma = c(3, 1, 1, 1),
     mgp = c(9, 4, 0))
-plot_variable(pkegg_gams_t_final,
+plot_variable(pkegg_gams_t,
               covariate = 2,
               bounds = c(-6.5, 9),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(pkegg_gams_t_final,
+plot_variable(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 9),
               "Temperature",
@@ -293,12 +293,12 @@ dev.off()
 
 Plot the variable coefficient term
 ```{r, warning = FALSE}
-pred_pkegg_t <- variable_coefficient2(pkegg_gams_t_final, pk_egg)
+pred_pkegg_t <- variable_coefficient2(pkegg_gams_t, pk_egg)
 
 jet.colors <- colorRampPalette(alpha = TRUE,
                                c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
-plot_var_coef(pkegg_gams_t_final, pk_egg, pred_pkegg_t)
+plot_var_coef(pkegg_gams_t, pk_egg, pred_pkegg_t)
 dev.copy(jpeg, here('results/pollock_hindcast', 'pkegg_var_coef.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -352,8 +352,8 @@ AIC(pklarvae_gams_t[[1]][[2]]) #29625
 AIC(pklarvae_gams_t[[1]][[3]]) #29517
 summary(pklarvae_gams_t[[2]]) # best model is spatial, retain all smooth terms
 AIC(pklarvae_gams_t[[1]][[1]]) - AIC(pklarvae_gams_t[[2]]) # 374
-summary(pkegg_gams_t[[1]][[1]])
-summary(pkegg_gams_t[[1]][[2]])
+summary(pklarvae_gams_t[[1]][[1]])
+summary(pklarvae_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -583,6 +583,8 @@ AIC(fhsegg_gams_t[[1]][[2]]) # 14687
 AIC(fhsegg_gams_t[[1]][[3]]) # 14612
 summary(fhsegg_gams_t[[2]]) # best model is spatial VC
 AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) # 126
+summary(fhsegg_gams_t[[1]][[1]])
+summary(fhsegg_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -665,10 +667,16 @@ fhsegg_vcgrids_t <- vc_grids_presentation(fhs_egg, fhsegg_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(fhs_egg, fhsegg_gams_t[[2]], fhsegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(fhs_egg, fhsegg_gams_t[[2]], fhsegg_vcgrids_t)
 legend(110,
        1,
        legend = c('Mean SST', '+ 1C'),
@@ -724,6 +732,9 @@ dev.off()
 Plot the variable coefficient term
 ```{r}
 pred_fhsegg_t <- variable_coefficient(fhsegg_gams_t, fhs_egg)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef(fhsegg_gams_t, fhs_egg, pred_fhsegg_t)
 dev.copy(jpeg, here('results/flathead_hindcast', 'fhsegg_var_coef.jpg'), 
@@ -781,6 +792,8 @@ AIC(fhslarvae_gams_t[[1]][[2]]) #13086
 AIC(fhslarvae_gams_t[[1]][[3]]) #12967
 summary(fhslarvae_gams_t[[2]]) # best model is spatial VC, keep all smooth terms
 AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) # 452
+summary(fhslarvae_gams_t[[1]][[1]])
+summary(fhslarvae_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -863,10 +876,16 @@ fhslarvae_vcgrids_t <- vc_grids_presentation(fhs_larvae, fhslarvae_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(fhs_larvae, fhslarvae_gams_t[[2]], fhslarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(fhs_larvae, fhslarvae_gams_t[[2]], fhslarvae_vcgrids_t)
 legend(140,
        0.5,
        legend = c('Mean SST', '+ 1C'),
@@ -920,6 +939,9 @@ dev.off()
 
 ```{r}
 pred_fhslarvae_t <- variable_coefficient(fhslarvae_gams_t, fhs_larvae)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef(fhslarvae_gams_t, fhs_larvae, pred_fhslarvae_t)
 dev.copy(jpeg, here('results/flathead_hindcast', 'fhslarvae_var_coef.jpg'), 
@@ -1086,10 +1108,16 @@ yfsegg_vcgrids_t <- vc_grids_presentation(yfs_egg, yfsegg_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(yfs_egg, yfsegg_gams_t[[1]][[2]], yfsegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(yfs_egg, yfsegg_gams_t[[1]][[2]], yfsegg_vcgrids_t)
 legend(240,
        0.5,
        legend = c('Mean SST', '+ 1C'),
@@ -1192,6 +1220,8 @@ AIC(yfslarvae_gams_t[[1]][[2]]) # 10219
 AIC(yfslarvae_gams_t[[1]][[3]]) # 10025
 summary(yfslarvae_gams_t[[2]]) # best is spatial VC, keep all smooth terms
 AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 320
+summary(yfslarvae_gams_t[[1]][[1]])
+summary(yfslarvae_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -1274,10 +1304,16 @@ yfslarvae_vcgrids_t <- vc_grids_presentation(yfs_larvae, yfslarvae_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(yfs_larvae, yfslarvae_gams_t[[2]], yfslarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(yfs_larvae, yfslarvae_gams_t[[2]], yfslarvae_vcgrids_t)
 legend(240,
        10,
        legend = c('Mean SST', '+ 1C'),
@@ -1334,7 +1370,10 @@ Plot variable coefficient term
 ```{r}
 pred_yfslarvae_t <- variable_coefficient(yfslarvae_gams_t, yfs_larvae)
 
-plot_var_coef(yfslarvae_gams_t, yfs_larvae, pred_yfslarvae_t)
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
+
+plot_var_coef2(yfslarvae_gams_t, yfs_larvae, pred_yfslarvae_t)
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yfslarvae_var_coef.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1412,6 +1451,8 @@ AIC(akpegg_gams_t[[1]][[2]]) # 14382
 AIC(akpegg_gams_t[[1]][[3]]) # 14180
 summary(akpegg_gams_t[[2]]) # best model is spatial VC, keep all terms
 AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) # 298
+summary(akpegg_gams_t[[1]][[1]]) 
+summary(akpegg_gams_t[[1]][[2]]) 
 ```
 
 Plot best model for phenology
@@ -1494,10 +1535,16 @@ akpegg_vcgrids_t <- vc_grids_presentation(akp_egg, akpegg_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(akp_egg, akpegg_gams_t[[2]], akpegg_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(akp_egg, akpegg_gams_t[[2]], akpegg_vcgrids_t)
 legend(120,
        -0.5,
        legend = c('Mean SST', '+ 1C'),
@@ -1552,6 +1599,9 @@ dev.off()
 Plot variable coefficient term
 ```{r}
 pred_akpegg_t <- variable_coefficient(akpegg_gams_t, akp_egg)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef3(akpegg_gams_t, akp_egg, pred_akpegg_t)
 dev.copy(jpeg, here('results/plaice_hindcast', 'akpegg_var_coef.jpg'), 
@@ -1691,10 +1741,16 @@ akplarvae_vcgrids_t <- vc_grids_presentation(akp_larvae, akplarvae_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(akp_larvae, akplarvae_gams_t[[2]], akplarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(akp_larvae, akplarvae_gams_t[[2]], akplarvae_vcgrids_t)
 legend(112,
        6,
        legend = c('Mean SST', '+ 1C'),
@@ -1748,6 +1804,9 @@ dev.off()
 Plot variable coefficient term
 ```{r}
 pred_akplarvae_t <- variable_coefficient(akplarvae_gams_t, akp_larvae)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef2(akplarvae_gams_t, akp_larvae, pred_akplarvae_t)
 dev.copy(jpeg, here('results/plaice_hindcast', 'akplarvae_var_coef.jpg'), 
@@ -1899,10 +1958,16 @@ pcodlarvae_vcgrids_t <- vc_grids_presentation(pcod_larvae, pcodlarvae_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(pcod_larvae, pcodlarvae_gams_t[[2]], pcodlarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(pcod_larvae, pcodlarvae_gams_t[[2]], pcodlarvae_vcgrids_t)
 legend(100,
        -1,
        legend = c('Mean SST', '+ 1C'),
@@ -1963,6 +2028,9 @@ dev.off()
 Plot variable coefficient term
 ```{r}
 pred_pcodlarvae_t <- variable_coefficient(pcodlarvae_gams_t, pcod_larvae)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef(pcodlarvae_gams_t, pcod_larvae, pred_pcodlarvae_t)
 dev.copy(jpeg, here('results/cod_hindcast', 'pcodlarvae_var_coef.jpg'), 
@@ -2114,10 +2182,16 @@ nrslarvae_vcgrids_t <- vc_grids_presentation(nrs_larvae, nrslarvae_gams_t)
 
 Create three panel plot Map of distribution & phenology curves with +1 temperature change
 ```{r}
+jet.colors <- colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
+                                     "#F5D363", "#EFBA55", "#EAA352",
+                                     "#E68C51", "#E0754F", "#D75C4D",
+                                     "#BB4A48", "#994240", "#763931", 
+                                     "#542D20", "#352311", "#191900")))
+
 par(mfrow = c(1, 3), 
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
-map_vc_presentation(nrs_larvae, nrslarvae_gams_t[[2]], nrslarvae_vcgrids_t, "Spatial GAM hindcast")
+map_vc_presentation(nrs_larvae, nrslarvae_gams_t[[2]], nrslarvae_vcgrids_t)
 legend(110,
        1,
        legend = c('Mean SST', '+ 1C'),
@@ -2172,6 +2246,9 @@ dev.off()
 Plot variable coefficient term
 ```{r}
 pred_nrslarvae_t <- variable_coefficient(nrslarvae_gams_t, nrs_larvae)
+
+jet.colors <- colorRampPalette(alpha = TRUE,
+                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
 plot_var_coef(nrslarvae_gams_t, nrs_larvae, pred_nrslarvae_t)
 dev.copy(jpeg, here('results/rocksole_hindcast', 'nrslarvae_var_coef.jpg'), 
