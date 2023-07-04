@@ -1,27 +1,27 @@
 gam_selection <- function(data){
   gam_base <- gam(catch ~ s(year, bs = 're') + 
-                    s(doy) +
-                    s(lon, lat) +
-                    s(roms_temperature, k = 5) +
-                    s(roms_salinity, k = 5),
+                    s(doy, k = 9, bs = "gp") +
+                    te(lon, lat, bs = "gp", m = mp, d = 2) +
+                    s(roms_temperature, k = 5, bs = "gp", m = c(-2, r, 0.5)) +
+                    s(roms_salinity, bs = "gp", m = c(-2, r, 0.5)),
                   data = data,
                   family = tw(link = 'log'),
                   method = 'REML')
   gam_vc_phen <- gam(catch ~ s(year, bs = 're') +
-                       s(doy) +
-                       s(lon, lat) +
-                       s(roms_temperature, k = 5) +
-                       s(roms_salinity, k = 5) +
-                       s(doy, by = mean_temp),
+                       s(doy, k = 9, bs = "gp", m = c(-2, r, 0.5)) +
+                       te(lon, lat, bs = "gp", m = mp, d = 2) +
+                       s(roms_temperature, k = 5, bs = "gp", m = c(-2, r, 0.5)) +
+                       s(roms_salinity, k = 5, bs = "gp", m = c(-2, r, 0.5)) +
+                       s(doy, by = mean_temp, bs = "gp", m = c(-2, r, 0.5)),
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
   gam_vc_geog <- gam(catch ~ s(year, bs = 're') +
-                       s(doy) +
-                       s(lon, lat) +
-                       s(roms_temperature, k = 5) +
-                       s(roms_salinity, k = 5) +
-                       s(lon, lat, by = mean_temp),
+                       s(doy, k = 9, bs = "gp", m = c(-2, r, 0.5)) +
+                       te(lon, lat, bs = "gp", m = mp, d = 2) +
+                       s(roms_temperature, k = 5, bs = "gp", m = c(-2, r, 0.5)) +
+                       s(roms_salinity, k = 5, bs = "gp", m = c(-2, r, 0.5)) +
+                       te(lon, lat, by = mean_temp, bs = "gp", m = mp, d = 2),
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
