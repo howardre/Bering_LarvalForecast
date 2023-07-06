@@ -104,11 +104,11 @@ Base models
 ```{r}
 pk_egg_base_t <- formula_base(pk_egg)
 summary(pk_egg_base_t)
-AIC(pk_egg_base_t)
+AIC(pk_egg_base_t) # 33301, 45.6%
 
 pk_larvae_base_t <- formula_base(pk_larvae)
 summary(pk_larvae_base_t)
-AIC(pk_larvae_base_t)
+AIC(pk_larvae_base_t) #30602, 26.3%
 ```
 #### Eggs
 
@@ -520,11 +520,11 @@ dev.off()
 ```{r}
 fhs_egg_base_t <- formula_base(fhs_egg)
 summary(fhs_egg_base_t)
-AIC(fhs_egg_base_t)
+AIC(fhs_egg_base_t) # 14919, 43.6%
 
 fhs_larvae_base_t <- formula_base(fhs_larvae)
 summary(fhs_larvae_base_t)
-AIC(fhs_larvae_base_t)
+AIC(fhs_larvae_base_t) # 11038, 42.5%
 ```
 
 #### Eggs
@@ -547,11 +547,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhsegg_phenology_t <- (summary(fhs_egg_base_t)$scale - 
                       summary(fhs_egg_phenology_t)$scale) / summary(fhs_egg_base_t)$scale
-ratio_fhsegg_phenology_t #0.010
+ratio_fhsegg_phenology_t #0.042
 
 ratio_fhsegg_geography_t <- (summary(fhs_egg_base_t)$scale - 
                       summary(fhs_egg_geography_t)$scale) / summary(fhs_egg_base_t)$scale
-ratio_fhsegg_geography_t #0.018
+ratio_fhsegg_geography_t #0.10
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -560,11 +560,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 fhsegg_gams_t <- gam_selection(fhs_egg)
-AIC(fhsegg_gams_t[[1]][[1]]) # 14738
-AIC(fhsegg_gams_t[[1]][[2]]) # 14687
-AIC(fhsegg_gams_t[[1]][[3]]) # 14612
+AIC(fhsegg_gams_t[[1]][[1]]) # 14765
+AIC(fhsegg_gams_t[[1]][[2]]) # 14709
+AIC(fhsegg_gams_t[[1]][[3]]) # 14603
 summary(fhsegg_gams_t[[2]]) # best model is spatial VC
-AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) # 126
+AIC(fhsegg_gams_t[[1]][[1]]) - AIC(fhsegg_gams_t[[2]]) # 162
 summary(fhsegg_gams_t[[1]][[1]])
 summary(fhsegg_gams_t[[1]][[2]])
 ```
@@ -611,11 +611,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_fhsegg_month_t <- (summary(fhs_egg_base_t)$scale - 
                          summary(fhsegg_gams_t[[1]][[2]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_month_t #0.103
+var_ratio_fhsegg_month_t #0.09
 
 var_ratio_fhsegg_space_t <- (summary(fhs_egg_base_t)$scale - 
                          summary(fhsegg_gams_t[[1]][[3]])$scale) / summary(fhs_egg_base_t)$scale
-var_ratio_fhsegg_space_t #0.134
+var_ratio_fhsegg_space_t #0.12
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -659,8 +659,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc_presentation(fhs_egg, fhsegg_gams_t[[2]], fhsegg_vcgrids_t)
-legend(110,
-       1,
+legend(125,
+       0,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -729,13 +729,13 @@ dev.off()
 Models with flexible phenology or geography 
 Note variable coefficient by year for each
 ```{r}
-pk_larvae_phenology_t <- formula_base_pheno(pk_larvae)
-summary(pk_larvae_phenology_t)
-AIC(pk_larvae_phenology_t)
+fhs_larvae_phenology_t <- formula_base_pheno(fhs_larvae)
+summary(fhs_larvae_phenology_t)
+AIC(fhs_larvae_phenology_t)
 
-pk_larvae_geography_t <- formula_base_geog(pk_larvae)
-summary(pk_larvae_geography_t)
-AIC(pk_larvae_geography_t)
+fhs_larvae_geography_t <- formula_base_geog(fhs_larvae)
+summary(fhs_larvae_geography_t)
+AIC(fhs_larvae_geography_t)
 ```
 
 Ratio for comparison between base and flexible models 
@@ -743,11 +743,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhslarvae_phenology_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_phenology_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_phenology_t # 0.012
+ratio_fhslarvae_phenology_t # 0.30
 
 ratio_fhslarvae_geography_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_geography_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_geography_t # 0.005
+ratio_fhslarvae_geography_t # 0.37
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -755,11 +755,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 fhslarvae_gams_t <- gam_selection(fhs_larvae)
-AIC(fhslarvae_gams_t[[1]][[1]]) #13418
-AIC(fhslarvae_gams_t[[1]][[2]]) #13086
-AIC(fhslarvae_gams_t[[1]][[3]]) #12967
+AIC(fhslarvae_gams_t[[1]][[1]]) #10223
+AIC(fhslarvae_gams_t[[1]][[2]]) #9978
+AIC(fhslarvae_gams_t[[1]][[3]]) #9778
 summary(fhslarvae_gams_t[[2]]) # best model is spatial VC, keep all smooth terms
-AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) # 452
+AIC(fhslarvae_gams_t[[1]][[1]]) - AIC(fhslarvae_gams_t[[2]]) # 445
 summary(fhslarvae_gams_t[[1]][[1]])
 summary(fhslarvae_gams_t[[1]][[2]])
 ```
@@ -806,11 +806,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_fhslarvae_month_t <- (summary(fhs_larvae_base_t)$scale - 
                          summary(fhslarvae_gams_t[[1]][[2]])$scale) / summary(fhs_larvae_base_t)$scale
-var_ratio_fhslarvae_month_t #0.336
+var_ratio_fhslarvae_month_t #0.35
 
 var_ratio_fhslarvae_space_t <- (summary(fhs_larvae_base_t)$scale - 
                          summary(fhslarvae_gams_t[[1]][[3]])$scale) / summary(fhs_larvae_base_t)$scale
-var_ratio_fhslarvae_space_t #0.358
+var_ratio_fhslarvae_space_t #0.41
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -925,7 +925,7 @@ AIC(yfs_egg_base_t)
 
 yfs_larvae_base_t <- formula_base(yfs_larvae)
 summary(yfs_larvae_base_t)
-AIC(yfs_larvae_base_t)
+AIC(yfs_larvae_base_t) # 10360, 48.3&
 ```
 
 #### Eggs
@@ -948,11 +948,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_yfsegg_phenology_t <- (summary(yfs_egg_base_t)$scale - 
                       summary(yfs_egg_phenology_t)$scale) / summary(yfs_egg_base_t)$scale
-ratio_yfsegg_phenology_t # 0.102
+ratio_yfsegg_phenology_t # 0.13
 
 ratio_yfsegg_geography_t <- (summary(yfs_egg_base_t)$scale - 
                       summary(yfs_egg_geography_t)$scale) / summary(yfs_egg_base_t)$scale
-ratio_yfsegg_geography_t #0.029
+ratio_yfsegg_geography_t #0.18
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -961,11 +961,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 yfsegg_gams_t <- gam_selection(yfs_egg)
-AIC(yfsegg_gams_t[[1]][[1]]) # 531
-AIC(yfsegg_gams_t[[1]][[2]]) # 512
-AIC(yfsegg_gams_t[[1]][[3]]) # 515
+AIC(yfsegg_gams_t[[1]][[1]]) # 544
+AIC(yfsegg_gams_t[[1]][[2]]) # 523
+AIC(yfsegg_gams_t[[1]][[3]]) # 531
 summary(yfsegg_gams_t[[2]]) # best model is phenology VC, doy not significant though?
-AIC(yfsegg_gams_t[[1]][[2]]) - AIC(yfsegg_gams_t[[2]]) # -3.4
+AIC(yfsegg_gams_t[[1]][[2]]) - AIC(yfsegg_gams_t[[2]]) # 0
 ```
 
 Plot best model for phenology
@@ -1010,22 +1010,17 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_yfsegg_month_t <- (summary(yfs_egg_base_t)$scale - 
                          summary(yfsegg_gams_t[[1]][[2]])$scale) / summary(yfs_egg_base_t)$scale
-var_ratio_yfsegg_month_t #0.224
+var_ratio_yfsegg_month_t #0.20
 
 var_ratio_yfsegg_space_t <- (summary(yfs_egg_base_t)$scale - 
                          summary(yfsegg_gams_t[[1]][[3]])$scale) / summary(yfs_egg_base_t)$scale
-var_ratio_yfsegg_space_t #0.254
+var_ratio_yfsegg_space_t #0.20
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
 ```{r}
 yfsegg_grids_t <- threepanel_base_mse(yfs_egg, yfs_egg_base_t)
 ```
-
-```{r}
-distribution_change(yfs_egg, yfsegg_vcgrids_t)
-```
-
 
 Plots:
 ```{r}
@@ -1064,7 +1059,7 @@ par(mfrow = c(1, 3),
     family = "serif")
 map_vc_presentation(yfs_egg, yfsegg_gams_t[[1]][[2]], yfsegg_vcgrids_t)
 legend(240,
-       0.5,
+       -0.5,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -1134,11 +1129,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_yfslarvae_phenology_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_phenology_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_phenology_t # 0.010
+ratio_yfslarvae_phenology_t # 0.01
 
 ratio_yfslarvae_geography_t <- (summary(yfs_larvae_base_t)$scale - 
                       summary(yfs_larvae_geography_t)$scale) / summary(yfs_larvae_base_t)$scale
-ratio_yfslarvae_geography_t # 0.017
+ratio_yfslarvae_geography_t # 0.16
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1146,11 +1141,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 yfslarvae_gams_t <- gam_selection(yfs_larvae)
-AIC(yfslarvae_gams_t[[1]][[1]]) # 10345
-AIC(yfslarvae_gams_t[[1]][[2]]) # 10219
-AIC(yfslarvae_gams_t[[1]][[3]]) # 10025
+AIC(yfslarvae_gams_t[[1]][[1]]) # 10291
+AIC(yfslarvae_gams_t[[1]][[2]]) # 10141
+AIC(yfslarvae_gams_t[[1]][[3]]) # 10002
 summary(yfslarvae_gams_t[[2]]) # best is spatial VC, keep all smooth terms
-AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 320
+AIC(yfslarvae_gams_t[[1]][[1]]) - AIC(yfslarvae_gams_t[[2]]) # 289
 summary(yfslarvae_gams_t[[1]][[1]])
 summary(yfslarvae_gams_t[[1]][[2]])
 ```
@@ -1197,11 +1192,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_yfslarvae_month_t <- (summary(yfs_larvae_base_t)$scale - 
                          summary(yfslarvae_gams_t[[1]][[2]])$scale) / summary(yfs_larvae_base_t)$scale
-var_ratio_yfslarvae_month_t #0.115
+var_ratio_yfslarvae_month_t #0.11
 
 var_ratio_yfslarvae_space_t <- (summary(yfs_larvae_base_t)$scale - 
                          summary(yfslarvae_gams_t[[1]][[3]])$scale) / summary(yfs_larvae_base_t)$scale
-var_ratio_yfslarvae_space_t #0.205
+var_ratio_yfslarvae_space_t #0.18
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1245,8 +1240,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc_presentation(yfs_larvae, yfslarvae_gams_t[[2]], yfslarvae_vcgrids_t)
-legend(240,
-       10,
+legend(210,
+       -3,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -1304,7 +1299,7 @@ pred_yfslarvae_t <- variable_coefficient(yfslarvae_gams_t, yfs_larvae)
 jet.colors <- colorRampPalette(alpha = TRUE,
                                c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
 
-plot_var_coef2(yfslarvae_gams_t, yfs_larvae, pred_yfslarvae_t)
+plot_var_coef(yfslarvae_gams_t, yfs_larvae, pred_yfslarvae_t)
 dev.copy(jpeg, here('results/yellowfin_hindcast', 'yfslarvae_var_coef.jpg'), 
          height = 10, width = 10, units = 'in', res = 200)
 dev.off()
@@ -1314,12 +1309,11 @@ dev.off()
 ```{r}
 akp_egg_base_t <- formula_base(akp_egg)
 summary(akp_egg_base_t)
-AIC(akp_egg_base_t)
+AIC(akp_egg_base_t) # 15412, 51.1%
 
 akp_larvae_base_t <- formula_base(akp_larvae)
 summary(akp_larvae_base_t)
-AIC(akp_larvae_base_t)
-summary(akp_larvae_base_t)
+AIC(akp_larvae_base_t) # 7441, 63.5%
 ```
 
 #### Eggs
@@ -1342,11 +1336,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akpegg_phenology_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_phenology_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_phenology_t # -0.0004
+ratio_akpegg_phenology_t # 0.23
 
 ratio_akpegg_geography_t <- (summary(akp_egg_base_t)$scale - 
                       summary(akp_egg_geography_t)$scale) / summary(akp_egg_base_t)$scale
-ratio_akpegg_geography_t # 0.045
+ratio_akpegg_geography_t # 0.32
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the egg/larvae data for use in variable coefficient by SST instead of year as above
@@ -1355,11 +1349,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akpegg_gams_t <- gam_selection(akp_egg)
-AIC(akpegg_gams_t[[1]][[1]]) # 14478
-AIC(akpegg_gams_t[[1]][[2]]) # 14382
-AIC(akpegg_gams_t[[1]][[3]]) # 14180
+AIC(akpegg_gams_t[[1]][[1]]) # 14441
+AIC(akpegg_gams_t[[1]][[2]]) # 14353
+AIC(akpegg_gams_t[[1]][[3]]) # 14092
 summary(akpegg_gams_t[[2]]) # best model is spatial VC, keep all terms
-AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) # 298
+AIC(akpegg_gams_t[[1]][[1]]) - AIC(akpegg_gams_t[[2]]) # 349
 summary(akpegg_gams_t[[1]][[1]]) 
 summary(akpegg_gams_t[[1]][[2]]) 
 ```
@@ -1406,11 +1400,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akpegg_month_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[2]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_month_t # 0.302
+var_ratio_akpegg_month_t # 0.29
 
 var_ratio_akpegg_space_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[3]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_space_t # 0.374
+var_ratio_akpegg_space_t # 0.35
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1537,11 +1531,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_akplarvae_phenology_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_phenology_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_phenology_t # 0.002
+ratio_akplarvae_phenology_t # 0.19
 
 ratio_akplarvae_geography_t <- (summary(akp_larvae_base_t)$scale - 
                       summary(akp_larvae_geography_t)$scale) / summary(akp_larvae_base_t)$scale
-ratio_akplarvae_geography_t # 0.021
+ratio_akplarvae_geography_t # 0.25
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1549,11 +1543,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 akplarvae_gams_t <- gam_selection(akp_larvae)
-AIC(akplarvae_gams_t[[1]][[1]]) # 7067
-AIC(akplarvae_gams_t[[1]][[2]]) # 6732
-AIC(akplarvae_gams_t[[1]][[3]]) # 6644
+AIC(akplarvae_gams_t[[1]][[1]]) # 7064
+AIC(akplarvae_gams_t[[1]][[2]]) # 6721
+AIC(akplarvae_gams_t[[1]][[3]]) # 6655
 summary(akplarvae_gams_t[[2]]) # best is spatial VC
-AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) # 423
+AIC(akplarvae_gams_t[[1]][[1]]) - AIC(akplarvae_gams_t[[2]]) # 409
 ```
 
 Plot best model for phenology
@@ -1598,11 +1592,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akplarvae_month_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[2]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_month_t # 0.299
+var_ratio_akplarvae_month_t # 0.29
 
 var_ratio_akplarvae_space_t <- (summary(akp_larvae_base_t)$scale - 
                          summary(akplarvae_gams_t[[1]][[3]])$scale) / summary(akp_larvae_base_t)$scale
-var_ratio_akplarvae_space_t # 0.333
+var_ratio_akplarvae_space_t # 0.32
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1647,7 +1641,7 @@ par(mfrow = c(1, 3),
     family = "serif")
 map_vc_presentation(akp_larvae, akplarvae_gams_t[[2]], akplarvae_vcgrids_t)
 legend(112,
-       6,
+       1,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -1713,7 +1707,7 @@ dev.off()
 ```{r}
 pcod_larvae_base_t <- formula_base(pcod_larvae)
 summary(pcod_larvae_base_t)
-AIC(pcod_larvae_base_t)
+AIC(pcod_larvae_base_t) # 9004, 48.5%
 ```
 
 #### Larvae
@@ -1735,11 +1729,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pcodlarvae_phenology_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_phenology_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_phenology_t # 0.009
+ratio_pcodlarvae_phenology_t # 0.10
 
 ratio_pcodlarvae_geography_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_geography_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_geography_t # 0.001
+ratio_pcodlarvae_geography_t # 0.10
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1747,11 +1741,13 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pcodlarvae_gams_t <- gam_selection(pcod_larvae)
-AIC(pcodlarvae_gams_t[[1]][[1]]) # 8857
-AIC(pcodlarvae_gams_t[[1]][[2]]) # 8673
-AIC(pcodlarvae_gams_t[[1]][[3]]) # 8694
+AIC(pcodlarvae_gams_t[[1]][[1]]) # 8883
+AIC(pcodlarvae_gams_t[[1]][[2]]) # 8685
+AIC(pcodlarvae_gams_t[[1]][[3]]) # 8704
 summary(pcodlarvae_gams_t[[2]]) # best is temporal VC
-AIC(pcodlarvae_gams_t[[1]][[1]]) - AIC(pcodlarvae_gams_t[[2]]) # 185
+AIC(pcodlarvae_gams_t[[1]][[1]]) - AIC(pcodlarvae_gams_t[[2]]) # 198
+summary(pcodlarvae_gams_t[[1]][[1]])
+summary(pcodlarvae_gams_t[[1]][[3]])
 ```
 
 Plot best model for phenology
@@ -1796,11 +1792,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pcodlarvae_month_t <- (summary(pcod_larvae_base_t)$scale - 
                          summary(pcodlarvae_gams_t[[1]][[2]])$scale) / summary(pcod_larvae_base_t)$scale
-var_ratio_pcodlarvae_month_t # 0.125
+var_ratio_pcodlarvae_month_t # 0.12
 
 var_ratio_pcodlarvae_space_t <- (summary(pcod_larvae_base_t)$scale - 
                          summary(pcodlarvae_gams_t[[1]][[3]])$scale) / summary(pcod_larvae_base_t)$scale
-var_ratio_pcodlarvae_space_t #  0.123
+var_ratio_pcodlarvae_space_t #  0.12
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -1901,24 +1897,11 @@ plot_variable(pcodlarvae_gams_t,
 dev.off()
 ```
 
-Plot variable coefficient term
-```{r}
-pred_pcodlarvae_t <- variable_coefficient(pcodlarvae_gams_t, pcod_larvae)
-
-jet.colors <- colorRampPalette(alpha = TRUE,
-                               c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
-
-plot_var_coef(pcodlarvae_gams_t, pcod_larvae, pred_pcodlarvae_t)
-dev.copy(jpeg, here('results/cod_hindcast', 'pcodlarvae_var_coef.jpg'), 
-         height = 10, width = 10, units = 'in', res = 200)
-dev.off()
-```
-
 ## Northern Rock Sole
 ```{r}
 nrs_larvae_base_t <- formula_base(nrs_larvae)
 summary(nrs_larvae_base_t)
-AIC(nrs_larvae_base_t)
+AIC(nrs_larvae_base_t) # 15812, 43.9%
 ```
 
 #### Larvae
@@ -1940,11 +1923,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_nrslarvae_phenology_t <- (summary(nrs_larvae_base_t)$scale - 
                       summary(nrs_larvae_phenology_t)$scale) / summary(nrs_larvae_base_t)$scale
-ratio_nrslarvae_phenology_t # -0.0002
+ratio_nrslarvae_phenology_t # 0.03
 
 ratio_nrslarvae_geography_t <- (summary(nrs_larvae_base_t)$scale - 
                       summary(nrs_larvae_geography_t)$scale) / summary(nrs_larvae_base_t)$scale
-ratio_nrslarvae_geography_t # 0.005
+ratio_nrslarvae_geography_t # 0.06
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1952,11 +1935,13 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 nrslarvae_gams_t <- gam_selection(nrs_larvae)
-AIC(nrslarvae_gams_t[[1]][[1]]) # 15563
-AIC(nrslarvae_gams_t[[1]][[2]]) # 15450
-AIC(nrslarvae_gams_t[[1]][[3]]) # 15415
+AIC(nrslarvae_gams_t[[1]][[1]]) # 15558
+AIC(nrslarvae_gams_t[[1]][[2]]) # 15443
+AIC(nrslarvae_gams_t[[1]][[3]]) # 15397
 summary(nrslarvae_gams_t[[2]]) # best is spatial VC
-AIC(nrslarvae_gams_t[[1]][[1]]) - AIC(nrslarvae_gams_t[[2]]) # 148
+AIC(nrslarvae_gams_t[[1]][[1]]) - AIC(nrslarvae_gams_t[[2]]) # 161
+summary(nrslarvae_gams_t[[1]][[1]])
+summary(nrslarvae_gams_t[[1]][[2]])
 ```
 
 Plot best model for phenology
@@ -2001,11 +1986,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_nrslarvae_month_t <- (summary(nrs_larvae_base_t)$scale - 
                          summary(nrslarvae_gams_t[[1]][[2]])$scale) / summary(nrs_larvae_base_t)$scale
-var_ratio_nrslarvae_month_t # 0.116
+var_ratio_nrslarvae_month_t # 0.11
 
 var_ratio_nrslarvae_space_t <- (summary(nrs_larvae_base_t)$scale - 
                          summary(nrslarvae_gams_t[[1]][[3]])$scale) / summary(nrs_larvae_base_t)$scale
-var_ratio_nrslarvae_space_t # 0.129
+var_ratio_nrslarvae_space_t # 0.13
 ```
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
@@ -2049,8 +2034,8 @@ par(mfrow = c(1, 3),
     mai = c(0.7, 0.6, 0.4, 0.4),
     family = "serif")
 map_vc_presentation(nrs_larvae, nrslarvae_gams_t[[2]], nrslarvae_vcgrids_t)
-legend(110,
-       1,
+legend(100,
+       2,
        legend = c('Mean SST', '+ 1C'),
        col = c('#000000', '#E69F00'),
        lty = 1,
@@ -2139,12 +2124,7 @@ plot_variable(pkegg_gams_t,
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(pkegg_gams_t,
-              covariate = 5,
-              bounds = c(-6.5, 9),
-              "Salinity",
-              " ",
-              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(pkegg_gams_t,
               pk_egg)
@@ -2470,12 +2450,7 @@ plot_variable(pkegg_gams_t,
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(pkegg_gams_t,
-              covariate = 5,
-              bounds = c(-6.5, 9),
-              "Salinity",
-              " ",
-              "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 phenology_change(pkegg_vcgrids_t)
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
