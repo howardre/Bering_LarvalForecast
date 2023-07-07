@@ -554,7 +554,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_pkegg_merged1 <- list(df_pkegg1_cesm126, df_pkegg1_cesm585,
                          df_pkegg1_gfdl126, df_pkegg1_gfdl585,
@@ -609,6 +609,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_pkegg_cesm1 <- list(df_pkegg1_cesm126, df_pkegg1_cesm585) 
+df_pkegg_cesm2 <- list(df_pkegg2_cesm126, df_pkegg2_cesm585) 
+df_pkegg_cesm3 <- list(df_pkegg3_cesm126, df_pkegg3_cesm585) 
+df_pkegg_gfdl1 <- list(df_pkegg1_gfdl126, df_pkegg1_gfdl585) 
+df_pkegg_gfdl2 <- list(df_pkegg2_gfdl126, df_pkegg2_gfdl585) 
+df_pkegg_gfdl3 <- list(df_pkegg3_gfdl126, df_pkegg3_gfdl585) 
+df_pkegg_miroc1 <- list(df_pkegg1_miroc126, df_pkegg1_miroc585) 
+df_pkegg_miroc2 <- list(df_pkegg2_miroc126, df_pkegg2_miroc585) 
+df_pkegg_miroc3 <- list(df_pkegg3_miroc126, df_pkegg3_miroc585) 
+
+avg_pkegg_cesm1 <- predict_avgs(df_pkegg_cesm1)
+avg_pkegg_cesm2 <- predict_avgs(df_pkegg_cesm2)
+avg_pkegg_cesm3 <- predict_avgs(df_pkegg_cesm3)
+avg_pkegg_gfdl1 <- predict_avgs(df_pkegg_gfdl1)
+avg_pkegg_gfdl2 <- predict_avgs(df_pkegg_gfdl2)
+avg_pkegg_gfdl3 <- predict_avgs(df_pkegg_gfdl3)
+avg_pkegg_miroc1 <- predict_avgs(df_pkegg_miroc1)
+avg_pkegg_miroc2 <- predict_avgs(df_pkegg_miroc2)
+avg_pkegg_miroc3 <- predict_avgs(df_pkegg_miroc3)
+
+tiff(here('results/pollock_forecast',
+          'pollockegg_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_pkegg_cesm1)
+grid_multipanel(avg_pkegg_cesm2)
+grid_multipanel(avg_pkegg_cesm3)
+grid_multipanel(avg_pkegg_gfdl1)
+grid_multipanel(avg_pkegg_gfdl2)
+grid_multipanel(avg_pkegg_gfdl3)
+grid_multipanel(avg_pkegg_miroc1)
+grid_multipanel(avg_pkegg_miroc2)
+grid_multipanel(avg_pkegg_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 pkegg_dir_out <- file.path(base_dir, 'results', 'pollock_forecast', 'pkegg_avgs')
 pkegg_imgs <- list.files(pkegg_dir_out, full.names = T)
@@ -631,6 +710,15 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
    avg_pkegg_merged1, avg_pkegg_merged2,
    avg_pkegg_merged3, df_pkegg_merged1,
    df_pkegg_merged2, df_pkegg_merged3,
+   avg_pkegg_cesm1, avg_pkegg_cesm2,
+   avg_pkegg_cesm3, avg_pkegg_gfdl1,
+   avg_pkegg_gfdl2, avg_pkegg_gfdl3,
+   avg_pkegg_miroc1, avg_pkegg_miroc2,
+   avg_pkegg_miroc3, df_pkegg_cesm1,
+   df_pkegg_cesm2, df_pkegg_cesm3,
+   df_pkegg_gfdl1, df_pkegg_gfdl2,
+   df_pkegg_gfdl3, df_pkegg_miroc1,
+   df_pkegg_miroc2, df_pkegg_miroc3,
    pk_egg, pkegg_formula, pkegg_img_animated,
    pkegg_dir_out, pkegg_img_joined, 
    pkegg_img_list, pkegg_imgs)
@@ -1116,7 +1204,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_pklarvae_merged1 <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
                          df_pklarvae1_gfdl126, df_pklarvae1_gfdl585,
@@ -1171,6 +1259,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_pklarvae_cesm1 <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585) 
+df_pklarvae_cesm2 <- list(df_pklarvae2_cesm126, df_pklarvae2_cesm585) 
+df_pklarvae_cesm3 <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585) 
+df_pklarvae_gfdl1 <- list(df_pklarvae1_gfdl126, df_pklarvae1_gfdl585) 
+df_pklarvae_gfdl2 <- list(df_pklarvae2_gfdl126, df_pklarvae2_gfdl585) 
+df_pklarvae_gfdl3 <- list(df_pklarvae3_gfdl126, df_pklarvae3_gfdl585) 
+df_pklarvae_miroc1 <- list(df_pklarvae1_miroc126, df_pklarvae1_miroc585) 
+df_pklarvae_miroc2 <- list(df_pklarvae2_miroc126, df_pklarvae2_miroc585) 
+df_pklarvae_miroc3 <- list(df_pklarvae3_miroc126, df_pklarvae3_miroc585) 
+
+avg_pklarvae_cesm1 <- predict_avgs(df_pklarvae_cesm1)
+avg_pklarvae_cesm2 <- predict_avgs(df_pklarvae_cesm2)
+avg_pklarvae_cesm3 <- predict_avgs(df_pklarvae_cesm3)
+avg_pklarvae_gfdl1 <- predict_avgs(df_pklarvae_gfdl1)
+avg_pklarvae_gfdl2 <- predict_avgs(df_pklarvae_gfdl2)
+avg_pklarvae_gfdl3 <- predict_avgs(df_pklarvae_gfdl3)
+avg_pklarvae_miroc1 <- predict_avgs(df_pklarvae_miroc1)
+avg_pklarvae_miroc2 <- predict_avgs(df_pklarvae_miroc2)
+avg_pklarvae_miroc3 <- predict_avgs(df_pklarvae_miroc3)
+
+tiff(here('results/pollock_forecast',
+          'pollocklarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_pklarvae_cesm1)
+grid_multipanel(avg_pklarvae_cesm2)
+grid_multipanel(avg_pklarvae_cesm3)
+grid_multipanel(avg_pklarvae_gfdl1)
+grid_multipanel(avg_pklarvae_gfdl2)
+grid_multipanel(avg_pklarvae_gfdl3)
+grid_multipanel(avg_pklarvae_miroc1)
+grid_multipanel(avg_pklarvae_miroc2)
+grid_multipanel(avg_pklarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 pklarvae_dir_out <- file.path(base_dir, 'results', 'pollock_forecast', 'pklarvae_avgs')
 pklarvae_imgs <- list.files(pklarvae_dir_out, full.names = T)
@@ -1193,7 +1360,16 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
    avg_pklarvae_merged1, avg_pklarvae_merged2,
    avg_pklarvae_merged3, df_pklarvae_merged1,
    df_pklarvae_merged2, df_pklarvae_merged3,
-   pk_larvae, pklarvae_formula, pklarvae_img_animated,
+   avg_pklarvae_cesm1, avg_pklarvae_cesm2,
+   avg_pklarvae_cesm3, avg_pklarvae_gfdl1,
+   avg_pklarvae_gfdl2, avg_pklarvae_gfdl3,
+   avg_pklarvae_miroc1, avg_pklarvae_miroc2,
+   avg_pklarvae_miroc3, df_pklarvae_cesm1,
+   df_pklarvae_cesm2, df_pklarvae_cesm3,
+   df_pklarvae_gfdl1, df_pklarvae_gfdl2,
+   df_pklarvae_gfdl3, df_pklarvae_miroc1,
+   df_pklarvae_miroc2, df_pklarvae_miroc3,
+   pk_egg, pklarvae_formula, pklarvae_img_animated,
    pklarvae_dir_out, pklarvae_img_joined, 
    pklarvae_img_list, pklarvae_imgs)
 
@@ -1677,7 +1853,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_fhsegg_merged1 <- list(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
                          df_fhsegg1_gfdl126, df_fhsegg1_gfdl585,
@@ -1732,6 +1908,86 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_fhsegg_cesm1 <- list(df_fhsegg1_cesm126, df_fhsegg1_cesm585) 
+df_fhsegg_cesm2 <- list(df_fhsegg2_cesm126, df_fhsegg2_cesm585) 
+df_fhsegg_cesm3 <- list(df_fhsegg3_cesm126, df_fhsegg3_cesm585) 
+df_fhsegg_gfdl1 <- list(df_fhsegg1_gfdl126, df_fhsegg1_gfdl585) 
+df_fhsegg_gfdl2 <- list(df_fhsegg2_gfdl126, df_fhsegg2_gfdl585) 
+df_fhsegg_gfdl3 <- list(df_fhsegg3_gfdl126, df_fhsegg3_gfdl585) 
+df_fhsegg_miroc1 <- list(df_fhsegg1_miroc126, df_fhsegg1_miroc585) 
+df_fhsegg_miroc2 <- list(df_fhsegg2_miroc126, df_fhsegg2_miroc585) 
+df_fhsegg_miroc3 <- list(df_fhsegg3_miroc126, df_fhsegg3_miroc585) 
+
+avg_fhsegg_cesm1 <- predict_avgs(df_fhsegg_cesm1)
+avg_fhsegg_cesm2 <- predict_avgs(df_fhsegg_cesm2)
+avg_fhsegg_cesm3 <- predict_avgs(df_fhsegg_cesm3)
+avg_fhsegg_gfdl1 <- predict_avgs(df_fhsegg_gfdl1)
+avg_fhsegg_gfdl2 <- predict_avgs(df_fhsegg_gfdl2)
+avg_fhsegg_gfdl3 <- predict_avgs(df_fhsegg_gfdl3)
+avg_fhsegg_miroc1 <- predict_avgs(df_fhsegg_miroc1)
+avg_fhsegg_miroc2 <- predict_avgs(df_fhsegg_miroc2)
+avg_fhsegg_miroc3 <- predict_avgs(df_fhsegg_miroc3)
+
+tiff(here('results/flathead_forecast',
+          'flatheadegg_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_fhsegg_cesm1)
+grid_multipanel(avg_fhsegg_cesm2)
+grid_multipanel(avg_fhsegg_cesm3)
+grid_multipanel(avg_fhsegg_gfdl1)
+grid_multipanel(avg_fhsegg_gfdl2)
+grid_multipanel(avg_fhsegg_gfdl3)
+grid_multipanel(avg_fhsegg_miroc1)
+grid_multipanel(avg_fhsegg_miroc2)
+grid_multipanel(avg_fhsegg_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 fhsegg_dir_out <- file.path(base_dir, 'results', 'flathead_forecast', 'fhsegg_avgs')
 fhsegg_imgs <- list.files(fhsegg_dir_out, full.names = T)
@@ -1754,7 +2010,16 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
    avg_fhsegg_merged1, avg_fhsegg_merged2,
    avg_fhsegg_merged3, df_fhsegg_merged1,
    df_fhsegg_merged2, df_fhsegg_merged3,
-   fhs_egg, fhsegg_formula, fhsegg_img_animated,
+   avg_fhsegg_cesm1, avg_fhsegg_cesm2,
+   avg_fhsegg_cesm3, avg_fhsegg_gfdl1,
+   avg_fhsegg_gfdl2, avg_fhsegg_gfdl3,
+   avg_fhsegg_miroc1, avg_fhsegg_miroc2,
+   avg_fhsegg_miroc3, df_fhsegg_cesm1,
+   df_fhsegg_cesm2, df_fhsegg_cesm3,
+   df_fhsegg_gfdl1, df_fhsegg_gfdl2,
+   df_fhsegg_gfdl3, df_fhsegg_miroc1,
+   df_fhsegg_miroc2, df_fhsegg_miroc3,
+   pk_egg, fhsegg_formula, fhsegg_img_animated,
    fhsegg_dir_out, fhsegg_img_joined, 
    fhsegg_img_list, fhsegg_imgs)
 
@@ -2239,7 +2504,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_fhslarvae_merged1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585,
                             df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585,
@@ -2294,6 +2559,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_fhslarvae_cesm1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585) 
+df_fhslarvae_cesm2 <- list(df_fhslarvae2_cesm126, df_fhslarvae2_cesm585) 
+df_fhslarvae_cesm3 <- list(df_fhslarvae3_cesm126, df_fhslarvae3_cesm585) 
+df_fhslarvae_gfdl1 <- list(df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585) 
+df_fhslarvae_gfdl2 <- list(df_fhslarvae2_gfdl126, df_fhslarvae2_gfdl585) 
+df_fhslarvae_gfdl3 <- list(df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585) 
+df_fhslarvae_miroc1 <- list(df_fhslarvae1_miroc126, df_fhslarvae1_miroc585) 
+df_fhslarvae_miroc2 <- list(df_fhslarvae2_miroc126, df_fhslarvae2_miroc585) 
+df_fhslarvae_miroc3 <- list(df_fhslarvae3_miroc126, df_fhslarvae3_miroc585) 
+
+avg_fhslarvae_cesm1 <- predict_avgs(df_fhslarvae_cesm1)
+avg_fhslarvae_cesm2 <- predict_avgs(df_fhslarvae_cesm2)
+avg_fhslarvae_cesm3 <- predict_avgs(df_fhslarvae_cesm3)
+avg_fhslarvae_gfdl1 <- predict_avgs(df_fhslarvae_gfdl1)
+avg_fhslarvae_gfdl2 <- predict_avgs(df_fhslarvae_gfdl2)
+avg_fhslarvae_gfdl3 <- predict_avgs(df_fhslarvae_gfdl3)
+avg_fhslarvae_miroc1 <- predict_avgs(df_fhslarvae_miroc1)
+avg_fhslarvae_miroc2 <- predict_avgs(df_fhslarvae_miroc2)
+avg_fhslarvae_miroc3 <- predict_avgs(df_fhslarvae_miroc3)
+
+tiff(here('results/flathead_forecast',
+          'flatheadlarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_fhslarvae_cesm1)
+grid_multipanel(avg_fhslarvae_cesm2)
+grid_multipanel(avg_fhslarvae_cesm3)
+grid_multipanel(avg_fhslarvae_gfdl1)
+grid_multipanel(avg_fhslarvae_gfdl2)
+grid_multipanel(avg_fhslarvae_gfdl3)
+grid_multipanel(avg_fhslarvae_miroc1)
+grid_multipanel(avg_fhslarvae_miroc2)
+grid_multipanel(avg_fhslarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 fhslarvae_dir_out <- file.path(base_dir, 'results', 'flathead_forecast', 'fhslarvae_avgs')
 fhslarvae_imgs <- list.files(fhslarvae_dir_out, full.names = T)
@@ -2304,21 +2648,30 @@ image_write(image = fhslarvae_img_animated,
             path = here('results', 'flathead_forecast', "fhslarvae_avgs.gif"))
 
 ##### Clear environment -------------------------------------------------------------------------------------------------------------------------
-rm(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585,
-   df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585,
-   df_fhslarvae1_miroc126, df_fhslarvae1_miroc585,
-   df_fhslarvae2_cesm126, df_fhslarvae2_cesm585,
-   df_fhslarvae2_gfdl126, df_fhslarvae2_gfdl585,
-   df_fhslarvae2_miroc126, df_fhslarvae2_miroc585,
-   df_fhslarvae3_cesm126, df_fhslarvae3_cesm585,
-   df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585,
-   df_fhslarvae3_miroc126, df_fhslarvae3_miroc585,
-   avg_fhslarvae_merged1, avg_fhslarvae_merged2,
-   avg_fhslarvae_merged3, df_fhslarvae_merged1,
-   df_fhslarvae_merged2, df_fhslarvae_merged3,
-   fhs_larvae, fhslarvae_formula, fhslarvae_img_animated,
-   fhslarvae_dir_out, fhslarvae_img_joined, 
-   fhslarvae_img_list, fhslarvae_imgs)
+rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
+   df_fhlarvae1_gfdl126, df_fhlarvae1_gfdl585,
+   df_fhlarvae1_miroc126, df_fhlarvae1_miroc585,
+   df_fhlarvae2_cesm126, df_fhlarvae2_cesm585,
+   df_fhlarvae2_gfdl126, df_fhlarvae2_gfdl585,
+   df_fhlarvae2_miroc126, df_fhlarvae2_miroc585,
+   df_fhlarvae3_cesm126, df_fhlarvae3_cesm585,
+   df_fhlarvae3_gfdl126, df_fhlarvae3_gfdl585,
+   df_fhlarvae3_miroc126, df_fhlarvae3_miroc585,
+   avg_fhlarvae_merged1, avg_fhlarvae_merged2,
+   avg_fhlarvae_merged3, df_fhlarvae_merged1,
+   df_fhlarvae_merged2, df_fhlarvae_merged3,
+   avg_fhlarvae_cesm1, avg_fhlarvae_cesm2,
+   avg_fhlarvae_cesm3, avg_fhlarvae_gfdl1,
+   avg_fhlarvae_gfdl2, avg_fhlarvae_gfdl3,
+   avg_fhlarvae_miroc1, avg_fhlarvae_miroc2,
+   avg_fhlarvae_miroc3, df_fhlarvae_cesm1,
+   df_fhlarvae_cesm2, df_fhlarvae_cesm3,
+   df_fhlarvae_gfdl1, df_fhlarvae_gfdl2,
+   df_fhlarvae_gfdl3, df_fhlarvae_miroc1,
+   df_fhlarvae_miroc2, df_fhlarvae_miroc3,
+   pk_egg, fhlarvae_formula, fhlarvae_img_animated,
+   fhlarvae_dir_out, fhlarvae_img_joined, 
+   fhlarvae_img_list, fhlarvae_imgs)
 
 ### Alaska Plaice Eggs --------------------------------------------------------------------------------------------------------------------------
 akp_egg <- load_data('akp_egg.rds', akp_egg, roms_temps)
@@ -2800,7 +3153,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_akpegg_merged1 <- list(df_akpegg1_cesm126, df_akpegg1_cesm585,
                          df_akpegg1_gfdl126, df_akpegg1_gfdl585,
@@ -2855,6 +3208,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_akpegg_cesm1 <- list(df_akpegg1_cesm126, df_akpegg1_cesm585) 
+df_akpegg_cesm2 <- list(df_akpegg2_cesm126, df_akpegg2_cesm585) 
+df_akpegg_cesm3 <- list(df_akpegg3_cesm126, df_akpegg3_cesm585) 
+df_akpegg_gfdl1 <- list(df_akpegg1_gfdl126, df_akpegg1_gfdl585) 
+df_akpegg_gfdl2 <- list(df_akpegg2_gfdl126, df_akpegg2_gfdl585) 
+df_akpegg_gfdl3 <- list(df_akpegg3_gfdl126, df_akpegg3_gfdl585) 
+df_akpegg_miroc1 <- list(df_akpegg1_miroc126, df_akpegg1_miroc585) 
+df_akpegg_miroc2 <- list(df_akpegg2_miroc126, df_akpegg2_miroc585) 
+df_akpegg_miroc3 <- list(df_akpegg3_miroc126, df_akpegg3_miroc585) 
+
+avg_akpegg_cesm1 <- predict_avgs(df_akpegg_cesm1)
+avg_akpegg_cesm2 <- predict_avgs(df_akpegg_cesm2)
+avg_akpegg_cesm3 <- predict_avgs(df_akpegg_cesm3)
+avg_akpegg_gfdl1 <- predict_avgs(df_akpegg_gfdl1)
+avg_akpegg_gfdl2 <- predict_avgs(df_akpegg_gfdl2)
+avg_akpegg_gfdl3 <- predict_avgs(df_akpegg_gfdl3)
+avg_akpegg_miroc1 <- predict_avgs(df_akpegg_miroc1)
+avg_akpegg_miroc2 <- predict_avgs(df_akpegg_miroc2)
+avg_akpegg_miroc3 <- predict_avgs(df_akpegg_miroc3)
+
+tiff(here('results/plaice_forecast',
+          'plaiceegg_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_akpegg_cesm1)
+grid_multipanel(avg_akpegg_cesm2)
+grid_multipanel(avg_akpegg_cesm3)
+grid_multipanel(avg_akpegg_gfdl1)
+grid_multipanel(avg_akpegg_gfdl2)
+grid_multipanel(avg_akpegg_gfdl3)
+grid_multipanel(avg_akpegg_miroc1)
+grid_multipanel(avg_akpegg_miroc2)
+grid_multipanel(avg_akpegg_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 akpegg_dir_out <- file.path(base_dir, 'results', 'plaice_forecast', 'akpegg_avgs')
 akpegg_imgs <- list.files(akpegg_dir_out, full.names = T)
@@ -2877,7 +3309,16 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
    avg_akpegg_merged1, avg_akpegg_merged2,
    avg_akpegg_merged3, df_akpegg_merged1,
    df_akpegg_merged2, df_akpegg_merged3,
-   akp_egg, akpegg_formula, akpegg_img_animated,
+   avg_akpegg_cesm1, avg_akpegg_cesm2,
+   avg_akpegg_cesm3, avg_akpegg_gfdl1,
+   avg_akpegg_gfdl2, avg_akpegg_gfdl3,
+   avg_akpegg_miroc1, avg_akpegg_miroc2,
+   avg_akpegg_miroc3, df_akpegg_cesm1,
+   df_akpegg_cesm2, df_akpegg_cesm3,
+   df_akpegg_gfdl1, df_akpegg_gfdl2,
+   df_akpegg_gfdl3, df_akpegg_miroc1,
+   df_akpegg_miroc2, df_akpegg_miroc3,
+   pk_egg, akpegg_formula, akpegg_img_animated,
    akpegg_dir_out, akpegg_img_joined, 
    akpegg_img_list, akpegg_imgs)
 
@@ -3362,7 +3803,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_akplarvae_merged1 <- list(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
                             df_akplarvae1_gfdl126, df_akplarvae1_gfdl585,
@@ -3417,6 +3858,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_akplarvae_cesm1 <- list(df_akplarvae1_cesm126, df_akplarvae1_cesm585) 
+df_akplarvae_cesm2 <- list(df_akplarvae2_cesm126, df_akplarvae2_cesm585) 
+df_akplarvae_cesm3 <- list(df_akplarvae3_cesm126, df_akplarvae3_cesm585) 
+df_akplarvae_gfdl1 <- list(df_akplarvae1_gfdl126, df_akplarvae1_gfdl585) 
+df_akplarvae_gfdl2 <- list(df_akplarvae2_gfdl126, df_akplarvae2_gfdl585) 
+df_akplarvae_gfdl3 <- list(df_akplarvae3_gfdl126, df_akplarvae3_gfdl585) 
+df_akplarvae_miroc1 <- list(df_akplarvae1_miroc126, df_akplarvae1_miroc585) 
+df_akplarvae_miroc2 <- list(df_akplarvae2_miroc126, df_akplarvae2_miroc585) 
+df_akplarvae_miroc3 <- list(df_akplarvae3_miroc126, df_akplarvae3_miroc585) 
+
+avg_akplarvae_cesm1 <- predict_avgs(df_akplarvae_cesm1)
+avg_akplarvae_cesm2 <- predict_avgs(df_akplarvae_cesm2)
+avg_akplarvae_cesm3 <- predict_avgs(df_akplarvae_cesm3)
+avg_akplarvae_gfdl1 <- predict_avgs(df_akplarvae_gfdl1)
+avg_akplarvae_gfdl2 <- predict_avgs(df_akplarvae_gfdl2)
+avg_akplarvae_gfdl3 <- predict_avgs(df_akplarvae_gfdl3)
+avg_akplarvae_miroc1 <- predict_avgs(df_akplarvae_miroc1)
+avg_akplarvae_miroc2 <- predict_avgs(df_akplarvae_miroc2)
+avg_akplarvae_miroc3 <- predict_avgs(df_akplarvae_miroc3)
+
+tiff(here('results/plaice_forecast',
+          'plaicelarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_akplarvae_cesm1)
+grid_multipanel(avg_akplarvae_cesm2)
+grid_multipanel(avg_akplarvae_cesm3)
+grid_multipanel(avg_akplarvae_gfdl1)
+grid_multipanel(avg_akplarvae_gfdl2)
+grid_multipanel(avg_akplarvae_gfdl3)
+grid_multipanel(avg_akplarvae_miroc1)
+grid_multipanel(avg_akplarvae_miroc2)
+grid_multipanel(avg_akplarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 akplarvae_dir_out <- file.path(base_dir, 'results', 'plaice_forecast', 'akplarvae_avgs')
 akplarvae_imgs <- list.files(akplarvae_dir_out, full.names = T)
@@ -3439,7 +3959,16 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
    avg_akplarvae_merged1, avg_akplarvae_merged2,
    avg_akplarvae_merged3, df_akplarvae_merged1,
    df_akplarvae_merged2, df_akplarvae_merged3,
-   akp_larvae, akplarvae_formula, akplarvae_img_animated,
+   avg_akplarvae_cesm1, avg_akplarvae_cesm2,
+   avg_akplarvae_cesm3, avg_akplarvae_gfdl1,
+   avg_akplarvae_gfdl2, avg_akplarvae_gfdl3,
+   avg_akplarvae_miroc1, avg_akplarvae_miroc2,
+   avg_akplarvae_miroc3, df_akplarvae_cesm1,
+   df_akplarvae_cesm2, df_akplarvae_cesm3,
+   df_akplarvae_gfdl1, df_akplarvae_gfdl2,
+   df_akplarvae_gfdl3, df_akplarvae_miroc1,
+   df_akplarvae_miroc2, df_akplarvae_miroc3,
+   pk_egg, akplarvae_formula, akplarvae_img_animated,
    akplarvae_dir_out, akplarvae_img_joined, 
    akplarvae_img_list, akplarvae_imgs)
 
@@ -3924,7 +4453,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_yfslarvae_merged1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
                              df_yfslarvae1_gfdl126, df_yfslarvae1_gfdl585,
@@ -3979,6 +4508,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_yfslarvae_cesm1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585) 
+df_yfslarvae_cesm2 <- list(df_yfslarvae2_cesm126, df_yfslarvae2_cesm585) 
+df_yfslarvae_cesm3 <- list(df_yfslarvae3_cesm126, df_yfslarvae3_cesm585) 
+df_yfslarvae_gfdl1 <- list(df_yfslarvae1_gfdl126, df_yfslarvae1_gfdl585) 
+df_yfslarvae_gfdl2 <- list(df_yfslarvae2_gfdl126, df_yfslarvae2_gfdl585) 
+df_yfslarvae_gfdl3 <- list(df_yfslarvae3_gfdl126, df_yfslarvae3_gfdl585) 
+df_yfslarvae_miroc1 <- list(df_yfslarvae1_miroc126, df_yfslarvae1_miroc585) 
+df_yfslarvae_miroc2 <- list(df_yfslarvae2_miroc126, df_yfslarvae2_miroc585) 
+df_yfslarvae_miroc3 <- list(df_yfslarvae3_miroc126, df_yfslarvae3_miroc585) 
+
+avg_yfslarvae_cesm1 <- predict_avgs(df_yfslarvae_cesm1)
+avg_yfslarvae_cesm2 <- predict_avgs(df_yfslarvae_cesm2)
+avg_yfslarvae_cesm3 <- predict_avgs(df_yfslarvae_cesm3)
+avg_yfslarvae_gfdl1 <- predict_avgs(df_yfslarvae_gfdl1)
+avg_yfslarvae_gfdl2 <- predict_avgs(df_yfslarvae_gfdl2)
+avg_yfslarvae_gfdl3 <- predict_avgs(df_yfslarvae_gfdl3)
+avg_yfslarvae_miroc1 <- predict_avgs(df_yfslarvae_miroc1)
+avg_yfslarvae_miroc2 <- predict_avgs(df_yfslarvae_miroc2)
+avg_yfslarvae_miroc3 <- predict_avgs(df_yfslarvae_miroc3)
+
+tiff(here('results/yellowfin_forecast',
+          'yellowfinlarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_yfslarvae_cesm1)
+grid_multipanel(avg_yfslarvae_cesm2)
+grid_multipanel(avg_yfslarvae_cesm3)
+grid_multipanel(avg_yfslarvae_gfdl1)
+grid_multipanel(avg_yfslarvae_gfdl2)
+grid_multipanel(avg_yfslarvae_gfdl3)
+grid_multipanel(avg_yfslarvae_miroc1)
+grid_multipanel(avg_yfslarvae_miroc2)
+grid_multipanel(avg_yfslarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 yfslarvae_dir_out <- file.path(base_dir, 'results', 'yellowfin_forecast', 'yfslarvae_avgs')
 yfslarvae_imgs <- list.files(yfslarvae_dir_out, full.names = T)
@@ -4001,7 +4609,16 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
    avg_yfslarvae_merged1, avg_yfslarvae_merged2,
    avg_yfslarvae_merged3, df_yfslarvae_merged1,
    df_yfslarvae_merged2, df_yfslarvae_merged3,
-   yfs_larvae, yfslarvae_formula, yfslarvae_img_animated,
+   avg_yfslarvae_cesm1, avg_yfslarvae_cesm2,
+   avg_yfslarvae_cesm3, avg_yfslarvae_gfdl1,
+   avg_yfslarvae_gfdl2, avg_yfslarvae_gfdl3,
+   avg_yfslarvae_miroc1, avg_yfslarvae_miroc2,
+   avg_yfslarvae_miroc3, df_yfslarvae_cesm1,
+   df_yfslarvae_cesm2, df_yfslarvae_cesm3,
+   df_yfslarvae_gfdl1, df_yfslarvae_gfdl2,
+   df_yfslarvae_gfdl3, df_yfslarvae_miroc1,
+   df_yfslarvae_miroc2, df_yfslarvae_miroc3,
+   pk_egg, yfslarvae_formula, yfslarvae_img_animated,
    yfslarvae_dir_out, yfslarvae_img_joined, 
    yfslarvae_img_list, yfslarvae_imgs)
 
@@ -4486,7 +5103,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_nrslarvae_merged1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
                              df_nrslarvae1_gfdl126, df_nrslarvae1_gfdl585,
@@ -4541,6 +5158,85 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_nrslarvae_cesm1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585) 
+df_nrslarvae_cesm2 <- list(df_nrslarvae2_cesm126, df_nrslarvae2_cesm585) 
+df_nrslarvae_cesm3 <- list(df_nrslarvae3_cesm126, df_nrslarvae3_cesm585) 
+df_nrslarvae_gfdl1 <- list(df_nrslarvae1_gfdl126, df_nrslarvae1_gfdl585) 
+df_nrslarvae_gfdl2 <- list(df_nrslarvae2_gfdl126, df_nrslarvae2_gfdl585) 
+df_nrslarvae_gfdl3 <- list(df_nrslarvae3_gfdl126, df_nrslarvae3_gfdl585) 
+df_nrslarvae_miroc1 <- list(df_nrslarvae1_miroc126, df_nrslarvae1_miroc585) 
+df_nrslarvae_miroc2 <- list(df_nrslarvae2_miroc126, df_nrslarvae2_miroc585) 
+df_nrslarvae_miroc3 <- list(df_nrslarvae3_miroc126, df_nrslarvae3_miroc585) 
+
+avg_nrslarvae_cesm1 <- predict_avgs(df_nrslarvae_cesm1)
+avg_nrslarvae_cesm2 <- predict_avgs(df_nrslarvae_cesm2)
+avg_nrslarvae_cesm3 <- predict_avgs(df_nrslarvae_cesm3)
+avg_nrslarvae_gfdl1 <- predict_avgs(df_nrslarvae_gfdl1)
+avg_nrslarvae_gfdl2 <- predict_avgs(df_nrslarvae_gfdl2)
+avg_nrslarvae_gfdl3 <- predict_avgs(df_nrslarvae_gfdl3)
+avg_nrslarvae_miroc1 <- predict_avgs(df_nrslarvae_miroc1)
+avg_nrslarvae_miroc2 <- predict_avgs(df_nrslarvae_miroc2)
+avg_nrslarvae_miroc3 <- predict_avgs(df_nrslarvae_miroc3)
+
+tiff(here('results/rocksole_forecast',
+          'rocksolelarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_nrslarvae_cesm1)
+grid_multipanel(avg_nrslarvae_cesm2)
+grid_multipanel(avg_nrslarvae_cesm3)
+grid_multipanel(avg_nrslarvae_gfdl1)
+grid_multipanel(avg_nrslarvae_gfdl2)
+grid_multipanel(avg_nrslarvae_gfdl3)
+grid_multipanel(avg_nrslarvae_miroc1)
+grid_multipanel(avg_nrslarvae_miroc2)
+grid_multipanel(avg_nrslarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 nrslarvae_dir_out <- file.path(base_dir, 'results', 'rocksole_forecast', 'nrslarvae_avgs')
 nrslarvae_imgs <- list.files(nrslarvae_dir_out, full.names = T)
@@ -4563,7 +5259,16 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
    avg_nrslarvae_merged1, avg_nrslarvae_merged2,
    avg_nrslarvae_merged3, df_nrslarvae_merged1,
    df_nrslarvae_merged2, df_nrslarvae_merged3,
-   nrs_larvae, nrslarvae_formula, nrslarvae_img_animated,
+   avg_nrslarvae_cesm1, avg_nrslarvae_cesm2,
+   avg_nrslarvae_cesm3, avg_nrslarvae_gfdl1,
+   avg_nrslarvae_gfdl2, avg_nrslarvae_gfdl3,
+   avg_nrslarvae_miroc1, avg_nrslarvae_miroc2,
+   avg_nrslarvae_miroc3, df_nrslarvae_cesm1,
+   df_nrslarvae_cesm2, df_nrslarvae_cesm3,
+   df_nrslarvae_gfdl1, df_nrslarvae_gfdl2,
+   df_nrslarvae_gfdl3, df_nrslarvae_miroc1,
+   df_nrslarvae_miroc2, df_nrslarvae_miroc3,
+   pk_egg, nrslarvae_formula, nrslarvae_img_animated,
    nrslarvae_dir_out, nrslarvae_img_joined, 
    nrslarvae_img_list, nrslarvae_imgs)
 
@@ -5047,7 +5752,7 @@ mtext("2070-2099",
       at = 0.84)
 dev.off()
 
-##### Averages ---------------------------------------------------------------------------------------------------------------------------
+##### Time Period Averages ---------------------------------------------------------------------------------------------------------------------------
 # 2015 - 2039
 df_pcodlarvae_merged1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
                              df_pcodlarvae1_gfdl126, df_pcodlarvae1_gfdl585,
@@ -5102,6 +5807,86 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
+##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+df_pcodlarvae_cesm1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585) 
+df_pcodlarvae_cesm2 <- list(df_pcodlarvae2_cesm126, df_pcodlarvae2_cesm585) 
+df_pcodlarvae_cesm3 <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585) 
+df_pcodlarvae_gfdl1 <- list(df_pcodlarvae1_gfdl126, df_pcodlarvae1_gfdl585) 
+df_pcodlarvae_gfdl2 <- list(df_pcodlarvae2_gfdl126, df_pcodlarvae2_gfdl585) 
+df_pcodlarvae_gfdl3 <- list(df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585) 
+df_pcodlarvae_miroc1 <- list(df_pcodlarvae1_miroc126, df_pcodlarvae1_miroc585) 
+df_pcodlarvae_miroc2 <- list(df_pcodlarvae2_miroc126, df_pcodlarvae2_miroc585) 
+df_pcodlarvae_miroc3 <- list(df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585) 
+
+avg_pcodlarvae_cesm1 <- predict_avgs(df_pcodlarvae_cesm1)
+avg_pcodlarvae_cesm2 <- predict_avgs(df_pcodlarvae_cesm2)
+avg_pcodlarvae_cesm3 <- predict_avgs(df_pcodlarvae_cesm3)
+avg_pcodlarvae_gfdl1 <- predict_avgs(df_pcodlarvae_gfdl1)
+avg_pcodlarvae_gfdl2 <- predict_avgs(df_pcodlarvae_gfdl2)
+avg_pcodlarvae_gfdl3 <- predict_avgs(df_pcodlarvae_gfdl3)
+avg_pcodlarvae_miroc1 <- predict_avgs(df_pcodlarvae_miroc1)
+avg_pcodlarvae_miroc2 <- predict_avgs(df_pcodlarvae_miroc2)
+avg_pcodlarvae_miroc3 <- predict_avgs(df_pcodlarvae_miroc3)
+
+tiff(here('results/cod_forecast',
+          'codlarvae_multipanel_esm.tiff'),
+     units = "in",
+     width = 45,
+     height = 45,
+     res = 300)
+par(mfrow = c(3, 3),
+    mar = c(11, 12, 5, 1.5) + 0.1,
+    oma = c(3, 25, 15, 1),
+    mgp = c(10, 4, 0),
+    family = "serif")
+grid_multipanel(avg_pcodlarvae_cesm1)
+grid_multipanel(avg_pcodlarvae_cesm2)
+grid_multipanel(avg_pcodlarvae_cesm3)
+grid_multipanel(avg_pcodlarvae_gfdl1)
+grid_multipanel(avg_pcodlarvae_gfdl2)
+grid_multipanel(avg_pcodlarvae_gfdl3)
+grid_multipanel(avg_pcodlarvae_miroc1)
+grid_multipanel(avg_pcodlarvae_miroc2)
+grid_multipanel(avg_pcodlarvae_miroc3)
+mtext("CESM", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+mtext("GFDL", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.52)
+mtext("MIROC", 
+      side = 2, 
+      line = 12, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2015-2039", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.18)
+mtext("2040-2069", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.51)
+mtext("2070-2099", 
+      side = 3, 
+      line = 2, 
+      outer = TRUE, 
+      cex = 7,
+      at = 0.85)
+dev.off()
+
+
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 pcodlarvae_dir_out <- file.path(base_dir, 'results', 'cod_forecast', 'pcodlarvae_avgs')
 pcodlarvae_imgs <- list.files(pcodlarvae_dir_out, full.names = T)
@@ -5124,6 +5909,15 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
    avg_pcodlarvae_merged1, avg_pcodlarvae_merged2,
    avg_pcodlarvae_merged3, df_pcodlarvae_merged1,
    df_pcodlarvae_merged2, df_pcodlarvae_merged3,
-   pcod_larvae, pcodlarvae_formula, pcodlarvae_img_animated,
+   avg_pcodlarvae_cesm1, avg_pcodlarvae_cesm2,
+   avg_pcodlarvae_cesm3, avg_pcodlarvae_gfdl1,
+   avg_pcodlarvae_gfdl2, avg_pcodlarvae_gfdl3,
+   avg_pcodlarvae_miroc1, avg_pcodlarvae_miroc2,
+   avg_pcodlarvae_miroc3, df_pcodlarvae_cesm1,
+   df_pcodlarvae_cesm2, df_pcodlarvae_cesm3,
+   df_pcodlarvae_gfdl1, df_pcodlarvae_gfdl2,
+   df_pcodlarvae_gfdl3, df_pcodlarvae_miroc1,
+   df_pcodlarvae_miroc2, df_pcodlarvae_miroc3,
+   pk_egg, pcodlarvae_formula, pcodlarvae_img_animated,
    pcodlarvae_dir_out, pcodlarvae_img_joined, 
    pcodlarvae_img_list, pcodlarvae_imgs)
