@@ -1369,7 +1369,7 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
    df_pklarvae_gfdl1, df_pklarvae_gfdl2,
    df_pklarvae_gfdl3, df_pklarvae_miroc1,
    df_pklarvae_miroc2, df_pklarvae_miroc3,
-   pk_egg, pklarvae_formula, pklarvae_img_animated,
+   pk_larvae, pklarvae_formula, pklarvae_img_animated,
    pklarvae_dir_out, pklarvae_img_joined, 
    pklarvae_img_list, pklarvae_imgs)
 
@@ -2019,7 +2019,7 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
    df_fhsegg_gfdl1, df_fhsegg_gfdl2,
    df_fhsegg_gfdl3, df_fhsegg_miroc1,
    df_fhsegg_miroc2, df_fhsegg_miroc3,
-   pk_egg, fhsegg_formula, fhsegg_img_animated,
+   fhs_egg, fhsegg_formula, fhsegg_img_animated,
    fhsegg_dir_out, fhsegg_img_joined, 
    fhsegg_img_list, fhsegg_imgs)
 
@@ -2669,7 +2669,7 @@ rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
    df_fhlarvae_gfdl1, df_fhlarvae_gfdl2,
    df_fhlarvae_gfdl3, df_fhlarvae_miroc1,
    df_fhlarvae_miroc2, df_fhlarvae_miroc3,
-   pk_egg, fhlarvae_formula, fhlarvae_img_animated,
+   fhs_larvae, fhlarvae_formula, fhlarvae_img_animated,
    fhlarvae_dir_out, fhlarvae_img_joined, 
    fhlarvae_img_list, fhlarvae_imgs)
 
@@ -3318,7 +3318,7 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
    df_akpegg_gfdl1, df_akpegg_gfdl2,
    df_akpegg_gfdl3, df_akpegg_miroc1,
    df_akpegg_miroc2, df_akpegg_miroc3,
-   pk_egg, akpegg_formula, akpegg_img_animated,
+   akp_egg, akpegg_formula, akpegg_img_animated,
    akpegg_dir_out, akpegg_img_joined, 
    akpegg_img_list, akpegg_imgs)
 
@@ -3968,7 +3968,7 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
    df_akplarvae_gfdl1, df_akplarvae_gfdl2,
    df_akplarvae_gfdl3, df_akplarvae_miroc1,
    df_akplarvae_miroc2, df_akplarvae_miroc3,
-   pk_egg, akplarvae_formula, akplarvae_img_animated,
+   akp_larvae, akplarvae_formula, akplarvae_img_animated,
    akplarvae_dir_out, akplarvae_img_joined, 
    akplarvae_img_list, akplarvae_imgs)
 
@@ -4618,7 +4618,7 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
    df_yfslarvae_gfdl1, df_yfslarvae_gfdl2,
    df_yfslarvae_gfdl3, df_yfslarvae_miroc1,
    df_yfslarvae_miroc2, df_yfslarvae_miroc3,
-   pk_egg, yfslarvae_formula, yfslarvae_img_animated,
+   yfs_larvae, yfslarvae_formula, yfslarvae_img_animated,
    yfslarvae_dir_out, yfslarvae_img_joined, 
    yfslarvae_img_list, yfslarvae_imgs)
 
@@ -5268,7 +5268,7 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
    df_nrslarvae_gfdl1, df_nrslarvae_gfdl2,
    df_nrslarvae_gfdl3, df_nrslarvae_miroc1,
    df_nrslarvae_miroc2, df_nrslarvae_miroc3,
-   pk_egg, nrslarvae_formula, nrslarvae_img_animated,
+   nrs_larvae, nrslarvae_formula, nrslarvae_img_animated,
    nrslarvae_dir_out, nrslarvae_img_joined, 
    nrslarvae_img_list, nrslarvae_imgs)
 
@@ -5918,6 +5918,6 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
    df_pcodlarvae_gfdl1, df_pcodlarvae_gfdl2,
    df_pcodlarvae_gfdl3, df_pcodlarvae_miroc1,
    df_pcodlarvae_miroc2, df_pcodlarvae_miroc3,
-   pk_egg, pcodlarvae_formula, pcodlarvae_img_animated,
+   pcod_larvae, pcodlarvae_formula, pcodlarvae_img_animated,
    pcodlarvae_dir_out, pcodlarvae_img_joined, 
    pcodlarvae_img_list, pcodlarvae_imgs)
