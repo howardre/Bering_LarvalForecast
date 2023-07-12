@@ -609,65 +609,50 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
-df_pkegg_cesm1 <- list(df_pkegg1_cesm126, df_pkegg1_cesm585) 
-df_pkegg_cesm2 <- list(df_pkegg2_cesm126, df_pkegg2_cesm585) 
-df_pkegg_cesm3 <- list(df_pkegg3_cesm126, df_pkegg3_cesm585) 
-df_pkegg_gfdl1 <- list(df_pkegg1_gfdl126, df_pkegg1_gfdl585) 
-df_pkegg_gfdl2 <- list(df_pkegg2_gfdl126, df_pkegg2_gfdl585) 
-df_pkegg_gfdl3 <- list(df_pkegg3_gfdl126, df_pkegg3_gfdl585) 
-df_pkegg_miroc1 <- list(df_pkegg1_miroc126, df_pkegg1_miroc585) 
-df_pkegg_miroc2 <- list(df_pkegg2_miroc126, df_pkegg2_miroc585) 
-df_pkegg_miroc3 <- list(df_pkegg3_miroc126, df_pkegg3_miroc585) 
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
+df_pkegg_low1 <- list(df_pkegg1_cesm126, df_pkegg1_gfdl126, df_pkegg1_miroc126) 
+df_pkegg_low2 <- list(df_pkegg2_cesm126, df_pkegg2_gfdl126, df_pkegg2_miroc126) 
+df_pkegg_low3 <- list(df_pkegg3_cesm126, df_pkegg3_gfdl126, df_pkegg3_miroc126) 
+df_pkegg_high1 <- list(df_pkegg1_cesm585, df_pkegg1_gfdl585, df_pkegg1_miroc585) 
+df_pkegg_high2 <- list(df_pkegg2_cesm585, df_pkegg2_gfdl585, df_pkegg2_miroc585) 
+df_pkegg_high3 <- list(df_pkegg3_cesm585, df_pkegg3_gfdl585, df_pkegg3_miroc585) 
 
-avg_pkegg_cesm1 <- predict_avgs(df_pkegg_cesm1)
-avg_pkegg_cesm2 <- predict_avgs(df_pkegg_cesm2)
-avg_pkegg_cesm3 <- predict_avgs(df_pkegg_cesm3)
-avg_pkegg_gfdl1 <- predict_avgs(df_pkegg_gfdl1)
-avg_pkegg_gfdl2 <- predict_avgs(df_pkegg_gfdl2)
-avg_pkegg_gfdl3 <- predict_avgs(df_pkegg_gfdl3)
-avg_pkegg_miroc1 <- predict_avgs(df_pkegg_miroc1)
-avg_pkegg_miroc2 <- predict_avgs(df_pkegg_miroc2)
-avg_pkegg_miroc3 <- predict_avgs(df_pkegg_miroc3)
+avg_pkegg_low1 <- predict_avgs(df_pkegg_low1)
+avg_pkegg_low2 <- predict_avgs(df_pkegg_low2)
+avg_pkegg_low3 <- predict_avgs(df_pkegg_low3)
+avg_pkegg_high1 <- predict_avgs(df_pkegg_high1)
+avg_pkegg_high2 <- predict_avgs(df_pkegg_high2)
+avg_pkegg_high3 <- predict_avgs(df_pkegg_high3)
 
 tiff(here('results/pollock_forecast',
-          'pollockegg_multipanel_esm.tiff'),
+          'pollockegg_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pkegg_cesm1)
-grid_multipanel(avg_pkegg_cesm2)
-grid_multipanel(avg_pkegg_cesm3)
-grid_multipanel(avg_pkegg_gfdl1)
-grid_multipanel(avg_pkegg_gfdl2)
-grid_multipanel(avg_pkegg_gfdl3)
-grid_multipanel(avg_pkegg_miroc1)
-grid_multipanel(avg_pkegg_miroc2)
-grid_multipanel(avg_pkegg_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_pkegg_low1)
+grid_multipanel(avg_pkegg_low2)
+grid_multipanel(avg_pkegg_low3)
+grid_multipanel(avg_pkegg_high1)
+grid_multipanel(avg_pkegg_high2)
+grid_multipanel(avg_pkegg_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
       cex = 7,
       at = 0.85)
-mtext("GFDL", 
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
       cex = 7,
       at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
@@ -1259,7 +1244,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_pklarvae_cesm1 <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585) 
 df_pklarvae_cesm2 <- list(df_pklarvae2_cesm126, df_pklarvae2_cesm585) 
 df_pklarvae_cesm3 <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585) 
@@ -1908,7 +1893,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_fhsegg_cesm1 <- list(df_fhsegg1_cesm126, df_fhsegg1_cesm585) 
 df_fhsegg_cesm2 <- list(df_fhsegg2_cesm126, df_fhsegg2_cesm585) 
 df_fhsegg_cesm3 <- list(df_fhsegg3_cesm126, df_fhsegg3_cesm585) 
@@ -2559,7 +2544,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_fhslarvae_cesm1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585) 
 df_fhslarvae_cesm2 <- list(df_fhslarvae2_cesm126, df_fhslarvae2_cesm585) 
 df_fhslarvae_cesm3 <- list(df_fhslarvae3_cesm126, df_fhslarvae3_cesm585) 
@@ -3208,7 +3193,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_akpegg_cesm1 <- list(df_akpegg1_cesm126, df_akpegg1_cesm585) 
 df_akpegg_cesm2 <- list(df_akpegg2_cesm126, df_akpegg2_cesm585) 
 df_akpegg_cesm3 <- list(df_akpegg3_cesm126, df_akpegg3_cesm585) 
@@ -3858,7 +3843,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_akplarvae_cesm1 <- list(df_akplarvae1_cesm126, df_akplarvae1_cesm585) 
 df_akplarvae_cesm2 <- list(df_akplarvae2_cesm126, df_akplarvae2_cesm585) 
 df_akplarvae_cesm3 <- list(df_akplarvae3_cesm126, df_akplarvae3_cesm585) 
@@ -4508,7 +4493,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_yfslarvae_cesm1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585) 
 df_yfslarvae_cesm2 <- list(df_yfslarvae2_cesm126, df_yfslarvae2_cesm585) 
 df_yfslarvae_cesm3 <- list(df_yfslarvae3_cesm126, df_yfslarvae3_cesm585) 
@@ -5158,7 +5143,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_nrslarvae_cesm1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585) 
 df_nrslarvae_cesm2 <- list(df_nrslarvae2_cesm126, df_nrslarvae2_cesm585) 
 df_nrslarvae_cesm3 <- list(df_nrslarvae3_cesm126, df_nrslarvae3_cesm585) 
@@ -5807,7 +5792,7 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-##### ESM Averages -----------------------------------------------------------------------------------------------------------------------
+##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
 df_pcodlarvae_cesm1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585) 
 df_pcodlarvae_cesm2 <- list(df_pcodlarvae2_cesm126, df_pcodlarvae2_cesm585) 
 df_pcodlarvae_cesm3 <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585) 
