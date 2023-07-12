@@ -726,7 +726,11 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
    df_pkegg_miroc2, df_pkegg_miroc3,
    pk_egg, pkegg_formula, pkegg_img_animated,
    pkegg_dir_out, pkegg_img_joined, 
-   pkegg_img_list, pkegg_imgs)
+   pkegg_img_list, pkegg_imgs, 
+   df_pkegg_low1, df_pkegg_low2, df_pkegg_low3,
+   df_pkegg_high1, df_pkegg_high2, df_pkegg_low3,
+   avg_pkegg_low1, avg_pkegg_low2, avg_pkegg_low3,
+   avg_pkegg_high1, avg_pkegg_high2, avg_pkegg_low3)
 
 
 ### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -1381,7 +1385,11 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
    df_pklarvae_miroc2, df_pklarvae_miroc3,
    pk_larvae, pklarvae_formula, pklarvae_img_animated,
    pklarvae_dir_out, pklarvae_img_joined, 
-   pklarvae_img_list, pklarvae_imgs)
+   pklarvae_img_list, pklarvae_imgs, 
+   df_pklarvae_low1, df_pklarvae_low2, df_pklarvae_low3,
+   df_pklarvae_high1, df_pklarvae_high2, df_pklarvae_low3,
+   avg_pklarvae_low1, avg_pklarvae_low2, avg_pklarvae_low3,
+   avg_pklarvae_high1, avg_pklarvae_high2, avg_pklarvae_low3)
 
 ### Flathead Eggs --------------------------------------------------------------------------------------------------------------------------
 fhs_egg <- load_data('fhs_egg.rds', fhs_egg, roms_temps)
@@ -2035,7 +2043,11 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
    df_fhsegg_miroc2, df_fhsegg_miroc3,
    fhs_egg, fhsegg_formula, fhsegg_img_animated,
    fhsegg_dir_out, fhsegg_img_joined, 
-   fhsegg_img_list, fhsegg_imgs)
+   fhsegg_img_list, fhsegg_imgs, 
+   df_fhsegg_low1, df_fhsegg_low2, df_fhsegg_low3,
+   df_fhsegg_high1, df_fhsegg_high2, df_fhsegg_low3,
+   avg_fhsegg_low1, avg_fhsegg_low2, avg_fhsegg_low3,
+   avg_fhsegg_high1, avg_fhsegg_high2, avg_fhsegg_low3)
 
 
 ### Flathead Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -2690,7 +2702,11 @@ rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
    df_fhlarvae_miroc2, df_fhlarvae_miroc3,
    fhs_larvae, fhlarvae_formula, fhlarvae_img_animated,
    fhlarvae_dir_out, fhlarvae_img_joined, 
-   fhlarvae_img_list, fhlarvae_imgs)
+   fhlarvae_img_list, fhlarvae_imgs, 
+   df_fhslarvae_low1, df_fhslarvae_low2, df_fhslarvae_low3,
+   df_fhslarvae_high1, df_fhslarvae_high2, df_fhslarvae_low3,
+   avg_fhslarvae_low1, avg_fhslarvae_low2, avg_fhslarvae_low3,
+   avg_fhslarvae_high1, avg_fhslarvae_high2, avg_fhslarvae_low3)
 
 ### Alaska Plaice Eggs --------------------------------------------------------------------------------------------------------------------------
 akp_egg <- load_data('akp_egg.rds', akp_egg, roms_temps)
@@ -3344,7 +3360,11 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
    df_akpegg_miroc2, df_akpegg_miroc3,
    akp_egg, akpegg_formula, akpegg_img_animated,
    akpegg_dir_out, akpegg_img_joined, 
-   akpegg_img_list, akpegg_imgs)
+   akpegg_img_list, akpegg_imgs, 
+   df_akpegg_low1, df_akpegg_low2, df_akpegg_low3,
+   df_akpegg_high1, df_akpegg_high2, df_akpegg_low3,
+   avg_akpegg_low1, avg_akpegg_low2, avg_akpegg_low3,
+   avg_akpegg_high1, avg_akpegg_high2, avg_akpegg_low3)
 
 
 ### Alaska Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -3999,7 +4019,11 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
    df_akplarvae_miroc2, df_akplarvae_miroc3,
    akp_larvae, akplarvae_formula, akplarvae_img_animated,
    akplarvae_dir_out, akplarvae_img_joined, 
-   akplarvae_img_list, akplarvae_imgs)
+   akplarvae_img_list, akplarvae_imgs, 
+   df_akplarvae_low1, df_akplarvae_low2, df_akplarvae_low3,
+   df_akplarvae_high1, df_akplarvae_high2, df_akplarvae_low3,
+   avg_akplarvae_low1, avg_akplarvae_low2, avg_akplarvae_low3,
+   avg_akplarvae_high1, avg_akplarvae_high2, avg_akplarvae_low3)
 
 
 ### Yellowfin Sole Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -4654,7 +4678,11 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
    df_yfslarvae_miroc2, df_yfslarvae_miroc3,
    yfs_larvae, yfslarvae_formula, yfslarvae_img_animated,
    yfslarvae_dir_out, yfslarvae_img_joined, 
-   yfslarvae_img_list, yfslarvae_imgs)
+   yfslarvae_img_list, yfslarvae_imgs, 
+   df_yfslarvae_low1, df_yfslarvae_low2, df_yfslarvae_low3,
+   df_yfslarvae_high1, df_yfslarvae_high2, df_yfslarvae_low3,
+   avg_yfslarvae_low1, avg_yfslarvae_low2, avg_yfslarvae_low3,
+   avg_yfslarvae_high1, avg_yfslarvae_high2, avg_yfslarvae_low3)
 
 
 ### Northern Rock Sole Larvae --------------------------------------------------------------------------------------------------------------------------
@@ -5309,7 +5337,11 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
    df_nrslarvae_miroc2, df_nrslarvae_miroc3,
    nrs_larvae, nrslarvae_formula, nrslarvae_img_animated,
    nrslarvae_dir_out, nrslarvae_img_joined, 
-   nrslarvae_img_list, nrslarvae_imgs)
+   nrslarvae_img_list, nrslarvae_imgs, 
+   df_nrslarvae_low1, df_nrslarvae_low2, df_nrslarvae_low3,
+   df_nrslarvae_high1, df_nrslarvae_high2, df_nrslarvae_low3,
+   avg_nrslarvae_low1, avg_nrslarvae_low2, avg_nrslarvae_low3,
+   avg_nrslarvae_high1, avg_nrslarvae_high2, avg_nrslarvae_low3)
 
 ### Pacific Cod Larvae --------------------------------------------------------------------------------------------------------------------------
 pcod_larvae <- load_data('pcod_larvae.rds', pcod_larvae, roms_temps)
@@ -5963,4 +5995,8 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
    df_pcodlarvae_miroc2, df_pcodlarvae_miroc3,
    pcod_larvae, pcodlarvae_formula, pcodlarvae_img_animated,
    pcodlarvae_dir_out, pcodlarvae_img_joined, 
-   pcodlarvae_img_list, pcodlarvae_imgs)
+   pcodlarvae_img_list, pcodlarvae_imgs,
+   df_pcodlarvae_low1, df_pcodlarvae_low2, df_pcodlarvae_low3,
+   df_pcodlarvae_high1, df_pcodlarvae_high2, df_pcodlarvae_low3,
+   avg_pcodlarvae_low1, avg_pcodlarvae_low2, avg_pcodlarvae_low3,
+   avg_pcodlarvae_high1, avg_pcodlarvae_high2, avg_pcodlarvae_low3)
