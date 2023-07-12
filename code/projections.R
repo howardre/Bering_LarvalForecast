@@ -469,6 +469,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_pkegg1_cesm126 <- readRDS(here('data', 'df_pkegg1_cesm126.rds'))
+# df_pkegg2_cesm126 <- readRDS(here('data', 'df_pkegg2_cesm126.rds'))
+# df_pkegg3_cesm126 <- readRDS(here('data', 'df_pkegg3_cesm126.rds'))
+# df_pkegg1_cesm585 <- readRDS(here('data', 'df_pkegg1_cesm585.rds'))
+# df_pkegg2_cesm585 <- readRDS(here('data', 'df_pkegg2_cesm585.rds'))
+# df_pkegg3_cesm585 <- readRDS(here('data', 'df_pkegg3_cesm585.rds'))
+# df_pkegg1_gfdl126 <- readRDS(here('data', 'df_pkegg1_gfdl126.rds'))
+# df_pkegg2_gfdl126 <- readRDS(here('data', 'df_pkegg2_gfdl126.rds'))
+# df_pkegg3_gfdl126 <- readRDS(here('data', 'df_pkegg3_gfdl126.rds'))
+# df_pkegg1_gfdl585 <- readRDS(here('data', 'df_pkegg1_gfdl585.rds'))
+# df_pkegg2_gfdl585 <- readRDS(here('data', 'df_pkegg2_gfdl585.rds'))
+# df_pkegg3_gfdl585 <- readRDS(here('data', 'df_pkegg3_gfdl585.rds'))
+# df_pkegg1_miroc126 <- readRDS(here('data', 'df_pkegg1_miroc126.rds'))
+# df_pkegg2_miroc126 <- readRDS(here('data', 'df_pkegg2_miroc126.rds'))
+# df_pkegg3_miroc126 <- readRDS(here('data', 'df_pkegg3_miroc126.rds'))
+# df_pkegg1_miroc585 <- readRDS(here('data', 'df_pkegg1_miroc585.rds'))
+# df_pkegg2_miroc585 <- readRDS(here('data', 'df_pkegg2_miroc585.rds'))
+# df_pkegg3_miroc585 <- readRDS(here('data', 'df_pkegg3_miroc585.rds'))
+
 tiff(here('results/pollock_forecast',
           'pollockegg_multipanel.tiff'),
      units = "in",
@@ -645,31 +665,31 @@ mtext("SSP1-2.6",
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
+      cex = 5.5,
+      at = 0.78)
 mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -1104,6 +1124,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_pklarvae1_cesm126 <- readRDS(here('data', 'df_pklarvae1_cesm126.rds'))
+# df_pklarvae2_cesm126 <- readRDS(here('data', 'df_pklarvae2_cesm126.rds'))
+# df_pklarvae3_cesm126 <- readRDS(here('data', 'df_pklarvae3_cesm126.rds'))
+# df_pklarvae1_cesm585 <- readRDS(here('data', 'df_pklarvae1_cesm585.rds'))
+# df_pklarvae2_cesm585 <- readRDS(here('data', 'df_pklarvae2_cesm585.rds'))
+# df_pklarvae3_cesm585 <- readRDS(here('data', 'df_pklarvae3_cesm585.rds'))
+# df_pklarvae1_gfdl126 <- readRDS(here('data', 'df_pklarvae1_gfdl126.rds'))
+# df_pklarvae2_gfdl126 <- readRDS(here('data', 'df_pklarvae2_gfdl126.rds'))
+# df_pklarvae3_gfdl126 <- readRDS(here('data', 'df_pklarvae3_gfdl126.rds'))
+# df_pklarvae1_gfdl585 <- readRDS(here('data', 'df_pklarvae1_gfdl585.rds'))
+# df_pklarvae2_gfdl585 <- readRDS(here('data', 'df_pklarvae2_gfdl585.rds'))
+# df_pklarvae3_gfdl585 <- readRDS(here('data', 'df_pklarvae3_gfdl585.rds'))
+# df_pklarvae1_miroc126 <- readRDS(here('data', 'df_pklarvae1_miroc126.rds'))
+# df_pklarvae2_miroc126 <- readRDS(here('data', 'df_pklarvae2_miroc126.rds'))
+# df_pklarvae3_miroc126 <- readRDS(here('data', 'df_pklarvae3_miroc126.rds'))
+# df_pklarvae1_miroc585 <- readRDS(here('data', 'df_pklarvae1_miroc585.rds'))
+# df_pklarvae2_miroc585 <- readRDS(here('data', 'df_pklarvae2_miroc585.rds'))
+# df_pklarvae3_miroc585 <- readRDS(here('data', 'df_pklarvae3_miroc585.rds'))
+
 tiff(here('results/pollock_forecast',
           'pollocklarvae_multipanel.tiff'),
      units = "in",
@@ -1245,81 +1285,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_pklarvae_cesm1 <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585) 
-df_pklarvae_cesm2 <- list(df_pklarvae2_cesm126, df_pklarvae2_cesm585) 
-df_pklarvae_cesm3 <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585) 
-df_pklarvae_gfdl1 <- list(df_pklarvae1_gfdl126, df_pklarvae1_gfdl585) 
-df_pklarvae_gfdl2 <- list(df_pklarvae2_gfdl126, df_pklarvae2_gfdl585) 
-df_pklarvae_gfdl3 <- list(df_pklarvae3_gfdl126, df_pklarvae3_gfdl585) 
-df_pklarvae_miroc1 <- list(df_pklarvae1_miroc126, df_pklarvae1_miroc585) 
-df_pklarvae_miroc2 <- list(df_pklarvae2_miroc126, df_pklarvae2_miroc585) 
-df_pklarvae_miroc3 <- list(df_pklarvae3_miroc126, df_pklarvae3_miroc585) 
+df_pklarvae_low1 <- list(df_pklarvae1_cesm126, df_pklarvae1_gfdl126, df_pklarvae1_miroc126) 
+df_pklarvae_low2 <- list(df_pklarvae2_cesm126, df_pklarvae2_gfdl126, df_pklarvae2_miroc126) 
+df_pklarvae_low3 <- list(df_pklarvae3_cesm126, df_pklarvae3_gfdl126, df_pklarvae3_miroc126) 
+df_pklarvae_high1 <- list(df_pklarvae1_cesm585, df_pklarvae1_gfdl585, df_pklarvae1_miroc585) 
+df_pklarvae_high2 <- list(df_pklarvae2_cesm585, df_pklarvae2_gfdl585, df_pklarvae2_miroc585) 
+df_pklarvae_high3 <- list(df_pklarvae3_cesm585, df_pklarvae3_gfdl585, df_pklarvae3_miroc585) 
 
-avg_pklarvae_cesm1 <- predict_avgs(df_pklarvae_cesm1)
-avg_pklarvae_cesm2 <- predict_avgs(df_pklarvae_cesm2)
-avg_pklarvae_cesm3 <- predict_avgs(df_pklarvae_cesm3)
-avg_pklarvae_gfdl1 <- predict_avgs(df_pklarvae_gfdl1)
-avg_pklarvae_gfdl2 <- predict_avgs(df_pklarvae_gfdl2)
-avg_pklarvae_gfdl3 <- predict_avgs(df_pklarvae_gfdl3)
-avg_pklarvae_miroc1 <- predict_avgs(df_pklarvae_miroc1)
-avg_pklarvae_miroc2 <- predict_avgs(df_pklarvae_miroc2)
-avg_pklarvae_miroc3 <- predict_avgs(df_pklarvae_miroc3)
+avg_pklarvae_low1 <- predict_avgs(df_pklarvae_low1)
+avg_pklarvae_low2 <- predict_avgs(df_pklarvae_low2)
+avg_pklarvae_low3 <- predict_avgs(df_pklarvae_low3)
+avg_pklarvae_high1 <- predict_avgs(df_pklarvae_high1)
+avg_pklarvae_high2 <- predict_avgs(df_pklarvae_high2)
+avg_pklarvae_high3 <- predict_avgs(df_pklarvae_high3)
 
 tiff(here('results/pollock_forecast',
-          'pollocklarvae_multipanel_esm.tiff'),
+          'pollocklarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pklarvae_cesm1)
-grid_multipanel(avg_pklarvae_cesm2)
-grid_multipanel(avg_pklarvae_cesm3)
-grid_multipanel(avg_pklarvae_gfdl1)
-grid_multipanel(avg_pklarvae_gfdl2)
-grid_multipanel(avg_pklarvae_gfdl3)
-grid_multipanel(avg_pklarvae_miroc1)
-grid_multipanel(avg_pklarvae_miroc2)
-grid_multipanel(avg_pklarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_pklarvae_low1)
+grid_multipanel(avg_pklarvae_low2)
+grid_multipanel(avg_pklarvae_low3)
+grid_multipanel(avg_pklarvae_high1)
+grid_multipanel(avg_pklarvae_high2)
+grid_multipanel(avg_pklarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -1753,6 +1778,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_fhsegg1_cesm126 <- readRDS(here('data', 'df_fhsegg1_cesm126.rds'))
+# df_fhsegg2_cesm126 <- readRDS(here('data', 'df_fhsegg2_cesm126.rds'))
+# df_fhsegg3_cesm126 <- readRDS(here('data', 'df_fhsegg3_cesm126.rds'))
+# df_fhsegg1_cesm585 <- readRDS(here('data', 'df_fhsegg1_cesm585.rds'))
+# df_fhsegg2_cesm585 <- readRDS(here('data', 'df_fhsegg2_cesm585.rds'))
+# df_fhsegg3_cesm585 <- readRDS(here('data', 'df_fhsegg3_cesm585.rds'))
+# df_fhsegg1_gfdl126 <- readRDS(here('data', 'df_fhsegg1_gfdl126.rds'))
+# df_fhsegg2_gfdl126 <- readRDS(here('data', 'df_fhsegg2_gfdl126.rds'))
+# df_fhsegg3_gfdl126 <- readRDS(here('data', 'df_fhsegg3_gfdl126.rds'))
+# df_fhsegg1_gfdl585 <- readRDS(here('data', 'df_fhsegg1_gfdl585.rds'))
+# df_fhsegg2_gfdl585 <- readRDS(here('data', 'df_fhsegg2_gfdl585.rds'))
+# df_fhsegg3_gfdl585 <- readRDS(here('data', 'df_fhsegg3_gfdl585.rds'))
+# df_fhsegg1_miroc126 <- readRDS(here('data', 'df_fhsegg1_miroc126.rds'))
+# df_fhsegg2_miroc126 <- readRDS(here('data', 'df_fhsegg2_miroc126.rds'))
+# df_fhsegg3_miroc126 <- readRDS(here('data', 'df_fhsegg3_miroc126.rds'))
+# df_fhsegg1_miroc585 <- readRDS(here('data', 'df_fhsegg1_miroc585.rds'))
+# df_fhsegg2_miroc585 <- readRDS(here('data', 'df_fhsegg2_miroc585.rds'))
+# df_fhsegg3_miroc585 <- readRDS(here('data', 'df_fhsegg3_miroc585.rds'))
+
 tiff(here('results/flathead_forecast',
           'flatheadegg_multipanel.tiff'),
      units = "in",
@@ -1894,84 +1939,68 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_fhsegg_cesm1 <- list(df_fhsegg1_cesm126, df_fhsegg1_cesm585) 
-df_fhsegg_cesm2 <- list(df_fhsegg2_cesm126, df_fhsegg2_cesm585) 
-df_fhsegg_cesm3 <- list(df_fhsegg3_cesm126, df_fhsegg3_cesm585) 
-df_fhsegg_gfdl1 <- list(df_fhsegg1_gfdl126, df_fhsegg1_gfdl585) 
-df_fhsegg_gfdl2 <- list(df_fhsegg2_gfdl126, df_fhsegg2_gfdl585) 
-df_fhsegg_gfdl3 <- list(df_fhsegg3_gfdl126, df_fhsegg3_gfdl585) 
-df_fhsegg_miroc1 <- list(df_fhsegg1_miroc126, df_fhsegg1_miroc585) 
-df_fhsegg_miroc2 <- list(df_fhsegg2_miroc126, df_fhsegg2_miroc585) 
-df_fhsegg_miroc3 <- list(df_fhsegg3_miroc126, df_fhsegg3_miroc585) 
+df_fhsegg_low1 <- list(df_fhsegg1_cesm126, df_fhsegg1_gfdl126, df_fhsegg1_miroc126) 
+df_fhsegg_low2 <- list(df_fhsegg2_cesm126, df_fhsegg2_gfdl126, df_fhsegg2_miroc126) 
+df_fhsegg_low3 <- list(df_fhsegg3_cesm126, df_fhsegg3_gfdl126, df_fhsegg3_miroc126) 
+df_fhsegg_high1 <- list(df_fhsegg1_cesm585, df_fhsegg1_gfdl585, df_fhsegg1_miroc585) 
+df_fhsegg_high2 <- list(df_fhsegg2_cesm585, df_fhsegg2_gfdl585, df_fhsegg2_miroc585) 
+df_fhsegg_high3 <- list(df_fhsegg3_cesm585, df_fhsegg3_gfdl585, df_fhsegg3_miroc585) 
 
-avg_fhsegg_cesm1 <- predict_avgs(df_fhsegg_cesm1)
-avg_fhsegg_cesm2 <- predict_avgs(df_fhsegg_cesm2)
-avg_fhsegg_cesm3 <- predict_avgs(df_fhsegg_cesm3)
-avg_fhsegg_gfdl1 <- predict_avgs(df_fhsegg_gfdl1)
-avg_fhsegg_gfdl2 <- predict_avgs(df_fhsegg_gfdl2)
-avg_fhsegg_gfdl3 <- predict_avgs(df_fhsegg_gfdl3)
-avg_fhsegg_miroc1 <- predict_avgs(df_fhsegg_miroc1)
-avg_fhsegg_miroc2 <- predict_avgs(df_fhsegg_miroc2)
-avg_fhsegg_miroc3 <- predict_avgs(df_fhsegg_miroc3)
+avg_fhsegg_low1 <- predict_avgs(df_fhsegg_low1)
+avg_fhsegg_low2 <- predict_avgs(df_fhsegg_low2)
+avg_fhsegg_low3 <- predict_avgs(df_fhsegg_low3)
+avg_fhsegg_high1 <- predict_avgs(df_fhsegg_high1)
+avg_fhsegg_high2 <- predict_avgs(df_fhsegg_high2)
+avg_fhsegg_high3 <- predict_avgs(df_fhsegg_high3)
 
 tiff(here('results/flathead_forecast',
-          'flatheadegg_multipanel_esm.tiff'),
+          'flatheadegg_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_fhsegg_cesm1)
-grid_multipanel(avg_fhsegg_cesm2)
-grid_multipanel(avg_fhsegg_cesm3)
-grid_multipanel(avg_fhsegg_gfdl1)
-grid_multipanel(avg_fhsegg_gfdl2)
-grid_multipanel(avg_fhsegg_gfdl3)
-grid_multipanel(avg_fhsegg_miroc1)
-grid_multipanel(avg_fhsegg_miroc2)
-grid_multipanel(avg_fhsegg_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_fhsegg_low1)
+grid_multipanel(avg_fhsegg_low2)
+grid_multipanel(avg_fhsegg_low3)
+grid_multipanel(avg_fhsegg_high1)
+grid_multipanel(avg_fhsegg_high2)
+grid_multipanel(avg_fhsegg_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
-
 
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 fhsegg_dir_out <- file.path(base_dir, 'results', 'flathead_forecast', 'fhsegg_avgs')
@@ -2404,6 +2433,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_fhslarvae1_cesm126 <- readRDS(here('data', 'df_fhslarvae1_cesm126.rds'))
+# df_fhslarvae2_cesm126 <- readRDS(here('data', 'df_fhslarvae2_cesm126.rds'))
+# df_fhslarvae3_cesm126 <- readRDS(here('data', 'df_fhslarvae3_cesm126.rds'))
+# df_fhslarvae1_cesm585 <- readRDS(here('data', 'df_fhslarvae1_cesm585.rds'))
+# df_fhslarvae2_cesm585 <- readRDS(here('data', 'df_fhslarvae2_cesm585.rds'))
+# df_fhslarvae3_cesm585 <- readRDS(here('data', 'df_fhslarvae3_cesm585.rds'))
+# df_fhslarvae1_gfdl126 <- readRDS(here('data', 'df_fhslarvae1_gfdl126.rds'))
+# df_fhslarvae2_gfdl126 <- readRDS(here('data', 'df_fhslarvae2_gfdl126.rds'))
+# df_fhslarvae3_gfdl126 <- readRDS(here('data', 'df_fhslarvae3_gfdl126.rds'))
+# df_fhslarvae1_gfdl585 <- readRDS(here('data', 'df_fhslarvae1_gfdl585.rds'))
+# df_fhslarvae2_gfdl585 <- readRDS(here('data', 'df_fhslarvae2_gfdl585.rds'))
+# df_fhslarvae3_gfdl585 <- readRDS(here('data', 'df_fhslarvae3_gfdl585.rds'))
+# df_fhslarvae1_miroc126 <- readRDS(here('data', 'df_fhslarvae1_miroc126.rds'))
+# df_fhslarvae2_miroc126 <- readRDS(here('data', 'df_fhslarvae2_miroc126.rds'))
+# df_fhslarvae3_miroc126 <- readRDS(here('data', 'df_fhslarvae3_miroc126.rds'))
+# df_fhslarvae1_miroc585 <- readRDS(here('data', 'df_fhslarvae1_miroc585.rds'))
+# df_fhslarvae2_miroc585 <- readRDS(here('data', 'df_fhslarvae2_miroc585.rds'))
+# df_fhslarvae3_miroc585 <- readRDS(here('data', 'df_fhslarvae3_miroc585.rds'))
+
 tiff(here('results/flathead_forecast',
           'flatheadlarvae_multipanel.tiff'),
      units = "in",
@@ -2545,81 +2594,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_fhslarvae_cesm1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585) 
-df_fhslarvae_cesm2 <- list(df_fhslarvae2_cesm126, df_fhslarvae2_cesm585) 
-df_fhslarvae_cesm3 <- list(df_fhslarvae3_cesm126, df_fhslarvae3_cesm585) 
-df_fhslarvae_gfdl1 <- list(df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585) 
-df_fhslarvae_gfdl2 <- list(df_fhslarvae2_gfdl126, df_fhslarvae2_gfdl585) 
-df_fhslarvae_gfdl3 <- list(df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585) 
-df_fhslarvae_miroc1 <- list(df_fhslarvae1_miroc126, df_fhslarvae1_miroc585) 
-df_fhslarvae_miroc2 <- list(df_fhslarvae2_miroc126, df_fhslarvae2_miroc585) 
-df_fhslarvae_miroc3 <- list(df_fhslarvae3_miroc126, df_fhslarvae3_miroc585) 
+df_fhslarvae_low1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_gfdl126, df_fhslarvae1_miroc126) 
+df_fhslarvae_low2 <- list(df_fhslarvae2_cesm126, df_fhslarvae2_gfdl126, df_fhslarvae2_miroc126) 
+df_fhslarvae_low3 <- list(df_fhslarvae3_cesm126, df_fhslarvae3_gfdl126, df_fhslarvae3_miroc126) 
+df_fhslarvae_high1 <- list(df_fhslarvae1_cesm585, df_fhslarvae1_gfdl585, df_fhslarvae1_miroc585) 
+df_fhslarvae_high2 <- list(df_fhslarvae2_cesm585, df_fhslarvae2_gfdl585, df_fhslarvae2_miroc585) 
+df_fhslarvae_high3 <- list(df_fhslarvae3_cesm585, df_fhslarvae3_gfdl585, df_fhslarvae3_miroc585) 
 
-avg_fhslarvae_cesm1 <- predict_avgs(df_fhslarvae_cesm1)
-avg_fhslarvae_cesm2 <- predict_avgs(df_fhslarvae_cesm2)
-avg_fhslarvae_cesm3 <- predict_avgs(df_fhslarvae_cesm3)
-avg_fhslarvae_gfdl1 <- predict_avgs(df_fhslarvae_gfdl1)
-avg_fhslarvae_gfdl2 <- predict_avgs(df_fhslarvae_gfdl2)
-avg_fhslarvae_gfdl3 <- predict_avgs(df_fhslarvae_gfdl3)
-avg_fhslarvae_miroc1 <- predict_avgs(df_fhslarvae_miroc1)
-avg_fhslarvae_miroc2 <- predict_avgs(df_fhslarvae_miroc2)
-avg_fhslarvae_miroc3 <- predict_avgs(df_fhslarvae_miroc3)
+avg_fhslarvae_low1 <- predict_avgs(df_fhslarvae_low1)
+avg_fhslarvae_low2 <- predict_avgs(df_fhslarvae_low2)
+avg_fhslarvae_low3 <- predict_avgs(df_fhslarvae_low3)
+avg_fhslarvae_high1 <- predict_avgs(df_fhslarvae_high1)
+avg_fhslarvae_high2 <- predict_avgs(df_fhslarvae_high2)
+avg_fhslarvae_high3 <- predict_avgs(df_fhslarvae_high3)
 
 tiff(here('results/flathead_forecast',
-          'flatheadlarvae_multipanel_esm.tiff'),
+          'flatheadlarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_fhslarvae_cesm1)
-grid_multipanel(avg_fhslarvae_cesm2)
-grid_multipanel(avg_fhslarvae_cesm3)
-grid_multipanel(avg_fhslarvae_gfdl1)
-grid_multipanel(avg_fhslarvae_gfdl2)
-grid_multipanel(avg_fhslarvae_gfdl3)
-grid_multipanel(avg_fhslarvae_miroc1)
-grid_multipanel(avg_fhslarvae_miroc2)
-grid_multipanel(avg_fhslarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_fhslarvae_low1)
+grid_multipanel(avg_fhslarvae_low2)
+grid_multipanel(avg_fhslarvae_low3)
+grid_multipanel(avg_fhslarvae_high1)
+grid_multipanel(avg_fhslarvae_high2)
+grid_multipanel(avg_fhslarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -3053,6 +3087,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_akpegg1_cesm126 <- readRDS(here('data', 'df_akpegg1_cesm126.rds'))
+# df_akpegg2_cesm126 <- readRDS(here('data', 'df_akpegg2_cesm126.rds'))
+# df_akpegg3_cesm126 <- readRDS(here('data', 'df_akpegg3_cesm126.rds'))
+# df_akpegg1_cesm585 <- readRDS(here('data', 'df_akpegg1_cesm585.rds'))
+# df_akpegg2_cesm585 <- readRDS(here('data', 'df_akpegg2_cesm585.rds'))
+# df_akpegg3_cesm585 <- readRDS(here('data', 'df_akpegg3_cesm585.rds'))
+# df_akpegg1_gfdl126 <- readRDS(here('data', 'df_akpegg1_gfdl126.rds'))
+# df_akpegg2_gfdl126 <- readRDS(here('data', 'df_akpegg2_gfdl126.rds'))
+# df_akpegg3_gfdl126 <- readRDS(here('data', 'df_akpegg3_gfdl126.rds'))
+# df_akpegg1_gfdl585 <- readRDS(here('data', 'df_akpegg1_gfdl585.rds'))
+# df_akpegg2_gfdl585 <- readRDS(here('data', 'df_akpegg2_gfdl585.rds'))
+# df_akpegg3_gfdl585 <- readRDS(here('data', 'df_akpegg3_gfdl585.rds'))
+# df_akpegg1_miroc126 <- readRDS(here('data', 'df_akpegg1_miroc126.rds'))
+# df_akpegg2_miroc126 <- readRDS(here('data', 'df_akpegg2_miroc126.rds'))
+# df_akpegg3_miroc126 <- readRDS(here('data', 'df_akpegg3_miroc126.rds'))
+# df_akpegg1_miroc585 <- readRDS(here('data', 'df_akpegg1_miroc585.rds'))
+# df_akpegg2_miroc585 <- readRDS(here('data', 'df_akpegg2_miroc585.rds'))
+# df_akpegg3_miroc585 <- readRDS(here('data', 'df_akpegg3_miroc585.rds'))
+
 tiff(here('results/plaice_forecast',
           'plaiceegg_multipanel.tiff'),
      units = "in",
@@ -3194,81 +3248,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_akpegg_cesm1 <- list(df_akpegg1_cesm126, df_akpegg1_cesm585) 
-df_akpegg_cesm2 <- list(df_akpegg2_cesm126, df_akpegg2_cesm585) 
-df_akpegg_cesm3 <- list(df_akpegg3_cesm126, df_akpegg3_cesm585) 
-df_akpegg_gfdl1 <- list(df_akpegg1_gfdl126, df_akpegg1_gfdl585) 
-df_akpegg_gfdl2 <- list(df_akpegg2_gfdl126, df_akpegg2_gfdl585) 
-df_akpegg_gfdl3 <- list(df_akpegg3_gfdl126, df_akpegg3_gfdl585) 
-df_akpegg_miroc1 <- list(df_akpegg1_miroc126, df_akpegg1_miroc585) 
-df_akpegg_miroc2 <- list(df_akpegg2_miroc126, df_akpegg2_miroc585) 
-df_akpegg_miroc3 <- list(df_akpegg3_miroc126, df_akpegg3_miroc585) 
+df_akpegg_low1 <- list(df_akpegg1_cesm126, df_akpegg1_gfdl126, df_akpegg1_miroc126) 
+df_akpegg_low2 <- list(df_akpegg2_cesm126, df_akpegg2_gfdl126, df_akpegg2_miroc126) 
+df_akpegg_low3 <- list(df_akpegg3_cesm126, df_akpegg3_gfdl126, df_akpegg3_miroc126) 
+df_akpegg_high1 <- list(df_akpegg1_cesm585, df_akpegg1_gfdl585, df_akpegg1_miroc585) 
+df_akpegg_high2 <- list(df_akpegg2_cesm585, df_akpegg2_gfdl585, df_akpegg2_miroc585) 
+df_akpegg_high3 <- list(df_akpegg3_cesm585, df_akpegg3_gfdl585, df_akpegg3_miroc585) 
 
-avg_akpegg_cesm1 <- predict_avgs(df_akpegg_cesm1)
-avg_akpegg_cesm2 <- predict_avgs(df_akpegg_cesm2)
-avg_akpegg_cesm3 <- predict_avgs(df_akpegg_cesm3)
-avg_akpegg_gfdl1 <- predict_avgs(df_akpegg_gfdl1)
-avg_akpegg_gfdl2 <- predict_avgs(df_akpegg_gfdl2)
-avg_akpegg_gfdl3 <- predict_avgs(df_akpegg_gfdl3)
-avg_akpegg_miroc1 <- predict_avgs(df_akpegg_miroc1)
-avg_akpegg_miroc2 <- predict_avgs(df_akpegg_miroc2)
-avg_akpegg_miroc3 <- predict_avgs(df_akpegg_miroc3)
+avg_akpegg_low1 <- predict_avgs(df_akpegg_low1)
+avg_akpegg_low2 <- predict_avgs(df_akpegg_low2)
+avg_akpegg_low3 <- predict_avgs(df_akpegg_low3)
+avg_akpegg_high1 <- predict_avgs(df_akpegg_high1)
+avg_akpegg_high2 <- predict_avgs(df_akpegg_high2)
+avg_akpegg_high3 <- predict_avgs(df_akpegg_high3)
 
 tiff(here('results/plaice_forecast',
-          'plaiceegg_multipanel_esm.tiff'),
+          'plaiceegg_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_akpegg_cesm1)
-grid_multipanel(avg_akpegg_cesm2)
-grid_multipanel(avg_akpegg_cesm3)
-grid_multipanel(avg_akpegg_gfdl1)
-grid_multipanel(avg_akpegg_gfdl2)
-grid_multipanel(avg_akpegg_gfdl3)
-grid_multipanel(avg_akpegg_miroc1)
-grid_multipanel(avg_akpegg_miroc2)
-grid_multipanel(avg_akpegg_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_akpegg_low1)
+grid_multipanel(avg_akpegg_low2)
+grid_multipanel(avg_akpegg_low3)
+grid_multipanel(avg_akpegg_high1)
+grid_multipanel(avg_akpegg_high2)
+grid_multipanel(avg_akpegg_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -3703,6 +3742,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_akplarvae1_cesm126 <- readRDS(here('data', 'df_akplarvae1_cesm126.rds'))
+# df_akplarvae2_cesm126 <- readRDS(here('data', 'df_akplarvae2_cesm126.rds'))
+# df_akplarvae3_cesm126 <- readRDS(here('data', 'df_akplarvae3_cesm126.rds'))
+# df_akplarvae1_cesm585 <- readRDS(here('data', 'df_akplarvae1_cesm585.rds'))
+# df_akplarvae2_cesm585 <- readRDS(here('data', 'df_akplarvae2_cesm585.rds'))
+# df_akplarvae3_cesm585 <- readRDS(here('data', 'df_akplarvae3_cesm585.rds'))
+# df_akplarvae1_gfdl126 <- readRDS(here('data', 'df_akplarvae1_gfdl126.rds'))
+# df_akplarvae2_gfdl126 <- readRDS(here('data', 'df_akplarvae2_gfdl126.rds'))
+# df_akplarvae3_gfdl126 <- readRDS(here('data', 'df_akplarvae3_gfdl126.rds'))
+# df_akplarvae1_gfdl585 <- readRDS(here('data', 'df_akplarvae1_gfdl585.rds'))
+# df_akplarvae2_gfdl585 <- readRDS(here('data', 'df_akplarvae2_gfdl585.rds'))
+# df_akplarvae3_gfdl585 <- readRDS(here('data', 'df_akplarvae3_gfdl585.rds'))
+# df_akplarvae1_miroc126 <- readRDS(here('data', 'df_akplarvae1_miroc126.rds'))
+# df_akplarvae2_miroc126 <- readRDS(here('data', 'df_akplarvae2_miroc126.rds'))
+# df_akplarvae3_miroc126 <- readRDS(here('data', 'df_akplarvae3_miroc126.rds'))
+# df_akplarvae1_miroc585 <- readRDS(here('data', 'df_akplarvae1_miroc585.rds'))
+# df_akplarvae2_miroc585 <- readRDS(here('data', 'df_akplarvae2_miroc585.rds'))
+# df_akplarvae3_miroc585 <- readRDS(here('data', 'df_akplarvae3_miroc585.rds'))
+
 tiff(here('results/plaice_forecast',
           'plaicelarvae_multipanel.tiff'),
      units = "in",
@@ -3844,81 +3903,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_akplarvae_cesm1 <- list(df_akplarvae1_cesm126, df_akplarvae1_cesm585) 
-df_akplarvae_cesm2 <- list(df_akplarvae2_cesm126, df_akplarvae2_cesm585) 
-df_akplarvae_cesm3 <- list(df_akplarvae3_cesm126, df_akplarvae3_cesm585) 
-df_akplarvae_gfdl1 <- list(df_akplarvae1_gfdl126, df_akplarvae1_gfdl585) 
-df_akplarvae_gfdl2 <- list(df_akplarvae2_gfdl126, df_akplarvae2_gfdl585) 
-df_akplarvae_gfdl3 <- list(df_akplarvae3_gfdl126, df_akplarvae3_gfdl585) 
-df_akplarvae_miroc1 <- list(df_akplarvae1_miroc126, df_akplarvae1_miroc585) 
-df_akplarvae_miroc2 <- list(df_akplarvae2_miroc126, df_akplarvae2_miroc585) 
-df_akplarvae_miroc3 <- list(df_akplarvae3_miroc126, df_akplarvae3_miroc585) 
+df_akplarvae_low1 <- list(df_akplarvae1_cesm126, df_akplarvae1_gfdl126, df_akplarvae1_miroc126) 
+df_akplarvae_low2 <- list(df_akplarvae2_cesm126, df_akplarvae2_gfdl126, df_akplarvae2_miroc126) 
+df_akplarvae_low3 <- list(df_akplarvae3_cesm126, df_akplarvae3_gfdl126, df_akplarvae3_miroc126) 
+df_akplarvae_high1 <- list(df_akplarvae1_cesm585, df_akplarvae1_gfdl585, df_akplarvae1_miroc585) 
+df_akplarvae_high2 <- list(df_akplarvae2_cesm585, df_akplarvae2_gfdl585, df_akplarvae2_miroc585) 
+df_akplarvae_high3 <- list(df_akplarvae3_cesm585, df_akplarvae3_gfdl585, df_akplarvae3_miroc585) 
 
-avg_akplarvae_cesm1 <- predict_avgs(df_akplarvae_cesm1)
-avg_akplarvae_cesm2 <- predict_avgs(df_akplarvae_cesm2)
-avg_akplarvae_cesm3 <- predict_avgs(df_akplarvae_cesm3)
-avg_akplarvae_gfdl1 <- predict_avgs(df_akplarvae_gfdl1)
-avg_akplarvae_gfdl2 <- predict_avgs(df_akplarvae_gfdl2)
-avg_akplarvae_gfdl3 <- predict_avgs(df_akplarvae_gfdl3)
-avg_akplarvae_miroc1 <- predict_avgs(df_akplarvae_miroc1)
-avg_akplarvae_miroc2 <- predict_avgs(df_akplarvae_miroc2)
-avg_akplarvae_miroc3 <- predict_avgs(df_akplarvae_miroc3)
+avg_akplarvae_low1 <- predict_avgs(df_akplarvae_low1)
+avg_akplarvae_low2 <- predict_avgs(df_akplarvae_low2)
+avg_akplarvae_low3 <- predict_avgs(df_akplarvae_low3)
+avg_akplarvae_high1 <- predict_avgs(df_akplarvae_high1)
+avg_akplarvae_high2 <- predict_avgs(df_akplarvae_high2)
+avg_akplarvae_high3 <- predict_avgs(df_akplarvae_high3)
 
 tiff(here('results/plaice_forecast',
-          'plaicelarvae_multipanel_esm.tiff'),
+          'plaicelarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_akplarvae_cesm1)
-grid_multipanel(avg_akplarvae_cesm2)
-grid_multipanel(avg_akplarvae_cesm3)
-grid_multipanel(avg_akplarvae_gfdl1)
-grid_multipanel(avg_akplarvae_gfdl2)
-grid_multipanel(avg_akplarvae_gfdl3)
-grid_multipanel(avg_akplarvae_miroc1)
-grid_multipanel(avg_akplarvae_miroc2)
-grid_multipanel(avg_akplarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_akplarvae_low1)
+grid_multipanel(avg_akplarvae_low2)
+grid_multipanel(avg_akplarvae_low3)
+grid_multipanel(avg_akplarvae_high1)
+grid_multipanel(avg_akplarvae_high2)
+grid_multipanel(avg_akplarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -4353,6 +4397,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_yfslarvae1_cesm126 <- readRDS(here('data', 'df_yfslarvae1_cesm126.rds'))
+# df_yfslarvae2_cesm126 <- readRDS(here('data', 'df_yfslarvae2_cesm126.rds'))
+# df_yfslarvae3_cesm126 <- readRDS(here('data', 'df_yfslarvae3_cesm126.rds'))
+# df_yfslarvae1_cesm585 <- readRDS(here('data', 'df_yfslarvae1_cesm585.rds'))
+# df_yfslarvae2_cesm585 <- readRDS(here('data', 'df_yfslarvae2_cesm585.rds'))
+# df_yfslarvae3_cesm585 <- readRDS(here('data', 'df_yfslarvae3_cesm585.rds'))
+# df_yfslarvae1_gfdl126 <- readRDS(here('data', 'df_yfslarvae1_gfdl126.rds'))
+# df_yfslarvae2_gfdl126 <- readRDS(here('data', 'df_yfslarvae2_gfdl126.rds'))
+# df_yfslarvae3_gfdl126 <- readRDS(here('data', 'df_yfslarvae3_gfdl126.rds'))
+# df_yfslarvae1_gfdl585 <- readRDS(here('data', 'df_yfslarvae1_gfdl585.rds'))
+# df_yfslarvae2_gfdl585 <- readRDS(here('data', 'df_yfslarvae2_gfdl585.rds'))
+# df_yfslarvae3_gfdl585 <- readRDS(here('data', 'df_yfslarvae3_gfdl585.rds'))
+# df_yfslarvae1_miroc126 <- readRDS(here('data', 'df_yfslarvae1_miroc126.rds'))
+# df_yfslarvae2_miroc126 <- readRDS(here('data', 'df_yfslarvae2_miroc126.rds'))
+# df_yfslarvae3_miroc126 <- readRDS(here('data', 'df_yfslarvae3_miroc126.rds'))
+# df_yfslarvae1_miroc585 <- readRDS(here('data', 'df_yfslarvae1_miroc585.rds'))
+# df_yfslarvae2_miroc585 <- readRDS(here('data', 'df_yfslarvae2_miroc585.rds'))
+# df_yfslarvae3_miroc585 <- readRDS(here('data', 'df_yfslarvae3_miroc585.rds'))
+
 tiff(here('results/yellowfin_forecast',
           'yellowfinlarvae_multipanel.tiff'),
      units = "in",
@@ -4494,81 +4558,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_yfslarvae_cesm1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585) 
-df_yfslarvae_cesm2 <- list(df_yfslarvae2_cesm126, df_yfslarvae2_cesm585) 
-df_yfslarvae_cesm3 <- list(df_yfslarvae3_cesm126, df_yfslarvae3_cesm585) 
-df_yfslarvae_gfdl1 <- list(df_yfslarvae1_gfdl126, df_yfslarvae1_gfdl585) 
-df_yfslarvae_gfdl2 <- list(df_yfslarvae2_gfdl126, df_yfslarvae2_gfdl585) 
-df_yfslarvae_gfdl3 <- list(df_yfslarvae3_gfdl126, df_yfslarvae3_gfdl585) 
-df_yfslarvae_miroc1 <- list(df_yfslarvae1_miroc126, df_yfslarvae1_miroc585) 
-df_yfslarvae_miroc2 <- list(df_yfslarvae2_miroc126, df_yfslarvae2_miroc585) 
-df_yfslarvae_miroc3 <- list(df_yfslarvae3_miroc126, df_yfslarvae3_miroc585) 
+df_yfslarvae_low1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_gfdl126, df_yfslarvae1_miroc126) 
+df_yfslarvae_low2 <- list(df_yfslarvae2_cesm126, df_yfslarvae2_gfdl126, df_yfslarvae2_miroc126) 
+df_yfslarvae_low3 <- list(df_yfslarvae3_cesm126, df_yfslarvae3_gfdl126, df_yfslarvae3_miroc126) 
+df_yfslarvae_high1 <- list(df_yfslarvae1_cesm585, df_yfslarvae1_gfdl585, df_yfslarvae1_miroc585) 
+df_yfslarvae_high2 <- list(df_yfslarvae2_cesm585, df_yfslarvae2_gfdl585, df_yfslarvae2_miroc585) 
+df_yfslarvae_high3 <- list(df_yfslarvae3_cesm585, df_yfslarvae3_gfdl585, df_yfslarvae3_miroc585) 
 
-avg_yfslarvae_cesm1 <- predict_avgs(df_yfslarvae_cesm1)
-avg_yfslarvae_cesm2 <- predict_avgs(df_yfslarvae_cesm2)
-avg_yfslarvae_cesm3 <- predict_avgs(df_yfslarvae_cesm3)
-avg_yfslarvae_gfdl1 <- predict_avgs(df_yfslarvae_gfdl1)
-avg_yfslarvae_gfdl2 <- predict_avgs(df_yfslarvae_gfdl2)
-avg_yfslarvae_gfdl3 <- predict_avgs(df_yfslarvae_gfdl3)
-avg_yfslarvae_miroc1 <- predict_avgs(df_yfslarvae_miroc1)
-avg_yfslarvae_miroc2 <- predict_avgs(df_yfslarvae_miroc2)
-avg_yfslarvae_miroc3 <- predict_avgs(df_yfslarvae_miroc3)
+avg_yfslarvae_low1 <- predict_avgs(df_yfslarvae_low1)
+avg_yfslarvae_low2 <- predict_avgs(df_yfslarvae_low2)
+avg_yfslarvae_low3 <- predict_avgs(df_yfslarvae_low3)
+avg_yfslarvae_high1 <- predict_avgs(df_yfslarvae_high1)
+avg_yfslarvae_high2 <- predict_avgs(df_yfslarvae_high2)
+avg_yfslarvae_high3 <- predict_avgs(df_yfslarvae_high3)
 
 tiff(here('results/yellowfin_forecast',
-          'yellowfinlarvae_multipanel_esm.tiff'),
+          'yellowfinlarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_yfslarvae_cesm1)
-grid_multipanel(avg_yfslarvae_cesm2)
-grid_multipanel(avg_yfslarvae_cesm3)
-grid_multipanel(avg_yfslarvae_gfdl1)
-grid_multipanel(avg_yfslarvae_gfdl2)
-grid_multipanel(avg_yfslarvae_gfdl3)
-grid_multipanel(avg_yfslarvae_miroc1)
-grid_multipanel(avg_yfslarvae_miroc2)
-grid_multipanel(avg_yfslarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_yfslarvae_low1)
+grid_multipanel(avg_yfslarvae_low2)
+grid_multipanel(avg_yfslarvae_low3)
+grid_multipanel(avg_yfslarvae_high1)
+grid_multipanel(avg_yfslarvae_high2)
+grid_multipanel(avg_yfslarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -5003,6 +5052,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_nrslarvae1_cesm126 <- readRDS(here('data', 'df_nrslarvae1_cesm126.rds'))
+# df_nrslarvae2_cesm126 <- readRDS(here('data', 'df_nrslarvae2_cesm126.rds'))
+# df_nrslarvae3_cesm126 <- readRDS(here('data', 'df_nrslarvae3_cesm126.rds'))
+# df_nrslarvae1_cesm585 <- readRDS(here('data', 'df_nrslarvae1_cesm585.rds'))
+# df_nrslarvae2_cesm585 <- readRDS(here('data', 'df_nrslarvae2_cesm585.rds'))
+# df_nrslarvae3_cesm585 <- readRDS(here('data', 'df_nrslarvae3_cesm585.rds'))
+# df_nrslarvae1_gfdl126 <- readRDS(here('data', 'df_nrslarvae1_gfdl126.rds'))
+# df_nrslarvae2_gfdl126 <- readRDS(here('data', 'df_nrslarvae2_gfdl126.rds'))
+# df_nrslarvae3_gfdl126 <- readRDS(here('data', 'df_nrslarvae3_gfdl126.rds'))
+# df_nrslarvae1_gfdl585 <- readRDS(here('data', 'df_nrslarvae1_gfdl585.rds'))
+# df_nrslarvae2_gfdl585 <- readRDS(here('data', 'df_nrslarvae2_gfdl585.rds'))
+# df_nrslarvae3_gfdl585 <- readRDS(here('data', 'df_nrslarvae3_gfdl585.rds'))
+# df_nrslarvae1_miroc126 <- readRDS(here('data', 'df_nrslarvae1_miroc126.rds'))
+# df_nrslarvae2_miroc126 <- readRDS(here('data', 'df_nrslarvae2_miroc126.rds'))
+# df_nrslarvae3_miroc126 <- readRDS(here('data', 'df_nrslarvae3_miroc126.rds'))
+# df_nrslarvae1_miroc585 <- readRDS(here('data', 'df_nrslarvae1_miroc585.rds'))
+# df_nrslarvae2_miroc585 <- readRDS(here('data', 'df_nrslarvae2_miroc585.rds'))
+# df_nrslarvae3_miroc585 <- readRDS(here('data', 'df_nrslarvae3_miroc585.rds'))
+
 tiff(here('results/rocksole_forecast',
           'rocksolelarvae_multipanel.tiff'),
      units = "in",
@@ -5144,81 +5213,66 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_nrslarvae_cesm1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585) 
-df_nrslarvae_cesm2 <- list(df_nrslarvae2_cesm126, df_nrslarvae2_cesm585) 
-df_nrslarvae_cesm3 <- list(df_nrslarvae3_cesm126, df_nrslarvae3_cesm585) 
-df_nrslarvae_gfdl1 <- list(df_nrslarvae1_gfdl126, df_nrslarvae1_gfdl585) 
-df_nrslarvae_gfdl2 <- list(df_nrslarvae2_gfdl126, df_nrslarvae2_gfdl585) 
-df_nrslarvae_gfdl3 <- list(df_nrslarvae3_gfdl126, df_nrslarvae3_gfdl585) 
-df_nrslarvae_miroc1 <- list(df_nrslarvae1_miroc126, df_nrslarvae1_miroc585) 
-df_nrslarvae_miroc2 <- list(df_nrslarvae2_miroc126, df_nrslarvae2_miroc585) 
-df_nrslarvae_miroc3 <- list(df_nrslarvae3_miroc126, df_nrslarvae3_miroc585) 
+df_nrslarvae_low1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_gfdl126, df_nrslarvae1_miroc126) 
+df_nrslarvae_low2 <- list(df_nrslarvae2_cesm126, df_nrslarvae2_gfdl126, df_nrslarvae2_miroc126) 
+df_nrslarvae_low3 <- list(df_nrslarvae3_cesm126, df_nrslarvae3_gfdl126, df_nrslarvae3_miroc126) 
+df_nrslarvae_high1 <- list(df_nrslarvae1_cesm585, df_nrslarvae1_gfdl585, df_nrslarvae1_miroc585) 
+df_nrslarvae_high2 <- list(df_nrslarvae2_cesm585, df_nrslarvae2_gfdl585, df_nrslarvae2_miroc585) 
+df_nrslarvae_high3 <- list(df_nrslarvae3_cesm585, df_nrslarvae3_gfdl585, df_nrslarvae3_miroc585) 
 
-avg_nrslarvae_cesm1 <- predict_avgs(df_nrslarvae_cesm1)
-avg_nrslarvae_cesm2 <- predict_avgs(df_nrslarvae_cesm2)
-avg_nrslarvae_cesm3 <- predict_avgs(df_nrslarvae_cesm3)
-avg_nrslarvae_gfdl1 <- predict_avgs(df_nrslarvae_gfdl1)
-avg_nrslarvae_gfdl2 <- predict_avgs(df_nrslarvae_gfdl2)
-avg_nrslarvae_gfdl3 <- predict_avgs(df_nrslarvae_gfdl3)
-avg_nrslarvae_miroc1 <- predict_avgs(df_nrslarvae_miroc1)
-avg_nrslarvae_miroc2 <- predict_avgs(df_nrslarvae_miroc2)
-avg_nrslarvae_miroc3 <- predict_avgs(df_nrslarvae_miroc3)
+avg_nrslarvae_low1 <- predict_avgs(df_nrslarvae_low1)
+avg_nrslarvae_low2 <- predict_avgs(df_nrslarvae_low2)
+avg_nrslarvae_low3 <- predict_avgs(df_nrslarvae_low3)
+avg_nrslarvae_high1 <- predict_avgs(df_nrslarvae_high1)
+avg_nrslarvae_high2 <- predict_avgs(df_nrslarvae_high2)
+avg_nrslarvae_high3 <- predict_avgs(df_nrslarvae_high3)
 
 tiff(here('results/rocksole_forecast',
-          'rocksolelarvae_multipanel_esm.tiff'),
+          'rocksolelarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_nrslarvae_cesm1)
-grid_multipanel(avg_nrslarvae_cesm2)
-grid_multipanel(avg_nrslarvae_cesm3)
-grid_multipanel(avg_nrslarvae_gfdl1)
-grid_multipanel(avg_nrslarvae_gfdl2)
-grid_multipanel(avg_nrslarvae_gfdl3)
-grid_multipanel(avg_nrslarvae_miroc1)
-grid_multipanel(avg_nrslarvae_miroc2)
-grid_multipanel(avg_nrslarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_nrslarvae_low1)
+grid_multipanel(avg_nrslarvae_low2)
+grid_multipanel(avg_nrslarvae_low3)
+grid_multipanel(avg_nrslarvae_high1)
+grid_multipanel(avg_nrslarvae_high2)
+grid_multipanel(avg_nrslarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
 
@@ -5652,6 +5706,26 @@ rm(miroc_temps1, miroc_temps2, miroc_temps3,
 graphics.off()
 
 ##### Multi-panel figure -------------------------------------------------------------------------------------------------------------------------
+# Load for visualization, takes a long time to re-run
+# df_pcodlarvae1_cesm126 <- readRDS(here('data', 'df_pcodlarvae1_cesm126.rds'))
+# df_pcodlarvae2_cesm126 <- readRDS(here('data', 'df_pcodlarvae2_cesm126.rds'))
+# df_pcodlarvae3_cesm126 <- readRDS(here('data', 'df_pcodlarvae3_cesm126.rds'))
+# df_pcodlarvae1_cesm585 <- readRDS(here('data', 'df_pcodlarvae1_cesm585.rds'))
+# df_pcodlarvae2_cesm585 <- readRDS(here('data', 'df_pcodlarvae2_cesm585.rds'))
+# df_pcodlarvae3_cesm585 <- readRDS(here('data', 'df_pcodlarvae3_cesm585.rds'))
+# df_pcodlarvae1_gfdl126 <- readRDS(here('data', 'df_pcodlarvae1_gfdl126.rds'))
+# df_pcodlarvae2_gfdl126 <- readRDS(here('data', 'df_pcodlarvae2_gfdl126.rds'))
+# df_pcodlarvae3_gfdl126 <- readRDS(here('data', 'df_pcodlarvae3_gfdl126.rds'))
+# df_pcodlarvae1_gfdl585 <- readRDS(here('data', 'df_pcodlarvae1_gfdl585.rds'))
+# df_pcodlarvae2_gfdl585 <- readRDS(here('data', 'df_pcodlarvae2_gfdl585.rds'))
+# df_pcodlarvae3_gfdl585 <- readRDS(here('data', 'df_pcodlarvae3_gfdl585.rds'))
+# df_pcodlarvae1_miroc126 <- readRDS(here('data', 'df_pcodlarvae1_miroc126.rds'))
+# df_pcodlarvae2_miroc126 <- readRDS(here('data', 'df_pcodlarvae2_miroc126.rds'))
+# df_pcodlarvae3_miroc126 <- readRDS(here('data', 'df_pcodlarvae3_miroc126.rds'))
+# df_pcodlarvae1_miroc585 <- readRDS(here('data', 'df_pcodlarvae1_miroc585.rds'))
+# df_pcodlarvae2_miroc585 <- readRDS(here('data', 'df_pcodlarvae2_miroc585.rds'))
+# df_pcodlarvae3_miroc585 <- readRDS(here('data', 'df_pcodlarvae3_miroc585.rds'))
+
 tiff(here('results/cod_forecast',
           'codlarvae_multipanel.tiff'),
      units = "in",
@@ -5793,84 +5867,68 @@ dev.copy(jpeg,
 dev.off()
 
 ##### Scenario Averages -----------------------------------------------------------------------------------------------------------------------
-df_pcodlarvae_cesm1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585) 
-df_pcodlarvae_cesm2 <- list(df_pcodlarvae2_cesm126, df_pcodlarvae2_cesm585) 
-df_pcodlarvae_cesm3 <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585) 
-df_pcodlarvae_gfdl1 <- list(df_pcodlarvae1_gfdl126, df_pcodlarvae1_gfdl585) 
-df_pcodlarvae_gfdl2 <- list(df_pcodlarvae2_gfdl126, df_pcodlarvae2_gfdl585) 
-df_pcodlarvae_gfdl3 <- list(df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585) 
-df_pcodlarvae_miroc1 <- list(df_pcodlarvae1_miroc126, df_pcodlarvae1_miroc585) 
-df_pcodlarvae_miroc2 <- list(df_pcodlarvae2_miroc126, df_pcodlarvae2_miroc585) 
-df_pcodlarvae_miroc3 <- list(df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585) 
+df_pcodlarvae_low1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_gfdl126, df_pcodlarvae1_miroc126) 
+df_pcodlarvae_low2 <- list(df_pcodlarvae2_cesm126, df_pcodlarvae2_gfdl126, df_pcodlarvae2_miroc126) 
+df_pcodlarvae_low3 <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_gfdl126, df_pcodlarvae3_miroc126) 
+df_pcodlarvae_high1 <- list(df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl585, df_pcodlarvae1_miroc585) 
+df_pcodlarvae_high2 <- list(df_pcodlarvae2_cesm585, df_pcodlarvae2_gfdl585, df_pcodlarvae2_miroc585) 
+df_pcodlarvae_high3 <- list(df_pcodlarvae3_cesm585, df_pcodlarvae3_gfdl585, df_pcodlarvae3_miroc585) 
 
-avg_pcodlarvae_cesm1 <- predict_avgs(df_pcodlarvae_cesm1)
-avg_pcodlarvae_cesm2 <- predict_avgs(df_pcodlarvae_cesm2)
-avg_pcodlarvae_cesm3 <- predict_avgs(df_pcodlarvae_cesm3)
-avg_pcodlarvae_gfdl1 <- predict_avgs(df_pcodlarvae_gfdl1)
-avg_pcodlarvae_gfdl2 <- predict_avgs(df_pcodlarvae_gfdl2)
-avg_pcodlarvae_gfdl3 <- predict_avgs(df_pcodlarvae_gfdl3)
-avg_pcodlarvae_miroc1 <- predict_avgs(df_pcodlarvae_miroc1)
-avg_pcodlarvae_miroc2 <- predict_avgs(df_pcodlarvae_miroc2)
-avg_pcodlarvae_miroc3 <- predict_avgs(df_pcodlarvae_miroc3)
+avg_pcodlarvae_low1 <- predict_avgs(df_pcodlarvae_low1)
+avg_pcodlarvae_low2 <- predict_avgs(df_pcodlarvae_low2)
+avg_pcodlarvae_low3 <- predict_avgs(df_pcodlarvae_low3)
+avg_pcodlarvae_high1 <- predict_avgs(df_pcodlarvae_high1)
+avg_pcodlarvae_high2 <- predict_avgs(df_pcodlarvae_high2)
+avg_pcodlarvae_high3 <- predict_avgs(df_pcodlarvae_high3)
 
 tiff(here('results/cod_forecast',
-          'codlarvae_multipanel_esm.tiff'),
+          'codlarvae_multipanel_scenario.tiff'),
      units = "in",
      width = 45,
-     height = 45,
+     height = 30,
      res = 300)
-par(mfrow = c(3, 3),
+par(mfrow = c(2, 3),
     mar = c(11, 12, 5, 1.5) + 0.1,
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pcodlarvae_cesm1)
-grid_multipanel(avg_pcodlarvae_cesm2)
-grid_multipanel(avg_pcodlarvae_cesm3)
-grid_multipanel(avg_pcodlarvae_gfdl1)
-grid_multipanel(avg_pcodlarvae_gfdl2)
-grid_multipanel(avg_pcodlarvae_gfdl3)
-grid_multipanel(avg_pcodlarvae_miroc1)
-grid_multipanel(avg_pcodlarvae_miroc2)
-grid_multipanel(avg_pcodlarvae_miroc3)
-mtext("CESM", 
+grid_multipanel(avg_pcodlarvae_low1)
+grid_multipanel(avg_pcodlarvae_low2)
+grid_multipanel(avg_pcodlarvae_low3)
+grid_multipanel(avg_pcodlarvae_high1)
+grid_multipanel(avg_pcodlarvae_high2)
+grid_multipanel(avg_pcodlarvae_high3)
+mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.85)
-mtext("GFDL", 
+      cex = 5.5,
+      at = 0.78)
+mtext("SSP5-8.5", 
       side = 2, 
       line = 12, 
       outer = TRUE, 
-      cex = 7,
-      at = 0.52)
-mtext("MIROC", 
-      side = 2, 
-      line = 12, 
-      outer = TRUE, 
-      cex = 7,
-      at = 0.18)
+      cex = 5.5,
+      at = 0.28)
 mtext("2015-2039", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.18)
 mtext("2040-2069", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.51)
 mtext("2070-2099", 
       side = 3, 
       line = 2, 
       outer = TRUE, 
-      cex = 7,
+      cex = 5.5,
       at = 0.85)
 dev.off()
-
 
 ##### GIFs -------------------------------------------------------------------------------------------------------------------------
 pcodlarvae_dir_out <- file.path(base_dir, 'results', 'cod_forecast', 'pcodlarvae_avgs')
