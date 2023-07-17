@@ -1,3 +1,6 @@
+# Title: Projecting larval and egg distributions
+# Authors: Rebecca Howard
+
 ### Libraries, functions, and data ----
 library(maps)
 library(maptools)
