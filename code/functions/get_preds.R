@@ -44,7 +44,7 @@ get_preds <- function(data, the_year, doy,
                                                     grid_extent[, c('lat', 'lon')],
                                                     k = 1))
   grid_extent$roms_temperature <- bc_temps[c(grid_extent$nn.idx), 10] # Match nearest temp
-  grid_extent$roms_salinity <- bc_salts[c(grid_extent$nn.idx), 10] # Match nearest temp
+  grid_extent$roms_salinity <- bc_salts[c(grid_extent$nn.idx), 10] # Match nearest salinity
   grid_extent <- grid_extent[-c(6:8)] # remove extra columns before predicting
   
   # Calculate mean temperature
