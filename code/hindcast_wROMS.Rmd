@@ -21,6 +21,7 @@ library(rgdal)
 library(viridis)
 library(RColorBrewer)
 library(colorspace)
+library(scales)
 source(here('code/functions', 'vis_gam_COLORS.R'))
 source(here('code/functions', 'distance_function.R'))
 source(here('code/functions', 'gam_selection.R'))
@@ -36,6 +37,7 @@ source(here('code/functions', 'variable_coefficient.R'))
 source(here('code/functions', 'phenology_change.R'))
 source(here('code/functions', 'distribution_change.R'))
 source(here('code/functions', 'plot_var_coef.R'))
+source(here('code/functions', 'hindcast_pred.R'))
 ```
 
 ```{r}
@@ -211,6 +213,12 @@ var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale -
                          summary(pkegg_gams_t[[2]])$scale) / summary(pk_egg_base_t)$scale
 var_ratio_pkegg_space_t #0.11
 ```
+Create prediction grid to compare with projections
+```{r}
+pk_egg_hindcast <- hindcast_pred(pk_egg, 5, 134, pkegg_gams_t)
+saveRDS(pk_egg_hindcast, here('data', 'pk_egg_hindcast'))
+```
+
 
 Plot the results of the GAMs that vary by year This generates a three panel figure with a map, phenology curve, and MSE barplot Grids:
 ```{r}
