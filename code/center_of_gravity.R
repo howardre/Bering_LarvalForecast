@@ -111,10 +111,12 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585, df_pkegg1_gfdl126, df_pkegg1_gfdl585,
    df_pkegg1_miroc126, df_pkegg1_miroc585, df_pkegg2_cesm126, df_pkegg2_cesm585, 
    df_pkegg2_gfdl126, df_pkegg2_gfdl585, df_pkegg2_miroc126, df_pkegg2_miroc585,
    df_pkegg3_cesm126, df_pkegg3_cesm585, df_pkegg3_gfdl126, df_pkegg3_gfdl585,
-   df_pkegg3_miroc126, df_pkegg3_miroc585, pkegg1_list, pkegg2_list, pkegg3_list)
+   df_pkegg3_miroc126, df_pkegg3_miroc585, pkegg1_list, pkegg2_list, pkegg3_list,
+   pkegg_hindcast)
 
 ### Larvae ----
 # Load data
+pklarvae_hindcast <- readRDS(here('data', 'pk_larvae_hindcast'))
 df_pklarvae1_cesm126 <- readRDS(here('data', 'df_pklarvae1_cesm126.rds'))
 df_pklarvae2_cesm126 <- readRDS(here('data', 'df_pklarvae2_cesm126.rds'))
 df_pklarvae3_cesm126 <- readRDS(here('data', 'df_pklarvae3_cesm126.rds'))
@@ -146,18 +148,20 @@ pklarvae3_list <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585,
                     df_pklarvae3_gfdl126, df_pklarvae3_gfdl585,
                     df_pklarvae3_miroc126, df_pklarvae3_miroc585)
 
-pklarvae_COG <- COG_time(pklarvae1_list, pklarvae2_list, pklarvae3_list)
+pklarvae_COG <- COG_time(pklarvae_hindcast, pklarvae1_list, pklarvae2_list, pklarvae3_list)
 saveRDS(pklarvae_COG, here('data', 'pklarvae_COG'))
 
 rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585, df_pklarvae1_gfdl126, df_pklarvae1_gfdl585,
    df_pklarvae1_miroc126, df_pklarvae1_miroc585, df_pklarvae2_cesm126, df_pklarvae2_cesm585, 
    df_pklarvae2_gfdl126, df_pklarvae2_gfdl585, df_pklarvae2_miroc126, df_pklarvae2_miroc585,
    df_pklarvae3_cesm126, df_pklarvae3_cesm585, df_pklarvae3_gfdl126, df_pklarvae3_gfdl585,
-   df_pklarvae3_miroc126, df_pklarvae3_miroc585, pklarvae1_list, pklarvae2_list, pklarvae3_list)
+   df_pklarvae3_miroc126, df_pklarvae3_miroc585, pklarvae1_list, pklarvae2_list, pklarvae3_list,
+   pklarvae_hindcast)
 
 ## Flathead Sole ----
 ### Eggs ----
 # Load data
+fhsegg_hindcast <- readRDS(here('data', 'fhs_egg_hindcast'))
 df_fhsegg1_cesm126 <- readRDS(here('data', 'df_fhsegg1_cesm126.rds'))
 df_fhsegg2_cesm126 <- readRDS(here('data', 'df_fhsegg2_cesm126.rds'))
 df_fhsegg3_cesm126 <- readRDS(here('data', 'df_fhsegg3_cesm126.rds'))
@@ -189,17 +193,19 @@ fhsegg3_list <- list(df_fhsegg3_cesm126, df_fhsegg3_cesm585,
                     df_fhsegg3_gfdl126, df_fhsegg3_gfdl585,
                     df_fhsegg3_miroc126, df_fhsegg3_miroc585)
 
-fhsegg_COG <- COG_time(fhsegg1_list, fhsegg2_list, fhsegg3_list)
+fhsegg_COG <- COG_time(fhsegg_hindcast, fhsegg1_list, fhsegg2_list, fhsegg3_list)
 saveRDS(fhsegg_COG, here('data', 'fhsegg_COG'))
 
 rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585, df_fhsegg1_gfdl126, df_fhsegg1_gfdl585,
    df_fhsegg1_miroc126, df_fhsegg1_miroc585, df_fhsegg2_cesm126, df_fhsegg2_cesm585, 
    df_fhsegg2_gfdl126, df_fhsegg2_gfdl585, df_fhsegg2_miroc126, df_fhsegg2_miroc585,
    df_fhsegg3_cesm126, df_fhsegg3_cesm585, df_fhsegg3_gfdl126, df_fhsegg3_gfdl585,
-   df_fhsegg3_miroc126, df_fhsegg3_miroc585, fhsegg1_list, fhsegg2_list, fhsegg3_list)
+   df_fhsegg3_miroc126, df_fhsegg3_miroc585, fhsegg1_list, fhsegg2_list, fhsegg3_list,
+   fhsegg_hindcast)
 
 ### Larvae ----
 # Load data
+fhslarvae_hindcast <- readRDS(here('data', 'fhs_larvae_hindcast'))
 df_fhslarvae1_cesm126 <- readRDS(here('data', 'df_fhslarvae1_cesm126.rds'))
 df_fhslarvae2_cesm126 <- readRDS(here('data', 'df_fhslarvae2_cesm126.rds'))
 df_fhslarvae3_cesm126 <- readRDS(here('data', 'df_fhslarvae3_cesm126.rds'))
@@ -231,18 +237,20 @@ fhslarvae3_list <- list(df_fhslarvae3_cesm126, df_fhslarvae3_cesm585,
                        df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585,
                        df_fhslarvae3_miroc126, df_fhslarvae3_miroc585)
 
-fhslarvae_COG <- COG_time(fhslarvae1_list, fhslarvae2_list, fhslarvae3_list)
+fhslarvae_COG <- COG_time(fhslarvae_hindcast, fhslarvae1_list, fhslarvae2_list, fhslarvae3_list)
 saveRDS(fhslarvae_COG, here('data', 'fhslarvae_COG'))
 
 rm(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585, df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585,
    df_fhslarvae1_miroc126, df_fhslarvae1_miroc585, df_fhslarvae2_cesm126, df_fhslarvae2_cesm585, 
    df_fhslarvae2_gfdl126, df_fhslarvae2_gfdl585, df_fhslarvae2_miroc126, df_fhslarvae2_miroc585,
    df_fhslarvae3_cesm126, df_fhslarvae3_cesm585, df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585,
-   df_fhslarvae3_miroc126, df_fhslarvae3_miroc585, fhslarvae1_list, fhslarvae2_list, fhslarvae3_list)
+   df_fhslarvae3_miroc126, df_fhslarvae3_miroc585, fhslarvae1_list, fhslarvae2_list, fhslarvae3_list,
+   fhslarvae_hindcast)
 
 ## Alaska Plaice ----
 ### Eggs ----
 # Load data
+akpegg_hindcast <- readRDS(here('data', 'akp_egg_hindcast'))
 df_akpegg1_cesm126 <- readRDS(here('data', 'df_akpegg1_cesm126.rds'))
 df_akpegg2_cesm126 <- readRDS(here('data', 'df_akpegg2_cesm126.rds'))
 df_akpegg3_cesm126 <- readRDS(here('data', 'df_akpegg3_cesm126.rds'))
@@ -274,17 +282,19 @@ akpegg3_list <- list(df_akpegg3_cesm126, df_akpegg3_cesm585,
                      df_akpegg3_gfdl126, df_akpegg3_gfdl585,
                      df_akpegg3_miroc126, df_akpegg3_miroc585)
 
-akpegg_COG <- COG_time(akpegg1_list, akpegg2_list, akpegg3_list)
+akpegg_COG <- COG_time(akpegg_hindcast, akpegg1_list, akpegg2_list, akpegg3_list)
 saveRDS(akpegg_COG, here('data', 'akpegg_COG'))
 
 rm(df_akpegg1_cesm126, df_akpegg1_cesm585, df_akpegg1_gfdl126, df_akpegg1_gfdl585,
    df_akpegg1_miroc126, df_akpegg1_miroc585, df_akpegg2_cesm126, df_akpegg2_cesm585, 
    df_akpegg2_gfdl126, df_akpegg2_gfdl585, df_akpegg2_miroc126, df_akpegg2_miroc585,
    df_akpegg3_cesm126, df_akpegg3_cesm585, df_akpegg3_gfdl126, df_akpegg3_gfdl585,
-   df_akpegg3_miroc126, df_akpegg3_miroc585, akpegg1_list, akpegg2_list, akpegg3_list)
+   df_akpegg3_miroc126, df_akpegg3_miroc585, akpegg1_list, akpegg2_list, akpegg3_list,
+   akp_egg_hindcast)
 
 ### Larvae ----
 # Load data
+akplarvae_hindcast <- readRDS(here('data', 'akp_larvae_hindcast'))
 df_akplarvae1_cesm126 <- readRDS(here('data', 'df_akplarvae1_cesm126.rds'))
 df_akplarvae2_cesm126 <- readRDS(here('data', 'df_akplarvae2_cesm126.rds'))
 df_akplarvae3_cesm126 <- readRDS(here('data', 'df_akplarvae3_cesm126.rds'))
@@ -316,18 +326,20 @@ akplarvae3_list <- list(df_akplarvae3_cesm126, df_akplarvae3_cesm585,
                         df_akplarvae3_gfdl126, df_akplarvae3_gfdl585,
                         df_akplarvae3_miroc126, df_akplarvae3_miroc585)
 
-akplarvae_COG <- COG_time(akplarvae1_list, akplarvae2_list, akplarvae3_list)
+akplarvae_COG <- COG_time(akplarvae_hindcast, akplarvae1_list, akplarvae2_list, akplarvae3_list)
 saveRDS(akplarvae_COG, here('data', 'akplarvae_COG'))
 
 rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585, df_akplarvae1_gfdl126, df_akplarvae1_gfdl585,
    df_akplarvae1_miroc126, df_akplarvae1_miroc585, df_akplarvae2_cesm126, df_akplarvae2_cesm585, 
    df_akplarvae2_gfdl126, df_akplarvae2_gfdl585, df_akplarvae2_miroc126, df_akplarvae2_miroc585,
    df_akplarvae3_cesm126, df_akplarvae3_cesm585, df_akplarvae3_gfdl126, df_akplarvae3_gfdl585,
-   df_akplarvae3_miroc126, df_akplarvae3_miroc585, akplarvae1_list, akplarvae2_list, akplarvae3_list)
+   df_akplarvae3_miroc126, df_akplarvae3_miroc585, akplarvae1_list, akplarvae2_list, akplarvae3_list,
+   akplarvae_hindcast)
 
 ## Yellowfin Sole ----
 ### Larvae ----
 # Load data
+yfslarvae_hindcast <- readRDS(here('data', 'yfs_larvae_hindcast'))
 df_yfslarvae1_cesm126 <- readRDS(here('data', 'df_yfslarvae1_cesm126.rds'))
 df_yfslarvae2_cesm126 <- readRDS(here('data', 'df_yfslarvae2_cesm126.rds'))
 df_yfslarvae3_cesm126 <- readRDS(here('data', 'df_yfslarvae3_cesm126.rds'))
@@ -359,18 +371,20 @@ yfslarvae3_list <- list(df_yfslarvae3_cesm126, df_yfslarvae3_cesm585,
                         df_yfslarvae3_gfdl126, df_yfslarvae3_gfdl585,
                         df_yfslarvae3_miroc126, df_yfslarvae3_miroc585)
 
-yfslarvae_COG <- COG_time(yfslarvae1_list, yfslarvae2_list, yfslarvae3_list)
+yfslarvae_COG <- COG_time(yfslarvae_hindcast, yfslarvae1_list, yfslarvae2_list, yfslarvae3_list)
 saveRDS(yfslarvae_COG, here('data', 'yfslarvae_COG'))
 
 rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585, df_yfslarvae1_gfdl126, df_yfslarvae1_gfdl585,
    df_yfslarvae1_miroc126, df_yfslarvae1_miroc585, df_yfslarvae2_cesm126, df_yfslarvae2_cesm585, 
    df_yfslarvae2_gfdl126, df_yfslarvae2_gfdl585, df_yfslarvae2_miroc126, df_yfslarvae2_miroc585,
    df_yfslarvae3_cesm126, df_yfslarvae3_cesm585, df_yfslarvae3_gfdl126, df_yfslarvae3_gfdl585,
-   df_yfslarvae3_miroc126, df_yfslarvae3_miroc585, yfslarvae1_list, yfslarvae2_list, yfslarvae3_list)
+   df_yfslarvae3_miroc126, df_yfslarvae3_miroc585, yfslarvae1_list, yfslarvae2_list, yfslarvae3_list,
+   yfs_larvae_hindcast)
 
 ## Northern Rock Sole ----
 ### Larvae ----
 # Load data
+nrslarvae_hindcast <- readRDS(here('data', 'nrs_larvae_hindcast'))
 df_nrslarvae1_cesm126 <- readRDS(here('data', 'df_nrslarvae1_cesm126.rds'))
 df_nrslarvae2_cesm126 <- readRDS(here('data', 'df_nrslarvae2_cesm126.rds'))
 df_nrslarvae3_cesm126 <- readRDS(here('data', 'df_nrslarvae3_cesm126.rds'))
@@ -402,18 +416,20 @@ nrslarvae3_list <- list(df_nrslarvae3_cesm126, df_nrslarvae3_cesm585,
                         df_nrslarvae3_gfdl126, df_nrslarvae3_gfdl585,
                         df_nrslarvae3_miroc126, df_nrslarvae3_miroc585)
 
-nrslarvae_COG <- COG_time(nrslarvae1_list, nrslarvae2_list, nrslarvae3_list)
+nrslarvae_COG <- COG_time(nrslarvae_hindcast, nrslarvae1_list, nrslarvae2_list, nrslarvae3_list)
 saveRDS(nrslarvae_COG, here('data', 'nrslarvae_COG'))
 
 rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585, df_nrslarvae1_gfdl126, df_nrslarvae1_gfdl585,
    df_nrslarvae1_miroc126, df_nrslarvae1_miroc585, df_nrslarvae2_cesm126, df_nrslarvae2_cesm585, 
    df_nrslarvae2_gfdl126, df_nrslarvae2_gfdl585, df_nrslarvae2_miroc126, df_nrslarvae2_miroc585,
    df_nrslarvae3_cesm126, df_nrslarvae3_cesm585, df_nrslarvae3_gfdl126, df_nrslarvae3_gfdl585,
-   df_nrslarvae3_miroc126, df_nrslarvae3_miroc585, nrslarvae1_list, nrslarvae2_list, nrslarvae3_list)
+   df_nrslarvae3_miroc126, df_nrslarvae3_miroc585, nrslarvae1_list, nrslarvae2_list, nrslarvae3_list,
+   nrslarvae_hindcast)
 
 ## Pacific Cod ----
 ### Larvae ----
 # Load data
+pcodlarvae_hindcast <- readRDS(here('data', 'pcod_larvae_hindcast'))
 df_pcodlarvae1_cesm126 <- readRDS(here('data', 'df_pcodlarvae1_cesm126.rds'))
 df_pcodlarvae2_cesm126 <- readRDS(here('data', 'df_pcodlarvae2_cesm126.rds'))
 df_pcodlarvae3_cesm126 <- readRDS(here('data', 'df_pcodlarvae3_cesm126.rds'))
@@ -445,11 +461,12 @@ pcodlarvae3_list <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585,
                         df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585,
                         df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585)
 
-pcodlarvae_COG <- COG_time(pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list)
+pcodlarvae_COG <- COG_time(pcodlarvae_hindcast, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list)
 saveRDS(pcodlarvae_COG, here('data', 'pcodlarvae_COG'))
 
 rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl126, df_pcodlarvae1_gfdl585,
    df_pcodlarvae1_miroc126, df_pcodlarvae1_miroc585, df_pcodlarvae2_cesm126, df_pcodlarvae2_cesm585, 
    df_pcodlarvae2_gfdl126, df_pcodlarvae2_gfdl585, df_pcodlarvae2_miroc126, df_pcodlarvae2_miroc585,
    df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585, df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585,
-   df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list)
+   df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list,
+   pcod_larvae_hindcast)
