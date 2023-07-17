@@ -290,7 +290,7 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585, df_akpegg1_gfdl126, df_akpegg1_gfdl58
    df_akpegg2_gfdl126, df_akpegg2_gfdl585, df_akpegg2_miroc126, df_akpegg2_miroc585,
    df_akpegg3_cesm126, df_akpegg3_cesm585, df_akpegg3_gfdl126, df_akpegg3_gfdl585,
    df_akpegg3_miroc126, df_akpegg3_miroc585, akpegg1_list, akpegg2_list, akpegg3_list,
-   akp_egg_hindcast)
+   akpegg_hindcast)
 
 ### Larvae ----
 # Load data
@@ -379,7 +379,7 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585, df_yfslarvae1_gfdl126, df_yfsla
    df_yfslarvae2_gfdl126, df_yfslarvae2_gfdl585, df_yfslarvae2_miroc126, df_yfslarvae2_miroc585,
    df_yfslarvae3_cesm126, df_yfslarvae3_cesm585, df_yfslarvae3_gfdl126, df_yfslarvae3_gfdl585,
    df_yfslarvae3_miroc126, df_yfslarvae3_miroc585, yfslarvae1_list, yfslarvae2_list, yfslarvae3_list,
-   yfs_larvae_hindcast)
+   yfslarvae_hindcast)
 
 ## Northern Rock Sole ----
 ### Larvae ----
@@ -469,4 +469,4 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl126, df_pc
    df_pcodlarvae2_gfdl126, df_pcodlarvae2_gfdl585, df_pcodlarvae2_miroc126, df_pcodlarvae2_miroc585,
    df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585, df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585,
    df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list,
-   pcod_larvae_hindcast)
+   pcodlarvae_hindcast)
