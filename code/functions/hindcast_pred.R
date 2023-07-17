@@ -1,4 +1,5 @@
-hindcast_pred <- function(data, the_month, doy, gam){
+# Get predictions per year
+hindcast_pred <- function(data, the_year, the_month, doy, gam, roms){
   nlat = 40
   nlon = 60
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
@@ -17,21 +18,43 @@ hindcast_pred <- function(data, the_month, doy, gam){
     grid_extent$dist[k] <- min(dist)
   }
   
-  grid_extent$year <- 2011
+  grid_extent$year <- the_year
   grid_extent$doy <- rep(doy, length(grid_extent))
   grid_extent$month <- the_month
-  grid_extent$mean_temp <- mean(data$mean_temp, na.rm = TRUE)
+  grid_extent$mean_temp <- roms$mean[roms$year == 2014]
   
   grid_extent[, c(8, 9)] <- as.data.frame(RANN::nn2(data[, c('lat', 'lon')],
                                                     grid_extent[, c('lat', 'lon')],
                                                     k = 1))
   grid_extent$roms_temperature <-data[c(grid_extent$nn.idx), 11] 
-  grid_extent$roms_salinity <- data[c(grid_extent$nn.idx), 11] 
+  grid_extent$roms_salinity <- data[c(grid_extent$nn.idx), 12] 
   grid_extent <- grid_extent[-c(8, 9)] 
   grid_extent$pred <- exp(predict(gam[[2]],
                                   newdata = grid_extent,
                                   type = "link"))
   grid_extent$pred[grid_extent$dist > 30000] <- NA
-  grid_extent$pred_scaled <- rescale(grid_extent$pred, na.rm = TRUE)
   return(grid_extent)
+}
+
+# Predict all the year
+hindcast_loop <- function(range, data, doy, month, gam, roms){
+  grids <- list()
+  for(j in range) {
+    grid <- hindcast_pred(data, j, month, doy, gam, roms)
+    grids[[paste("year", j, sep = "")]] <- grid
+  }
+  df <- data.frame(lat = grids[[1]]$lat,
+                   lon = grids[[1]]$lon,
+                   avg_pred = rowMeans(do.call(cbind, lapply(grids, "[", "pred"))))
+  df$pred_scaled <- rescale(df$avg_pred)
+  return(df)
+}
+
+# Average the predictions for all year
+predict_avgs <- function(preds){
+  df <- data.frame(lat = preds[[1]]$lat,
+                   lon = preds[[1]]$lon,
+                   avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "pred"))))
+  df$pred_scaled <- rescale(df$pred)
+  return(df)
 }
