@@ -2073,7 +2073,8 @@ dev.off()
 
 Create prediction grid to compare with projections
 ```{r}
-nrs_larvae_hindcast <- hindcast_loop(1988:2014, nrs_larvae, 5, 134, nrslarvae_gams_t, roms_temps) saveRDS(nrs_larvae_hindcast, here('data', 'nrs_larvae_hindcast'))
+nrs_larvae_hindcast <- hindcast_loop(1988:2014, nrs_larvae, 5, 134, nrslarvae_gams_t, roms_temps)
+saveRDS(nrs_larvae_hindcast, here('data', 'nrs_larvae_hindcast'))
 ```
 
 VC GAM ratios
