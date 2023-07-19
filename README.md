@@ -10,9 +10,8 @@ This is part of an NPRB funded project focused on forecasting Bering Sea groundf
 #### Bering10K Bias Correction
 This process is essentially where we calibrated the Bering10K model to deal with discrepancies. The equation below shows how this was done using both the hindcasted and forecasted outputs. A set of reference years (1980 - 2014) were the time frame from which we calculated the means and standard deviations used in this equation. The mean forecasted output during the reference years was subtracted from the raw forecasted output. Then, this value was multiplied by the standard deviation of hindcasted reference years divided by the standard deviation of the forecasted reference years. The [calculations](code/bias_correction.R/) require significant computing power. 
 
-$$
-T_{future',y} = \overline{T}_{hindcast,ref} + \frac{\sigma_{hindcast,ref}}{\sigma_{future,ref}} (T_{future,y} - \overline{T}_{future,ref})
-$$
+$`T_{future',y} = \overline{T}_{hindcast,ref} + \frac{\sigma_{hindcast,ref}}{\sigma_{future,ref}} (T_{future,y} - \overline{T}_{future,ref})
+`$
 
 #### Variable Coefficient Generalized Additive Models (VGAMs)
 Other [choices](code/model_exploratory.R/) for modeling were evaluated, and we ultimately settled on using VGAMs with a Tweedie distribution. VGAMs allow a coefficient to vary with change in another variable. In this application, the coefficient is either location or day of year which varies with mean temperature over the Bering Sea continental shelf. Below is an example equation, with the last term being the variable coefficient term:
