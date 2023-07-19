@@ -16,9 +16,9 @@ $`T_{future',y} = \overline{T}_{hindcast,ref} + \frac{\sigma_{hindcast,ref}}{\si
 #### Variable Coefficient Generalized Additive Models (VGAMs)
 Other [choices](code/model_exploratory.R/) for modeling were evaluated, and we ultimately settled on using VGAMs with a Tweedie distribution. VGAMs allow a coefficient to vary with change in another variable. In this application, the coefficient is either location or day of year which varies with mean temperature over the Bering Sea continental shelf. Below is an example equation, with the last term being the variable coefficient term:
 
-$$
+$`
 log(CPUE + 1) = re(year) + s(lat, lon) + s(day\ of\ year) + s(depth) + s(SST) + s(lat, lon, by = temp)
-$$
+`$
 
 - To prepare models for projecting future distributions, we parameterized using the Bering10K hindcasts [here](code/hindcast_wROMS.Rmd/).
 - Once parameterized, [forecasts](code/projections.R/) were made for each time period, species, and life stage. Predicted abundance was averaged for each time period and for each ESM in order to get plots for each SSP.
