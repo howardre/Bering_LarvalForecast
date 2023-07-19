@@ -95,6 +95,19 @@ plot_COG <- function(COG){
          y = "Latitude")
 }
 
+lifestage_dist <- function(data1, data2){
+  d1 <- distHaversine(c(data1[[1]]$lon[1], data1[[1]]$lat[1]),
+                      c(data2[[1]]$lon[1], data2[[1]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data1[[1]]$lon[2], data1[[1]]$lat[2]),
+                      c(data2[[1]]$lon[2], data2[[1]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data1[[1]]$lon[3], data1[[1]]$lat[3]),
+                      c(data2[[1]]$lon[3], data2[[1]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data1[[1]]$lon[4], data1[[1]]$lat[4]),
+                      c(data2[[1]]$lon[4], data2[[1]]$lat[4])) / 1000
+  distances <- list(d1, d2, d3, d4)
+  return(distances)
+}
+
 ## Pollock ----
 ### Eggs ----
 # Load data
@@ -523,6 +536,8 @@ dev.off()
 pklarvae_COG[[2]]
 mean(pklarvae_COG[[1]]$distance, na.rm = TRUE)
 
+lifestage_dist(pkegg_COG, pklarvae_COG)
+
 # Flathead Sole
 plot_COG(fhsegg_COG)
 dev.copy(jpeg,
@@ -548,6 +563,8 @@ dev.off()
 fhslarvae_COG[[2]]
 mean(fhslarvae_COG[[1]]$distance, na.rm = TRUE)
 
+lifestage_dist(fhsegg_COG, fhslarvae_COG)
+
 # Alaska Plaice
 plot_COG(akpegg_COG)
 dev.copy(jpeg,
@@ -572,6 +589,8 @@ dev.copy(jpeg,
 dev.off()
 akplarvae_COG[[2]]
 mean(akplarvae_COG[[1]]$distance, na.rm = TRUE)
+
+lifestage_dist(akpegg_COG, akplarvae_COG)
 
 # Yellowfin Sole
 plot_COG(yfslarvae_COG)
