@@ -70,8 +70,10 @@ COG_time <- function(hindcast, list1, list2, list3){
   avg_dist <- mutate(avg_df,
                      distance = distHaversine(cbind(lon, lat),
                                               cbind(lag(lon), lag(lat))) / 1000)
-  
-  return(avg_dist)
+  start_dist <- distHaversine(c(avg_df$lon[1], avg_df$lat[1]),
+                              c(avg_df$lon[4], avg_df$lat[4])) / 1000
+  final_df <- list(avg_dist, start_dist)
+  return(final_df)
 }
 
 ## Pollock ----
@@ -475,4 +477,3 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl126, df_pc
    df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585, df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585,
    df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list,
    pcodlarvae_hindcast)
-
