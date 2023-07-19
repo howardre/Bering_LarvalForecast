@@ -6,6 +6,7 @@
 library(dplyr)
 library(here)
 library(geosphere)
+library(ggplot2)
 
 ## Functions ----
 # Calculate center of gravity per time period
@@ -67,13 +68,31 @@ COG_time <- function(hindcast, list1, list2, list3){
   colnames(avg_df) <- c("lat", "lon")
   rownames(avg_df) <- c("hindcast", "time1", "time2", "time3")
   avg_df <- as.data.frame(avg_df)
-  avg_dist <- mutate(avg_df,
+  avg_data <- as.data.frame(tibble::rownames_to_column(avg_df, "period"))
+  avg_dist <- mutate(avg_data,
                      distance = distHaversine(cbind(lon, lat),
                                               cbind(lag(lon), lag(lat))) / 1000)
-  start_dist <- distHaversine(c(avg_df$lon[1], avg_df$lat[1]),
-                              c(avg_df$lon[4], avg_df$lat[4])) / 1000
+  start_dist <- distHaversine(c(avg_data$lon[1], avg_data$lat[1]),
+                              c(avg_data$lon[4], avg_data$lat[4])) / 1000
   final_df <- list(avg_dist, start_dist)
   return(final_df)
+}
+
+plot_COG <- function(COG){
+  ggplot(data = COG[[1]], 
+         aes(x = lon, y = lat)) +
+    geom_point(aes(color = period), size = 4) +
+    geom_path() +
+    theme_classic() +
+    theme(axis.ticks = element_blank(),
+          axis.text = element_text(family = "serif", size = 16),
+          axis.title = element_text(family = "serif", size = 20),
+          axis.text.x = element_text(angle = 45, vjust = 0.7),
+          strip.text = element_text(family = "serif", size = 20),
+          legend.title = element_text(family = "serif", size = 18),
+          legend.text = element_text(family = "serif", size = 16)) +
+    labs(x = "Longitude",
+         y = "Latitude")
 }
 
 ## Pollock ----
@@ -477,3 +496,118 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl126, df_pc
    df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585, df_pcodlarvae3_gfdl126, df_pcodlarvae3_gfdl585,
    df_pcodlarvae3_miroc126, df_pcodlarvae3_miroc585, pcodlarvae1_list, pcodlarvae2_list, pcodlarvae3_list,
    pcodlarvae_hindcast)
+
+## Visualization and Calc ----
+# Pollock
+plot_COG(pkegg_COG)
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_egg_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+pkegg_COG[[2]]
+mean(pkegg_COG[[1]]$distance, na.rm = TRUE)
+
+plot_COG(pklarvae_COG)
+dev.copy(jpeg,
+         here('results/pollock_forecast',
+              'pollock_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+pklarvae_COG[[2]]
+mean(pklarvae_COG[[1]]$distance, na.rm = TRUE)
+
+# Flathead Sole
+plot_COG(fhsegg_COG)
+dev.copy(jpeg,
+         here('results/flathead_forecast',
+              'flathead_egg_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+fhsegg_COG[[2]]
+mean(fhsegg_COG[[1]]$distance, na.rm = TRUE)
+
+plot_COG(fhslarvae_COG)
+dev.copy(jpeg,
+         here('results/flathead_forecast',
+              'flathead_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+fhslarvae_COG[[2]]
+mean(fhslarvae_COG[[1]]$distance, na.rm = TRUE)
+
+# Alaska Plaice
+plot_COG(akpegg_COG)
+dev.copy(jpeg,
+         here('results/plaice_forecast',
+              'plaice_egg_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+akpegg_COG[[2]]
+mean(akpegg_COG[[1]]$distance, na.rm = TRUE)
+
+plot_COG(akplarvae_COG)
+dev.copy(jpeg,
+         here('results/plaice_forecast',
+              'plaice_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+akplarvae_COG[[2]]
+mean(akplarvae_COG[[1]]$distance, na.rm = TRUE)
+
+# Yellowfin Sole
+plot_COG(yfslarvae_COG)
+dev.copy(jpeg,
+         here('results/yellowfin_forecast',
+              'yellowfin_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+yfslarvae_COG[[2]]
+mean(yfslarvae_COG[[1]]$distance, na.rm = TRUE)
+
+# Northern Rock Sole
+plot_COG(nrslarvae_COG)
+dev.copy(jpeg,
+         here('results/rocksole_forecast',
+              'rocksole_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+nrslarvae_COG[[2]]
+mean(nrslarvae_COG[[1]]$distance, na.rm = TRUE)
+
+# Pacific Cod
+plot_COG(pcodlarvae_COG)
+dev.copy(jpeg,
+         here('results/cod_forecast',
+              'cod_larvae_COG.jpg'),
+         height = 6,
+         width = 6,
+         res = 200,
+         units = 'in')
+dev.off()
+pcodlarvae_COG[[2]]
+mean(pcodlarvae_COG[[1]]$distance, na.rm = TRUE)
