@@ -64,6 +64,7 @@ get_preds <- function(data, the_year, doy,
                                   type = "link",
                                   exclude = "s(year)"))
   grid_extent$pred[grid_extent$dist > 30000] <- NA
+  grid_extent$roms_temperature[grid_extent$dist > 30000] <- NA
   return(grid_extent)
 }
 
