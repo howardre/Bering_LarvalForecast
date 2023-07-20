@@ -8,6 +8,7 @@ predict_cells <- function(range, data, day,
                      salts, formula)
   df <- data.frame(lat = preds[[1]]$lat,
                    lon = preds[[1]]$lon,
+                   temperature = rowMeans(do.call(cbind, lapply(preds, "[", "roms_temperature"))),
                    avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "pred"))))
   df$pred_scaled <- rescale(df$avg_pred)
   return(df)
@@ -17,6 +18,7 @@ predict_cells <- function(range, data, day,
 predict_avgs <- function(preds){
   df <- data.frame(lat = preds[[1]]$lat,
                    lon = preds[[1]]$lon,
+                   temperature = rowMeans(do.call(cbind, lapply(preds, "[", "roms_temperature"))),
                    avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "avg_pred"))))
   df$pred_scaled <- rescale(df$avg_pred)
   return(df)
