@@ -441,6 +441,7 @@ pklarvae_COG[[2]]
 mean(pklarvae_COG[[1]]$distance, na.rm = TRUE)
 
 lifestage_dist(pkegg_COG, pklarvae_COG)
+temp_dist(pkegg_COG)
 
 # Flathead Sole
 plot_COG(fhsegg_COG)
