@@ -38,6 +38,7 @@ source(here('code/functions', 'phenology_change.R'))
 source(here('code/functions', 'distribution_change.R'))
 source(here('code/functions', 'plot_var_coef.R'))
 source(here('code/functions', 'hindcast_pred.R'))
+source(here('code/functions', 'scale_temp.R'))
 ```
 
 ```{r}
@@ -221,6 +222,7 @@ pk_egg_hindcast <- hindcast_loop(1988:2014, pk_egg, 5, 134, pkegg_gams_t, roms_t
 pk_egg_hindcast$temperature <- ifelse(between(pk_egg_hindcast$temperature, 
                                               min(pk_egg_temps$x),
                                               max(pk_egg_temps$x)), 1, 0)
+saveRDS(pk_egg_temps, here('data', 'pk_egg_temps')) # to use in predictions
 saveRDS(pk_egg_hindcast, here('data', 'pk_egg_hindcast'))
 ```
 
@@ -422,26 +424,6 @@ var_ratio_pklarvae_space_t <- (summary(pk_larvae_base_t)$scale -
 var_ratio_pklarvae_space_t #0.26
 ```
 
-```{r}
-test <- visreg::visreg(pklarvae_gams_t[[2]],
-                       type = "contrast", plot = FALSE, data = pk_larvae)
-smooths <- plyr::ldply(test, function(part)
-  data.frame(variable = part$meta$x,
-             x = part$fit[[part$meta$x]],
-             smooth = part$fit$visregFit,
-             lower = part$fit$visregLwr,
-             upper = part$fit$visregUpr))
-temp_smooth <- smooths %>%
-  filter(variable == "roms_temperature" &
-           lower > 0)
-
-ggplot(temp_smooth, aes(x, smooth)) + geom_line() +
-  geom_line(aes(y=lower), linetype="dashed") + 
-  geom_line(aes(y=upper), linetype="dashed")
-# want values above 0 but also above CI
-```
-
-
 Create prediction grid to compare with projections
 ```{r}
 pk_larvae_temps <- scale_temp(pklarvae_gams_t, pk_larvae)
@@ -449,6 +431,7 @@ pk_larvae_hindcast <- hindcast_loop(1988:2014, pk_larvae, 5, 134, pklarvae_gams_
 pk_larvae_hindcast$temperature <- ifelse(between(pk_larvae_hindcast$temperature, 
                                                  min(pk_larvae_temps$x),
                                                  max(pk_larvae_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(pk_larvae_temps, here('data', 'pk_larvae_temps'))
 saveRDS(pk_larvae_hindcast, here('data', 'pk_larvae_hindcast'))
 ```
 
@@ -667,6 +650,7 @@ fhs_egg_hindcast <- hindcast_loop(1988:2014, fhs_egg, 6, 154, fhsegg_gams_t, rom
 fhs_egg_hindcast$temperature <- ifelse(between(fhs_egg_hindcast$temperature, 
                                                  min(fhs_egg_temps$x),
                                                  max(fhs_egg_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(fhs_egg_temps, here('data', 'fhs_egg_temps'))
 saveRDS(fhs_egg_hindcast, here('data', 'fhs_egg_hindcast'))
 ```
 
@@ -860,6 +844,7 @@ fhs_larvae_hindcast <- hindcast_loop(1988:2014, fhs_larvae, 5, 138, fhslarvae_ga
 fhs_larvae_hindcast$temperature <- ifelse(between(fhs_larvae_hindcast$temperature, 
                                                  min(fhs_larvae_temps$x),
                                                  max(fhs_larvae_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(fhs_larvae_temps, here('data', 'fhs_larvae_temps'))
 saveRDS(fhs_larvae_hindcast, here('data', 'fhs_larvae_hindcast'))
 ```
 
@@ -1256,6 +1241,7 @@ yfs_larvae_hindcast <- hindcast_loop(1988:2014, yfs_larvae, 9, 254, yfslarvae_ga
 yfs_larvae_hindcast$temperature <- ifelse(between(yfs_larvae_hindcast$temperature, 
                                                  min(yfs_larvae_temps$x),
                                                  max(yfs_larvae_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(yfs_larvae_temps, here('data', 'yfs_larvae_temps'))
 saveRDS(yfs_larvae_hindcast, here('data', 'yfs_larvae_hindcast'))
 ```
 
@@ -1486,6 +1472,7 @@ akp_egg_hindcast <- hindcast_loop(1988:2014, akp_egg, 5, 134, akpegg_gams_t, rom
 akp_egg_hindcast$temperature <- ifelse(between(akp_egg_hindcast$temperature, 
                                                  min(akp_egg_temps$x),
                                                  max(akp_egg_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(akp_egg_temps, here('data', 'akp_egg_temps'))
 saveRDS(akp_egg_hindcast, here('data', 'akp_egg_hindcast'))
 ```
 
@@ -1690,6 +1677,7 @@ akp_larvae_hindcast <- hindcast_loop(1988:2014, akp_larvae, 5, 140, akplarvae_ga
 akp_larvae_hindcast$temperature <- ifelse(between(akp_larvae_hindcast$temperature, 
                                                  min(akp_larvae_temps$x),
                                                  max(akp_larvae_temps$x)), 1, 0) # check to make sure this is continuous
+saveRDS(akp_larvae_temps, here('data', 'akp_larvae_temps'))
 saveRDS(akp_larvae_hindcast, here('data', 'akp_larvae_hindcast'))
 ```
 
@@ -1900,6 +1888,7 @@ pcod_larvae_hindcast <- hindcast_loop(1988:2014, pcod_larvae, 5, 134, pcodlarvae
 pcod_larvae_hindcast$temperature <- ifelse(between(pcod_larvae_hindcast$temperature, 
                                                  min(pcod_larvae_temps$x),
                                                  max(pcod_larvae_temps$x)), 1, 0)
+saveRDS(pcod_larvae_temps, here('data', 'pcod_larvae_temps'))
 saveRDS(pcod_larvae_hindcast, here('data', 'pcod_larvae_hindcast'))
 ```
 
@@ -2092,6 +2081,7 @@ nrs_larvae_hindcast <- hindcast_loop(1988:2014, nrs_larvae, 5, 134, nrslarvae_ga
 nrs_larvae_hindcast$temperature <- ifelse(between(nrs_larvae_hindcast$temperature, 
                                                  min(nrs_larvae_temps$x),
                                                  max(nrs_larvae_temps$x)), 1, 0)
+saveRDS(nrs_larvae_temps, here('data', 'nrs_larvae_temps'))
 saveRDS(nrs_larvae_hindcast, here('data', 'nrs_larvae_hindcast'))
 ```
 
