@@ -437,8 +437,9 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
+
 pklarvae_COG[[2]]
-mean(pklarvae_COG[[1]]$distance, na.rm = TRUE)
+mean(pklarvae_COG[[2]]$distance, na.rm = TRUE)
 
 lifestage_dist(pkegg_COG, pklarvae_COG)
 temp_dist(pkegg_COG)
@@ -465,10 +466,12 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
+
 fhslarvae_COG[[2]]
-mean(fhslarvae_COG[[1]]$distance, na.rm = TRUE)
+mean(fhslarvae_COG[[2]]$distance, na.rm = TRUE)
 
 lifestage_dist(fhsegg_COG, fhslarvae_COG)
+temp_dist(fhsegg_COG)
 
 # Alaska Plaice
 plot_COG(akpegg_COG)
