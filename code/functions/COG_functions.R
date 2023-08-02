@@ -160,14 +160,14 @@ lifestage_dist <- function(data1, data2){
 }
 
 temp_dist <- function(data){
-  d1 <- distHaversine(c(data[[1]]$lon[1], data[[2]]$lat[1]),
-                      c(data[[1]]$lon[1], data[[2]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data[[1]]$lon[2], data[[2]]$lat[2]),
-                      c(data[[1]]$lon[2], data[[2]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data[[1]]$lon[3], data[[2]]$lat[3]),
-                      c(data[[1]]$lon[3], data[[2]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data[[1]]$lon[4], data[[2]]$lat[4]),
-                      c(data[[1]]$lon[4], data[[2]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data[[1]]$lon[1], data[[1]]$lat[1]),
+                      c(data[[2]]$lon[1], data[[2]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data[[1]]$lon[2], data[[1]]$lat[2]),
+                      c(data[[2]]$lon[2], data[[2]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data[[1]]$lon[3], data[[1]]$lat[3]),
+                      c(data[[2]]$lon[3], data[[2]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data[[1]]$lon[4], data[[1]]$lat[4]),
+                      c(data[[2]]$lon[4], data[[2]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
 }
