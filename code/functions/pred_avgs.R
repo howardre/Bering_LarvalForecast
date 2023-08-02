@@ -2,7 +2,7 @@
 # Initial yearly predictions
 predict_cells <- function(range, data, day,
                           month, scenario, temps,
-                          salts, formula){
+                          salts, formula, temp_range){
   preds <- pred_loop(range, data, day,
                      month, scenario, temps,
                      salts, formula)
@@ -11,6 +11,9 @@ predict_cells <- function(range, data, day,
                    temperature = rowMeans(do.call(cbind, lapply(preds, "[", "roms_temperature"))),
                    avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "pred"))))
   df$pred_scaled <- rescale(df$avg_pred)
+  df$temperature <- ifelse(between(df$temperature, 
+                                   min(temp_range$x),
+                                   max(temp_range$x)), 1, 0)
   return(df)
 }
 

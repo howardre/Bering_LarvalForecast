@@ -72,6 +72,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
+pk_egg_temps <- readRDS(here('data', 'pk_egg_temps'))
 pkegg_formula <- gam(catch ~ s(year, bs = 're') +
                        s(doy, k = 9, bs = "tp", m = 1) +
                        te(lon, lat, bs = "tp", m = 1) +
@@ -89,7 +90,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_pkegg1_cesm126 <- predict_cells(2015:2039, pk_egg, 134,
                                    5, 'ssp126', cesm_temps1,
-                                   cesm_salts1, pkegg_formula)
+                                   cesm_salts1, pkegg_formula,
+                                   pk_egg_temps)
 saveRDS(df_pkegg1_cesm126, file = here("data", "df_pkegg1_cesm126.rds"))
 
 # Plot
@@ -111,7 +113,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_pkegg2_cesm126 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp126', cesm_temps2, 
-                                cesm_salts2, pkegg_formula)
+                                cesm_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_cesm126, file = here("data", "df_pkegg2_cesm126.rds"))
 
 # Plot
@@ -133,7 +136,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_pkegg3_cesm126 <- predict_cells(2070:2099, pk_egg, 134,
                                 5, 'ssp126', cesm_temps3, 
-                                cesm_salts3, pkegg_formula)
+                                cesm_salts3, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg3_cesm126, file = here("data", "df_pkegg3_cesm126.rds"))
 
 # Plot
@@ -154,7 +158,8 @@ dev.off()
 ## 2015 - 2039
 df_pkegg1_cesm585 <- predict_cells(2015:2039, pk_egg, 134,
                                 5, 'ssp585', cesm_temps1, 
-                                cesm_salts1, pkegg_formula)
+                                cesm_salts1, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg1_cesm585, file = here("data", "df_pkegg1_cesm585.rds"))
 
 # Plot
@@ -173,7 +178,8 @@ dev.off()
 ## 2040 - 2069
 df_pkegg2_cesm585 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp585', cesm_temps2, 
-                                cesm_salts2, pkegg_formula)
+                                cesm_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_cesm585, file = here("data", "df_pkegg2_cesm585.rds"))
 
 # Plot
@@ -192,7 +198,8 @@ dev.off()
 ## 2070 - 2099
 df_pkegg3_cesm585 <- predict_cells(2070:2099, pk_egg, 134,
                                 5, 'ssp585', cesm_temps3, 
-                                cesm_salts3, pkegg_formula)
+                                cesm_salts3, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg3_cesm585, file = here("data", "df_pkegg3_cesm585.rds"))
 
 # Plot
@@ -218,7 +225,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_pkegg1_gfdl126 <- predict_cells(2015:2039, pk_egg, 134,
                                 5, 'ssp126', gfdl_temps1, 
-                                gfdl_salts1, pkegg_formula)
+                                gfdl_salts1, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg1_gfdl126, file = here("data", "df_pkegg1_gfdl126.rds"))
 
 # Plot
@@ -240,7 +248,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_pkegg2_gfdl126 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp126', gfdl_temps2, 
-                                gfdl_salts2, pkegg_formula)
+                                gfdl_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_gfdl126, file = here("data", "df_pkegg2_gfdl126.rds"))
 
 # Plot
@@ -262,7 +271,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_pkegg3_gfdl126 <- predict_cells(2070:2099, pk_egg, 134,
                                 5, 'ssp126', gfdl_temps3, 
-                                gfdl_salts3, pkegg_formula)
+                                gfdl_salts3, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg3_gfdl126, file = here("data", "df_pkegg3_gfdl126.rds"))
 
 # Plot
@@ -283,7 +293,8 @@ dev.off()
 ## 2015 - 2039
 df_pkegg1_gfdl585 <- predict_cells(2015:2039, pk_egg, 134,
                                 5, 'ssp585', gfdl_temps1, 
-                                gfdl_salts1, pkegg_formula)
+                                gfdl_salts1, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg1_gfdl585, file = here("data", "df_pkegg1_gfdl585.rds"))
 
 # Plot
@@ -302,7 +313,8 @@ dev.off()
 ## 2040 - 2069
 df_pkegg2_gfdl585 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp585', gfdl_temps2, 
-                                gfdl_salts2, pkegg_formula)
+                                gfdl_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_gfdl585, file = here("data", "df_pkegg2_gfdl585.rds"))
 
 # Plot
@@ -321,7 +333,8 @@ dev.off()
 ## 2070 - 2099
 df_pkegg3_gfdl585 <- predict_cells(2070:2099, pk_egg, 134,
                                 5, 'ssp585', gfdl_temps3, 
-                                gfdl_salts3, pkegg_formula)
+                                gfdl_salts3, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg3_gfdl585, file = here("data", "df_pkegg3_gfdl585.rds"))
 
 # Plot
@@ -347,7 +360,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_pkegg1_miroc126 <- predict_cells(2015:2039, pk_egg, 134,
                                 5, 'ssp126', miroc_temps1, 
-                                miroc_salts1, pkegg_formula)
+                                miroc_salts1, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg1_miroc126, file = here("data", "df_pkegg1_miroc126.rds"))
 
 # Plot
@@ -369,7 +383,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_pkegg2_miroc126 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp126', miroc_temps2, 
-                                miroc_salts2, pkegg_formula)
+                                miroc_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_miroc126, file = here("data", "df_pkegg2_miroc126.rds"))
 
 # Plot
@@ -391,7 +406,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_pkegg3_miroc126 <- predict_cells(2070:2099, pk_egg, 134,
                                 5, 'ssp126', miroc_temps3, 
-                                miroc_salts3, pkegg_formula)
+                                miroc_salts3, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg3_miroc126, file = here("data", "df_pkegg3_miroc126.rds"))
 
 # Plot
@@ -412,7 +428,8 @@ dev.off()
 ## 2015 - 2039
 df_pkegg1_miroc585 <- predict_cells(2015:2039, pk_egg, 134,
                                 5, 'ssp585', miroc_temps1, 
-                                miroc_salts1, pkegg_formula)
+                                miroc_salts1, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg1_miroc585, file = here("data", "df_pkegg1_miroc585.rds"))
 
 # Plot
@@ -431,7 +448,8 @@ dev.off()
 ## 2040 - 2069
 df_pkegg2_miroc585 <- predict_cells(2040:2069, pk_egg, 134,
                                 5, 'ssp585', miroc_temps2, 
-                                miroc_salts2, pkegg_formula)
+                                miroc_salts2, pkegg_formula,
+                                pk_egg_temps)
 saveRDS(df_pkegg2_miroc585, file = here("data", "df_pkegg2_miroc585.rds"))
 
 # Plot
@@ -450,7 +468,8 @@ dev.off()
 ## 2070 - 2099
 df_pkegg3_miroc585 <- predict_cells(2070:2099, pk_egg, 134,
                                     5, 'ssp585', miroc_temps3,
-                                    miroc_salts3, pkegg_formula)
+                                    miroc_salts3, pkegg_formula,
+                                    pk_egg_temps)
 saveRDS(df_pkegg3_miroc585, file = here("data", "df_pkegg3_miroc585.rds"))
 
 # Plot
@@ -729,7 +748,7 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
    df_pkegg_miroc2, df_pkegg_miroc3,
    pk_egg, pkegg_formula, pkegg_img_animated,
    pkegg_dir_out, pkegg_img_joined, 
-   pkegg_img_list, pkegg_imgs, 
+   pkegg_img_list, pkegg_imgs, pk_egg_temps,
    df_pkegg_low1, df_pkegg_low2, df_pkegg_low3,
    df_pkegg_high1, df_pkegg_high2, df_pkegg_low3,
    avg_pkegg_low1, avg_pkegg_low2, avg_pkegg_low3,
@@ -738,6 +757,7 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
 
 ### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
 pk_larvae <- load_data('pk_larvae.rds', pk_larvae, roms_temps)
+pk_larvae_temps <- readRDS(here('data', 'pk_larvae_temps'))
 pklarvae_formula <- formula_geog(pk_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -748,7 +768,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_pklarvae1_cesm126 <- predict_cells(2015:2039, pk_larvae, 134,
                                    5, 'ssp126', cesm_temps1,
-                                   cesm_salts1, pklarvae_formula)
+                                   cesm_salts1, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae1_cesm126, file = here("data", "df_pklarvae1_cesm126.rds"))
 
 # Plot
@@ -770,7 +791,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_pklarvae2_cesm126 <- predict_cells(2040:2069, pk_larvae, 134,
                                    5, 'ssp126', cesm_temps2, 
-                                   cesm_salts2, pklarvae_formula)
+                                   cesm_salts2, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae2_cesm126, file = here("data", "df_pklarvae2_cesm126.rds"))
 
 # Plot
@@ -792,7 +814,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_pklarvae3_cesm126 <- predict_cells(2070:2099, pk_larvae, 134,
                                    5, 'ssp126', cesm_temps3, 
-                                   cesm_salts3, pklarvae_formula)
+                                   cesm_salts3, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae3_cesm126, file = here("data", "df_pklarvae3_cesm126.rds"))
 
 # Plot
@@ -813,7 +836,8 @@ dev.off()
 ## 2015 - 2039
 df_pklarvae1_cesm585 <- predict_cells(2015:2039, pk_larvae, 134,
                                    5, 'ssp585', cesm_temps1, 
-                                   cesm_salts1, pklarvae_formula)
+                                   cesm_salts1, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae1_cesm585, file = here("data", "df_pklarvae1_cesm585.rds"))
 
 # Plot
@@ -832,7 +856,8 @@ dev.off()
 ## 2040 - 2069
 df_pklarvae2_cesm585 <- predict_cells(2040:2069, pk_larvae, 134,
                                    5, 'ssp585', cesm_temps2, 
-                                   cesm_salts2, pklarvae_formula)
+                                   cesm_salts2, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae2_cesm585, file = here("data", "df_pklarvae2_cesm585.rds"))
 
 # Plot
@@ -851,7 +876,8 @@ dev.off()
 ## 2070 - 2099
 df_pklarvae3_cesm585 <- predict_cells(2070:2099, pk_larvae, 134,
                                    5, 'ssp585', cesm_temps3, 
-                                   cesm_salts3, pklarvae_formula)
+                                   cesm_salts3, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae3_cesm585, file = here("data", "df_pklarvae3_cesm585.rds"))
 
 # Plot
@@ -877,7 +903,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_pklarvae1_gfdl126 <- predict_cells(2015:2039, pk_larvae, 134,
                                    5, 'ssp126', gfdl_temps1, 
-                                   gfdl_salts1, pklarvae_formula)
+                                   gfdl_salts1, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae1_gfdl126, file = here("data", "df_pklarvae1_gfdl126.rds"))
 
 # Plot
@@ -899,7 +926,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_pklarvae2_gfdl126 <- predict_cells(2040:2069, pk_larvae, 134,
                                    5, 'ssp126', gfdl_temps2, 
-                                   gfdl_salts2, pklarvae_formula)
+                                   gfdl_salts2, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae2_gfdl126, file = here("data", "df_pklarvae2_gfdl126.rds"))
 
 # Plot
@@ -921,7 +949,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_pklarvae3_gfdl126 <- predict_cells(2070:2099, pk_larvae, 134,
                                    5, 'ssp126', gfdl_temps3, 
-                                   gfdl_salts3, pklarvae_formula)
+                                   gfdl_salts3, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae3_gfdl126, file = here("data", "df_pklarvae3_gfdl126.rds"))
 
 # Plot
@@ -942,7 +971,8 @@ dev.off()
 ## 2015 - 2039
 df_pklarvae1_gfdl585 <- predict_cells(2015:2039, pk_larvae, 134,
                                    5, 'ssp585', gfdl_temps1, 
-                                   gfdl_salts1, pklarvae_formula)
+                                   gfdl_salts1, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae1_gfdl585, file = here("data", "df_pklarvae1_gfdl585.rds"))
 
 # Plot
@@ -961,7 +991,8 @@ dev.off()
 ## 2040 - 2069
 df_pklarvae2_gfdl585 <- predict_cells(2040:2069, pk_larvae, 134,
                                    5, 'ssp585', gfdl_temps2, 
-                                   gfdl_salts2, pklarvae_formula)
+                                   gfdl_salts2, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae2_gfdl585, file = here("data", "df_pklarvae2_gfdl585.rds"))
 
 # Plot
@@ -980,7 +1011,8 @@ dev.off()
 ## 2070 - 2099
 df_pklarvae3_gfdl585 <- predict_cells(2070:2099, pk_larvae, 134,
                                    5, 'ssp585', gfdl_temps3, 
-                                   gfdl_salts3, pklarvae_formula)
+                                   gfdl_salts3, pklarvae_formula,
+                                   pk_larvae_temps)
 saveRDS(df_pklarvae3_gfdl585, file = here("data", "df_pklarvae3_gfdl585.rds"))
 
 # Plot
@@ -1006,7 +1038,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_pklarvae1_miroc126 <- predict_cells(2015:2039, pk_larvae, 134,
                                     5, 'ssp126', miroc_temps1, 
-                                    miroc_salts1, pklarvae_formula)
+                                    miroc_salts1, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae1_miroc126, file = here("data", "df_pklarvae1_miroc126.rds"))
 
 # Plot
@@ -1028,7 +1061,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_pklarvae2_miroc126 <- predict_cells(2040:2069, pk_larvae, 134,
                                     5, 'ssp126', miroc_temps2, 
-                                    miroc_salts2, pklarvae_formula)
+                                    miroc_salts2, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae2_miroc126, file = here("data", "df_pklarvae2_miroc126.rds"))
 
 # Plot
@@ -1050,7 +1084,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_pklarvae3_miroc126 <- predict_cells(2070:2099, pk_larvae, 134,
                                     5, 'ssp126', miroc_temps3, 
-                                    miroc_salts3, pklarvae_formula)
+                                    miroc_salts3, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae3_miroc126, file = here("data", "df_pklarvae3_miroc126.rds"))
 
 # Plot
@@ -1071,7 +1106,8 @@ dev.off()
 ## 2015 - 2039
 df_pklarvae1_miroc585 <- predict_cells(2015:2039, pk_larvae, 134,
                                     5, 'ssp585', miroc_temps1, 
-                                    miroc_salts1, pklarvae_formula)
+                                    miroc_salts1, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae1_miroc585, file = here("data", "df_pklarvae1_miroc585.rds"))
 
 # Plot
@@ -1090,7 +1126,8 @@ dev.off()
 ## 2040 - 2069
 df_pklarvae2_miroc585 <- predict_cells(2040:2069, pk_larvae, 134,
                                     5, 'ssp585', miroc_temps2, 
-                                    miroc_salts2, pklarvae_formula)
+                                    miroc_salts2, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae2_miroc585, file = here("data", "df_pklarvae2_miroc585.rds"))
 
 # Plot
@@ -1109,7 +1146,8 @@ dev.off()
 ## 2070 - 2099
 df_pklarvae3_miroc585 <- predict_cells(2070:2099, pk_larvae, 134,
                                     5, 'ssp585', miroc_temps3,
-                                    miroc_salts3, pklarvae_formula)
+                                    miroc_salts3, pklarvae_formula,
+                                    pk_larvae_temps)
 saveRDS(df_pklarvae3_miroc585, file = here("data", "df_pklarvae3_miroc585.rds"))
 
 # Plot
@@ -1388,7 +1426,7 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
    df_pklarvae_miroc2, df_pklarvae_miroc3,
    pk_larvae, pklarvae_formula, pklarvae_img_animated,
    pklarvae_dir_out, pklarvae_img_joined, 
-   pklarvae_img_list, pklarvae_imgs, 
+   pklarvae_img_list, pklarvae_imgs, pk_larvae_temps,
    df_pklarvae_low1, df_pklarvae_low2, df_pklarvae_low3,
    df_pklarvae_high1, df_pklarvae_high2, df_pklarvae_low3,
    avg_pklarvae_low1, avg_pklarvae_low2, avg_pklarvae_low3,
@@ -1396,6 +1434,7 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
 
 ### Flathead Eggs --------------------------------------------------------------------------------------------------------------------------
 fhs_egg <- load_data('fhs_egg.rds', fhs_egg, roms_temps)
+fhs_egg_temps <- readRDS(here('data', 'fhs_egg_temps'))
 fhsegg_formula <- formula_geog(fhs_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -1406,7 +1445,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_fhsegg1_cesm126 <- predict_cells(2015:2039, fhs_egg, 154,
                                    6, 'ssp126', cesm_temps1,
-                                   cesm_salts1, fhsegg_formula)
+                                   cesm_salts1, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg1_cesm126, file = here("data", "df_fhsegg1_cesm126.rds"))
 
 # Plot
@@ -1428,7 +1468,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_fhsegg2_cesm126 <- predict_cells(2040:2069, fhs_egg, 154,
                                    6, 'ssp126', cesm_temps2, 
-                                   cesm_salts2, fhsegg_formula)
+                                   cesm_salts2, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg2_cesm126, file = here("data", "df_fhsegg2_cesm126.rds"))
 
 # Plot
@@ -1450,7 +1491,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_fhsegg3_cesm126 <- predict_cells(2070:2099, fhs_egg, 154,
                                    6, 'ssp126', cesm_temps3, 
-                                   cesm_salts3, fhsegg_formula)
+                                   cesm_salts3, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg3_cesm126, file = here("data", "df_fhsegg3_cesm126.rds"))
 
 # Plot
@@ -1471,7 +1513,8 @@ dev.off()
 ## 2015 - 2039
 df_fhsegg1_cesm585 <- predict_cells(2015:2039, fhs_egg, 154,
                                    6, 'ssp585', cesm_temps1, 
-                                   cesm_salts1, fhsegg_formula)
+                                   cesm_salts1, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg1_cesm585, file = here("data", "df_fhsegg1_cesm585.rds"))
 
 # Plot
@@ -1490,7 +1533,8 @@ dev.off()
 ## 2040 - 2069
 df_fhsegg2_cesm585 <- predict_cells(2040:2069, fhs_egg, 154,
                                    6, 'ssp585', cesm_temps2, 
-                                   cesm_salts2, fhsegg_formula)
+                                   cesm_salts2, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg2_cesm585, file = here("data", "df_fhsegg2_cesm585.rds"))
 
 # Plot
@@ -1509,7 +1553,8 @@ dev.off()
 ## 2070 - 2099
 df_fhsegg3_cesm585 <- predict_cells(2070:2099, fhs_egg, 154,
                                    6, 'ssp585', cesm_temps3, 
-                                   cesm_salts3, fhsegg_formula)
+                                   cesm_salts3, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg3_cesm585, file = here("data", "df_fhsegg3_cesm585.rds"))
 
 # Plot
@@ -1535,7 +1580,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_fhsegg1_gfdl126 <- predict_cells(2015:2039, fhs_egg, 154,
                                    6, 'ssp126', gfdl_temps1, 
-                                   gfdl_salts1, fhsegg_formula)
+                                   gfdl_salts1, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg1_gfdl126, file = here("data", "df_fhsegg1_gfdl126.rds"))
 
 # Plot
@@ -1557,7 +1603,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_fhsegg2_gfdl126 <- predict_cells(2040:2069, fhs_egg, 154,
                                    6, 'ssp126', gfdl_temps2, 
-                                   gfdl_salts2, fhsegg_formula)
+                                   gfdl_salts2, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg2_gfdl126, file = here("data", "df_fhsegg2_gfdl126.rds"))
 
 # Plot
@@ -1579,7 +1626,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_fhsegg3_gfdl126 <- predict_cells(2070:2099, fhs_egg, 154,
                                    6, 'ssp126', gfdl_temps3, 
-                                   gfdl_salts3, fhsegg_formula)
+                                   gfdl_salts3, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg3_gfdl126, file = here("data", "df_fhsegg3_gfdl126.rds"))
 
 # Plot
@@ -1600,7 +1648,8 @@ dev.off()
 ## 2015 - 2039
 df_fhsegg1_gfdl585 <- predict_cells(2015:2039, fhs_egg, 154,
                                    6, 'ssp585', gfdl_temps1, 
-                                   gfdl_salts1, fhsegg_formula)
+                                   gfdl_salts1, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg1_gfdl585, file = here("data", "df_fhsegg1_gfdl585.rds"))
 
 # Plot
@@ -1619,7 +1668,8 @@ dev.off()
 ## 2040 - 2069
 df_fhsegg2_gfdl585 <- predict_cells(2040:2069, fhs_egg, 154,
                                    6, 'ssp585', gfdl_temps2, 
-                                   gfdl_salts2, fhsegg_formula)
+                                   gfdl_salts2, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg2_gfdl585, file = here("data", "df_fhsegg2_gfdl585.rds"))
 
 # Plot
@@ -1638,7 +1688,8 @@ dev.off()
 ## 2070 - 2099
 df_fhsegg3_gfdl585 <- predict_cells(2070:2099, fhs_egg, 154,
                                    6, 'ssp585', gfdl_temps3, 
-                                   gfdl_salts3, fhsegg_formula)
+                                   gfdl_salts3, fhsegg_formula,
+                                   fhs_egg_temps)
 saveRDS(df_fhsegg3_gfdl585, file = here("data", "df_fhsegg3_gfdl585.rds"))
 
 # Plot
@@ -1664,7 +1715,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_fhsegg1_miroc126 <- predict_cells(2015:2039, fhs_egg, 154,
                                     6, 'ssp126', miroc_temps1, 
-                                    miroc_salts1, fhsegg_formula)
+                                    miroc_salts1, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg1_miroc126, file = here("data", "df_fhsegg1_miroc126.rds"))
 
 # Plot
@@ -1686,7 +1738,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_fhsegg2_miroc126 <- predict_cells(2040:2069, fhs_egg, 154,
                                     6, 'ssp126', miroc_temps2, 
-                                    miroc_salts2, fhsegg_formula)
+                                    miroc_salts2, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg2_miroc126, file = here("data", "df_fhsegg2_miroc126.rds"))
 
 # Plot
@@ -1708,7 +1761,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_fhsegg3_miroc126 <- predict_cells(2070:2099, fhs_egg, 154,
                                     6, 'ssp126', miroc_temps3, 
-                                    miroc_salts3, fhsegg_formula)
+                                    miroc_salts3, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg3_miroc126, file = here("data", "df_fhsegg3_miroc126.rds"))
 
 # Plot
@@ -1729,7 +1783,8 @@ dev.off()
 ## 2015 - 2039
 df_fhsegg1_miroc585 <- predict_cells(2015:2039, fhs_egg, 154,
                                     6, 'ssp585', miroc_temps1, 
-                                    miroc_salts1, fhsegg_formula)
+                                    miroc_salts1, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg1_miroc585, file = here("data", "df_fhsegg1_miroc585.rds"))
 
 # Plot
@@ -1748,7 +1803,8 @@ dev.off()
 ## 2040 - 2069
 df_fhsegg2_miroc585 <- predict_cells(2040:2069, fhs_egg, 154,
                                     6, 'ssp585', miroc_temps2, 
-                                    miroc_salts2, fhsegg_formula)
+                                    miroc_salts2, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg2_miroc585, file = here("data", "df_fhsegg2_miroc585.rds"))
 
 # Plot
@@ -1767,7 +1823,8 @@ dev.off()
 ## 2070 - 2099
 df_fhsegg3_miroc585 <- predict_cells(2070:2099, fhs_egg, 154,
                                     6, 'ssp585', miroc_temps3,
-                                    miroc_salts3, fhsegg_formula)
+                                    miroc_salts3, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg3_miroc585, file = here("data", "df_fhsegg3_miroc585.rds"))
 
 # Plot
@@ -2046,7 +2103,7 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
    df_fhsegg_miroc2, df_fhsegg_miroc3,
    fhs_egg, fhsegg_formula, fhsegg_img_animated,
    fhsegg_dir_out, fhsegg_img_joined, 
-   fhsegg_img_list, fhsegg_imgs, 
+   fhsegg_img_list, fhsegg_imgs, fhs_egg_temps,
    df_fhsegg_low1, df_fhsegg_low2, df_fhsegg_low3,
    df_fhsegg_high1, df_fhsegg_high2, df_fhsegg_low3,
    avg_fhsegg_low1, avg_fhsegg_low2, avg_fhsegg_low3,
@@ -2055,6 +2112,7 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
 
 ### Flathead Larvae --------------------------------------------------------------------------------------------------------------------------
 fhs_larvae <- load_data('fhs_larvae.rds', fhs_larvae, roms_temps)
+fhs_larvae_temps <- readRDS(here('data', 'fhs_larvae_temps'))
 fhslarvae_formula <- formula_geog(fhs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -2065,7 +2123,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_fhslarvae1_cesm126 <- predict_cells(2015:2039, fhs_larvae, 138,
                                       5, 'ssp126', cesm_temps1,
-                                      cesm_salts1, fhslarvae_formula)
+                                      cesm_salts1, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae1_cesm126, file = here("data", "df_fhslarvae1_cesm126.rds"))
 
 # Plot
@@ -2087,7 +2146,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_fhslarvae2_cesm126 <- predict_cells(2040:2069, fhs_larvae, 138,
                                       5, 'ssp126', cesm_temps2, 
-                                      cesm_salts2, fhslarvae_formula)
+                                      cesm_salts2, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae2_cesm126, file = here("data", "df_fhslarvae2_cesm126.rds"))
 
 # Plot
@@ -2109,7 +2169,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_fhslarvae3_cesm126 <- predict_cells(2070:2099, fhs_larvae, 138,
                                       5, 'ssp126', cesm_temps3, 
-                                      cesm_salts3, fhslarvae_formula)
+                                      cesm_salts3, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae3_cesm126, file = here("data", "df_fhslarvae3_cesm126.rds"))
 
 # Plot
@@ -2130,7 +2191,8 @@ dev.off()
 ## 2015 - 2039
 df_fhslarvae1_cesm585 <- predict_cells(2015:2039, fhs_larvae, 138,
                                       5, 'ssp585', cesm_temps1, 
-                                      cesm_salts1, fhslarvae_formula)
+                                      cesm_salts1, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae1_cesm585, file = here("data", "df_fhslarvae1_cesm585.rds"))
 
 # Plot
@@ -2149,7 +2211,8 @@ dev.off()
 ## 2040 - 2069
 df_fhslarvae2_cesm585 <- predict_cells(2040:2069, fhs_larvae, 138,
                                       5, 'ssp585', cesm_temps2, 
-                                      cesm_salts2, fhslarvae_formula)
+                                      cesm_salts2, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae2_cesm585, file = here("data", "df_fhslarvae2_cesm585.rds"))
 
 # Plot
@@ -2168,7 +2231,8 @@ dev.off()
 ## 2070 - 2099
 df_fhslarvae3_cesm585 <- predict_cells(2070:2099, fhs_larvae, 138,
                                       5, 'ssp585', cesm_temps3, 
-                                      cesm_salts3, fhslarvae_formula)
+                                      cesm_salts3, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae3_cesm585, file = here("data", "df_fhslarvae3_cesm585.rds"))
 
 # Plot
@@ -2194,7 +2258,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_fhslarvae1_gfdl126 <- predict_cells(2015:2039, fhs_larvae, 138,
                                       5, 'ssp126', gfdl_temps1, 
-                                      gfdl_salts1, fhslarvae_formula)
+                                      gfdl_salts1, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae1_gfdl126, file = here("data", "df_fhslarvae1_gfdl126.rds"))
 
 # Plot
@@ -2216,7 +2281,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_fhslarvae2_gfdl126 <- predict_cells(2040:2069, fhs_larvae, 138,
                                       5, 'ssp126', gfdl_temps2, 
-                                      gfdl_salts2, fhslarvae_formula)
+                                      gfdl_salts2, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae2_gfdl126, file = here("data", "df_fhslarvae2_gfdl126.rds"))
 
 # Plot
@@ -2238,7 +2304,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_fhslarvae3_gfdl126 <- predict_cells(2070:2099, fhs_larvae, 138,
                                       5, 'ssp126', gfdl_temps3, 
-                                      gfdl_salts3, fhslarvae_formula)
+                                      gfdl_salts3, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae3_gfdl126, file = here("data", "df_fhslarvae3_gfdl126.rds"))
 
 # Plot
@@ -2259,7 +2326,8 @@ dev.off()
 ## 2015 - 2039
 df_fhslarvae1_gfdl585 <- predict_cells(2015:2039, fhs_larvae, 138,
                                       5, 'ssp585', gfdl_temps1, 
-                                      gfdl_salts1, fhslarvae_formula)
+                                      gfdl_salts1, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae1_gfdl585, file = here("data", "df_fhslarvae1_gfdl585.rds"))
 
 # Plot
@@ -2278,7 +2346,8 @@ dev.off()
 ## 2040 - 2069
 df_fhslarvae2_gfdl585 <- predict_cells(2040:2069, fhs_larvae, 138,
                                       5, 'ssp585', gfdl_temps2, 
-                                      gfdl_salts2, fhslarvae_formula)
+                                      gfdl_salts2, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae2_gfdl585, file = here("data", "df_fhslarvae2_gfdl585.rds"))
 
 # Plot
@@ -2297,7 +2366,8 @@ dev.off()
 ## 2070 - 2099
 df_fhslarvae3_gfdl585 <- predict_cells(2070:2099, fhs_larvae, 138,
                                       5, 'ssp585', gfdl_temps3, 
-                                      gfdl_salts3, fhslarvae_formula)
+                                      gfdl_salts3, fhslarvae_formula,
+                                      fhs_larvae_temps)
 saveRDS(df_fhslarvae3_gfdl585, file = here("data", "df_fhslarvae3_gfdl585.rds"))
 
 # Plot
@@ -2323,7 +2393,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_fhslarvae1_miroc126 <- predict_cells(2015:2039, fhs_larvae, 138,
                                        5, 'ssp126', miroc_temps1, 
-                                       miroc_salts1, fhslarvae_formula)
+                                       miroc_salts1, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae1_miroc126, file = here("data", "df_fhslarvae1_miroc126.rds"))
 
 # Plot
@@ -2345,7 +2416,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_fhslarvae2_miroc126 <- predict_cells(2040:2069, fhs_larvae, 138,
                                        5, 'ssp126', miroc_temps2, 
-                                       miroc_salts2, fhslarvae_formula)
+                                       miroc_salts2, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae2_miroc126, file = here("data", "df_fhslarvae2_miroc126.rds"))
 
 # Plot
@@ -2367,7 +2439,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_fhslarvae3_miroc126 <- predict_cells(2070:2099, fhs_larvae, 138,
                                        5, 'ssp126', miroc_temps3, 
-                                       miroc_salts3, fhslarvae_formula)
+                                       miroc_salts3, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae3_miroc126, file = here("data", "df_fhslarvae3_miroc126.rds"))
 
 # Plot
@@ -2388,7 +2461,8 @@ dev.off()
 ## 2015 - 2039
 df_fhslarvae1_miroc585 <- predict_cells(2015:2039, fhs_larvae, 138,
                                        5, 'ssp585', miroc_temps1, 
-                                       miroc_salts1, fhslarvae_formula)
+                                       miroc_salts1, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae1_miroc585, file = here("data", "df_fhslarvae1_miroc585.rds"))
 
 # Plot
@@ -2407,7 +2481,8 @@ dev.off()
 ## 2040 - 2069
 df_fhslarvae2_miroc585 <- predict_cells(2040:2069, fhs_larvae, 138,
                                        5, 'ssp585', miroc_temps2, 
-                                       miroc_salts2, fhslarvae_formula)
+                                       miroc_salts2, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae2_miroc585, file = here("data", "df_fhslarvae2_miroc585.rds"))
 
 # Plot
@@ -2426,7 +2501,8 @@ dev.off()
 ## 2070 - 2099
 df_fhslarvae3_miroc585 <- predict_cells(2070:2099, fhs_larvae, 138,
                                        5, 'ssp585', miroc_temps3,
-                                       miroc_salts3, fhslarvae_formula)
+                                       miroc_salts3, fhslarvae_formula,
+                                       fhs_larvae_temps)
 saveRDS(df_fhslarvae3_miroc585, file = here("data", "df_fhslarvae3_miroc585.rds"))
 
 # Plot
@@ -2705,7 +2781,7 @@ rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
    df_fhlarvae_miroc2, df_fhlarvae_miroc3,
    fhs_larvae, fhlarvae_formula, fhlarvae_img_animated,
    fhlarvae_dir_out, fhlarvae_img_joined, 
-   fhlarvae_img_list, fhlarvae_imgs, 
+   fhlarvae_img_list, fhlarvae_imgs, fhs_larvae_temps,
    df_fhslarvae_low1, df_fhslarvae_low2, df_fhslarvae_low3,
    df_fhslarvae_high1, df_fhslarvae_high2, df_fhslarvae_low3,
    avg_fhslarvae_low1, avg_fhslarvae_low2, avg_fhslarvae_low3,
@@ -2713,6 +2789,7 @@ rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
 
 ### Alaska Plaice Eggs --------------------------------------------------------------------------------------------------------------------------
 akp_egg <- load_data('akp_egg.rds', akp_egg, roms_temps)
+akp_egg_temps <- readRDS(here('data', 'akp_egg_temps'))
 akpegg_formula <- formula_geog(akp_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -2723,7 +2800,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_akpegg1_cesm126 <- predict_cells(2015:2039, akp_egg, 134,
                                    5, 'ssp126', cesm_temps1,
-                                   cesm_salts1, akpegg_formula)
+                                   cesm_salts1, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg1_cesm126, file = here("data", "df_akpegg1_cesm126.rds"))
 
 # Plot
@@ -2745,7 +2823,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_akpegg2_cesm126 <- predict_cells(2040:2069, akp_egg, 134,
                                    5, 'ssp126', cesm_temps2, 
-                                   cesm_salts2, akpegg_formula)
+                                   cesm_salts2, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg2_cesm126, file = here("data", "df_akpegg2_cesm126.rds"))
 
 # Plot
@@ -2767,7 +2846,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_akpegg3_cesm126 <- predict_cells(2070:2099, akp_egg, 134,
                                    5, 'ssp126', cesm_temps3, 
-                                   cesm_salts3, akpegg_formula)
+                                   cesm_salts3, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg3_cesm126, file = here("data", "df_akpegg3_cesm126.rds"))
 
 # Plot
@@ -2788,7 +2868,8 @@ dev.off()
 ## 2015 - 2039
 df_akpegg1_cesm585 <- predict_cells(2015:2039, akp_egg, 134,
                                    5, 'ssp585', cesm_temps1, 
-                                   cesm_salts1, akpegg_formula)
+                                   cesm_salts1, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg1_cesm585, file = here("data", "df_akpegg1_cesm585.rds"))
 
 # Plot
@@ -2807,7 +2888,8 @@ dev.off()
 ## 2040 - 2069
 df_akpegg2_cesm585 <- predict_cells(2040:2069, akp_egg, 134,
                                    5, 'ssp585', cesm_temps2, 
-                                   cesm_salts2, akpegg_formula)
+                                   cesm_salts2, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg2_cesm585, file = here("data", "df_akpegg2_cesm585.rds"))
 
 # Plot
@@ -2826,7 +2908,8 @@ dev.off()
 ## 2070 - 2099
 df_akpegg3_cesm585 <- predict_cells(2070:2099, akp_egg, 134,
                                    5, 'ssp585', cesm_temps3, 
-                                   cesm_salts3, akpegg_formula)
+                                   cesm_salts3, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg3_cesm585, file = here("data", "df_akpegg3_cesm585.rds"))
 
 # Plot
@@ -2852,7 +2935,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_akpegg1_gfdl126 <- predict_cells(2015:2039, akp_egg, 134,
                                    5, 'ssp126', gfdl_temps1, 
-                                   gfdl_salts1, akpegg_formula)
+                                   gfdl_salts1, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg1_gfdl126, file = here("data", "df_akpegg1_gfdl126.rds"))
 
 # Plot
@@ -2874,7 +2958,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_akpegg2_gfdl126 <- predict_cells(2040:2069, akp_egg, 134,
                                    5, 'ssp126', gfdl_temps2, 
-                                   gfdl_salts2, akpegg_formula)
+                                   gfdl_salts2, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg2_gfdl126, file = here("data", "df_akpegg2_gfdl126.rds"))
 
 # Plot
@@ -2896,7 +2981,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_akpegg3_gfdl126 <- predict_cells(2070:2099, akp_egg, 134,
                                    5, 'ssp126', gfdl_temps3, 
-                                   gfdl_salts3, akpegg_formula)
+                                   gfdl_salts3, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg3_gfdl126, file = here("data", "df_akpegg3_gfdl126.rds"))
 
 # Plot
@@ -2917,7 +3003,8 @@ dev.off()
 ## 2015 - 2039
 df_akpegg1_gfdl585 <- predict_cells(2015:2039, akp_egg, 134,
                                    5, 'ssp585', gfdl_temps1, 
-                                   gfdl_salts1, akpegg_formula)
+                                   gfdl_salts1, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg1_gfdl585, file = here("data", "df_akpegg1_gfdl585.rds"))
 
 # Plot
@@ -2936,7 +3023,8 @@ dev.off()
 ## 2040 - 2069
 df_akpegg2_gfdl585 <- predict_cells(2040:2069, akp_egg, 134,
                                    5, 'ssp585', gfdl_temps2, 
-                                   gfdl_salts2, akpegg_formula)
+                                   gfdl_salts2, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg2_gfdl585, file = here("data", "df_akpegg2_gfdl585.rds"))
 
 # Plot
@@ -2955,7 +3043,8 @@ dev.off()
 ## 2070 - 2099
 df_akpegg3_gfdl585 <- predict_cells(2070:2099, akp_egg, 134,
                                    5, 'ssp585', gfdl_temps3, 
-                                   gfdl_salts3, akpegg_formula)
+                                   gfdl_salts3, akpegg_formula,
+                                   akp_egg_temps)
 saveRDS(df_akpegg3_gfdl585, file = here("data", "df_akpegg3_gfdl585.rds"))
 
 # Plot
@@ -2981,7 +3070,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_akpegg1_miroc126 <- predict_cells(2015:2039, akp_egg, 134,
                                     5, 'ssp126', miroc_temps1, 
-                                    miroc_salts1, akpegg_formula)
+                                    miroc_salts1, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg1_miroc126, file = here("data", "df_akpegg1_miroc126.rds"))
 
 # Plot
@@ -3003,7 +3093,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_akpegg2_miroc126 <- predict_cells(2040:2069, akp_egg, 134,
                                     5, 'ssp126', miroc_temps2, 
-                                    miroc_salts2, akpegg_formula)
+                                    miroc_salts2, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg2_miroc126, file = here("data", "df_akpegg2_miroc126.rds"))
 
 # Plot
@@ -3025,7 +3116,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_akpegg3_miroc126 <- predict_cells(2070:2099, akp_egg, 134,
                                     5, 'ssp126', miroc_temps3, 
-                                    miroc_salts3, akpegg_formula)
+                                    miroc_salts3, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg3_miroc126, file = here("data", "df_akpegg3_miroc126.rds"))
 
 # Plot
@@ -3046,7 +3138,8 @@ dev.off()
 ## 2015 - 2039
 df_akpegg1_miroc585 <- predict_cells(2015:2039, akp_egg, 134,
                                     5, 'ssp585', miroc_temps1, 
-                                    miroc_salts1, akpegg_formula)
+                                    miroc_salts1, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg1_miroc585, file = here("data", "df_akpegg1_miroc585.rds"))
 
 # Plot
@@ -3065,7 +3158,8 @@ dev.off()
 ## 2040 - 2069
 df_akpegg2_miroc585 <- predict_cells(2040:2069, akp_egg, 134,
                                     5, 'ssp585', miroc_temps2, 
-                                    miroc_salts2, akpegg_formula)
+                                    miroc_salts2, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg2_miroc585, file = here("data", "df_akpegg2_miroc585.rds"))
 
 # Plot
@@ -3084,7 +3178,8 @@ dev.off()
 ## 2070 - 2099
 df_akpegg3_miroc585 <- predict_cells(2070:2099, akp_egg, 134,
                                     5, 'ssp585', miroc_temps3,
-                                    miroc_salts3, akpegg_formula)
+                                    miroc_salts3, akpegg_formula,
+                                    akp_egg_temps)
 saveRDS(df_akpegg3_miroc585, file = here("data", "df_akpegg3_miroc585.rds"))
 
 # Plot
@@ -3363,7 +3458,7 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
    df_akpegg_miroc2, df_akpegg_miroc3,
    akp_egg, akpegg_formula, akpegg_img_animated,
    akpegg_dir_out, akpegg_img_joined, 
-   akpegg_img_list, akpegg_imgs, 
+   akpegg_img_list, akpegg_imgs, akp_egg_temps,
    df_akpegg_low1, df_akpegg_low2, df_akpegg_low3,
    df_akpegg_high1, df_akpegg_high2, df_akpegg_low3,
    avg_akpegg_low1, avg_akpegg_low2, avg_akpegg_low3,
@@ -3372,6 +3467,7 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
 
 ### Alaska Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
 akp_larvae <- load_data('akp_larvae.rds', akp_larvae, roms_temps)
+akp_larvae_temps <- readRDS(here('data', 'akp_larvae_temps'))
 akplarvae_formula <- formula_geog(akp_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -3382,7 +3478,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_akplarvae1_cesm126 <- predict_cells(2015:2039, akp_larvae, 140,
                                       5, 'ssp126', cesm_temps1,
-                                      cesm_salts1, akplarvae_formula)
+                                      cesm_salts1, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae1_cesm126, file = here("data", "df_akplarvae1_cesm126.rds"))
 
 # Plot
@@ -3404,7 +3501,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_akplarvae2_cesm126 <- predict_cells(2040:2069, akp_larvae, 140,
                                       5, 'ssp126', cesm_temps2, 
-                                      cesm_salts2, akplarvae_formula)
+                                      cesm_salts2, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae2_cesm126, file = here("data", "df_akplarvae2_cesm126.rds"))
 
 # Plot
@@ -3426,7 +3524,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_akplarvae3_cesm126 <- predict_cells(2070:2099, akp_larvae, 140,
                                       5, 'ssp126', cesm_temps3, 
-                                      cesm_salts3, akplarvae_formula)
+                                      cesm_salts3, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae3_cesm126, file = here("data", "df_akplarvae3_cesm126.rds"))
 
 # Plot
@@ -3447,7 +3546,8 @@ dev.off()
 ## 2015 - 2039
 df_akplarvae1_cesm585 <- predict_cells(2015:2039, akp_larvae, 140,
                                       5, 'ssp585', cesm_temps1, 
-                                      cesm_salts1, akplarvae_formula)
+                                      cesm_salts1, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae1_cesm585, file = here("data", "df_akplarvae1_cesm585.rds"))
 
 # Plot
@@ -3466,7 +3566,8 @@ dev.off()
 ## 2040 - 2069
 df_akplarvae2_cesm585 <- predict_cells(2040:2069, akp_larvae, 140,
                                       5, 'ssp585', cesm_temps2, 
-                                      cesm_salts2, akplarvae_formula)
+                                      cesm_salts2, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae2_cesm585, file = here("data", "df_akplarvae2_cesm585.rds"))
 
 # Plot
@@ -3485,7 +3586,8 @@ dev.off()
 ## 2070 - 2099
 df_akplarvae3_cesm585 <- predict_cells(2070:2099, akp_larvae, 140,
                                       5, 'ssp585', cesm_temps3, 
-                                      cesm_salts3, akplarvae_formula)
+                                      cesm_salts3, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae3_cesm585, file = here("data", "df_akplarvae3_cesm585.rds"))
 
 # Plot
@@ -3511,7 +3613,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_akplarvae1_gfdl126 <- predict_cells(2015:2039, akp_larvae, 140,
                                       5, 'ssp126', gfdl_temps1, 
-                                      gfdl_salts1, akplarvae_formula)
+                                      gfdl_salts1, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae1_gfdl126, file = here("data", "df_akplarvae1_gfdl126.rds"))
 
 # Plot
@@ -3533,7 +3636,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_akplarvae2_gfdl126 <- predict_cells(2040:2069, akp_larvae, 140,
                                       5, 'ssp126', gfdl_temps2, 
-                                      gfdl_salts2, akplarvae_formula)
+                                      gfdl_salts2, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae2_gfdl126, file = here("data", "df_akplarvae2_gfdl126.rds"))
 
 # Plot
@@ -3555,7 +3659,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_akplarvae3_gfdl126 <- predict_cells(2070:2099, akp_larvae, 140,
                                       5, 'ssp126', gfdl_temps3, 
-                                      gfdl_salts3, akplarvae_formula)
+                                      gfdl_salts3, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae3_gfdl126, file = here("data", "df_akplarvae3_gfdl126.rds"))
 
 # Plot
@@ -3576,7 +3681,8 @@ dev.off()
 ## 2015 - 2039
 df_akplarvae1_gfdl585 <- predict_cells(2015:2039, akp_larvae, 140,
                                       5, 'ssp585', gfdl_temps1, 
-                                      gfdl_salts1, akplarvae_formula)
+                                      gfdl_salts1, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae1_gfdl585, file = here("data", "df_akplarvae1_gfdl585.rds"))
 
 # Plot
@@ -3595,7 +3701,8 @@ dev.off()
 ## 2040 - 2069
 df_akplarvae2_gfdl585 <- predict_cells(2040:2069, akp_larvae, 140,
                                       5, 'ssp585', gfdl_temps2, 
-                                      gfdl_salts2, akplarvae_formula)
+                                      gfdl_salts2, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae2_gfdl585, file = here("data", "df_akplarvae2_gfdl585.rds"))
 
 # Plot
@@ -3614,7 +3721,8 @@ dev.off()
 ## 2070 - 2099
 df_akplarvae3_gfdl585 <- predict_cells(2070:2099, akp_larvae, 140,
                                       5, 'ssp585', gfdl_temps3, 
-                                      gfdl_salts3, akplarvae_formula)
+                                      gfdl_salts3, akplarvae_formula,
+                                      akp_larvae_temps)
 saveRDS(df_akplarvae3_gfdl585, file = here("data", "df_akplarvae3_gfdl585.rds"))
 
 # Plot
@@ -3640,7 +3748,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_akplarvae1_miroc126 <- predict_cells(2015:2039, akp_larvae, 140,
                                        5, 'ssp126', miroc_temps1, 
-                                       miroc_salts1, akplarvae_formula)
+                                       miroc_salts1, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae1_miroc126, file = here("data", "df_akplarvae1_miroc126.rds"))
 
 # Plot
@@ -3662,7 +3771,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_akplarvae2_miroc126 <- predict_cells(2040:2069, akp_larvae, 140,
                                        5, 'ssp126', miroc_temps2, 
-                                       miroc_salts2, akplarvae_formula)
+                                       miroc_salts2, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae2_miroc126, file = here("data", "df_akplarvae2_miroc126.rds"))
 
 # Plot
@@ -3684,7 +3794,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_akplarvae3_miroc126 <- predict_cells(2070:2099, akp_larvae, 140,
                                        5, 'ssp126', miroc_temps3, 
-                                       miroc_salts3, akplarvae_formula)
+                                       miroc_salts3, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae3_miroc126, file = here("data", "df_akplarvae3_miroc126.rds"))
 
 # Plot
@@ -3705,7 +3816,8 @@ dev.off()
 ## 2015 - 2039
 df_akplarvae1_miroc585 <- predict_cells(2015:2039, akp_larvae, 140,
                                        5, 'ssp585', miroc_temps1, 
-                                       miroc_salts1, akplarvae_formula)
+                                       miroc_salts1, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae1_miroc585, file = here("data", "df_akplarvae1_miroc585.rds"))
 
 # Plot
@@ -3724,7 +3836,8 @@ dev.off()
 ## 2040 - 2069
 df_akplarvae2_miroc585 <- predict_cells(2040:2069, akp_larvae, 140,
                                        5, 'ssp585', miroc_temps2, 
-                                       miroc_salts2, akplarvae_formula)
+                                       miroc_salts2, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae2_miroc585, file = here("data", "df_akplarvae2_miroc585.rds"))
 
 # Plot
@@ -3743,7 +3856,8 @@ dev.off()
 ## 2070 - 2099
 df_akplarvae3_miroc585 <- predict_cells(2070:2099, akp_larvae, 140,
                                        5, 'ssp585', miroc_temps3,
-                                       miroc_salts3, akplarvae_formula)
+                                       miroc_salts3, akplarvae_formula,
+                                       akp_larvae_temps)
 saveRDS(df_akplarvae3_miroc585, file = here("data", "df_akplarvae3_miroc585.rds"))
 
 # Plot
@@ -4022,7 +4136,7 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
    df_akplarvae_miroc2, df_akplarvae_miroc3,
    akp_larvae, akplarvae_formula, akplarvae_img_animated,
    akplarvae_dir_out, akplarvae_img_joined, 
-   akplarvae_img_list, akplarvae_imgs, 
+   akplarvae_img_list, akplarvae_imgs, akp_larvae_temps,
    df_akplarvae_low1, df_akplarvae_low2, df_akplarvae_low3,
    df_akplarvae_high1, df_akplarvae_high2, df_akplarvae_low3,
    avg_akplarvae_low1, avg_akplarvae_low2, avg_akplarvae_low3,
@@ -4031,6 +4145,7 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
 
 ### Yellowfin Sole Larvae --------------------------------------------------------------------------------------------------------------------------
 yfs_larvae <- load_data('yfs_larvae.rds', yfs_larvae, roms_temps)
+yfs_larvae_temps <- readRDS(here('data', 'yfs_larvae_temps'))
 yfslarvae_formula <- formula_geog(yfs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -4041,7 +4156,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_yfslarvae1_cesm126 <- predict_cells(2015:2039, yfs_larvae, 254,
                                        9, 'ssp126', cesm_temps1,
-                                       cesm_salts1, yfslarvae_formula)
+                                       cesm_salts1, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae1_cesm126, file = here("data", "df_yfslarvae1_cesm126.rds"))
 
 # Plot
@@ -4063,7 +4179,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_yfslarvae2_cesm126 <- predict_cells(2040:2069, yfs_larvae, 254,
                                        9, 'ssp126', cesm_temps2, 
-                                       cesm_salts2, yfslarvae_formula)
+                                       cesm_salts2, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae2_cesm126, file = here("data", "df_yfslarvae2_cesm126.rds"))
 
 # Plot
@@ -4085,7 +4202,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_yfslarvae3_cesm126 <- predict_cells(2070:2099, yfs_larvae, 254,
                                        9, 'ssp126', cesm_temps3, 
-                                       cesm_salts3, yfslarvae_formula)
+                                       cesm_salts3, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae3_cesm126, file = here("data", "df_yfslarvae3_cesm126.rds"))
 
 # Plot
@@ -4106,7 +4224,8 @@ dev.off()
 ## 2015 - 2039
 df_yfslarvae1_cesm585 <- predict_cells(2015:2039, yfs_larvae, 254,
                                        9, 'ssp585', cesm_temps1, 
-                                       cesm_salts1, yfslarvae_formula)
+                                       cesm_salts1, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae1_cesm585, file = here("data", "df_yfslarvae1_cesm585.rds"))
 
 # Plot
@@ -4125,7 +4244,8 @@ dev.off()
 ## 2040 - 2069
 df_yfslarvae2_cesm585 <- predict_cells(2040:2069, yfs_larvae, 254,
                                        9, 'ssp585', cesm_temps2, 
-                                       cesm_salts2, yfslarvae_formula)
+                                       cesm_salts2, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae2_cesm585, file = here("data", "df_yfslarvae2_cesm585.rds"))
 
 # Plot
@@ -4144,7 +4264,8 @@ dev.off()
 ## 2070 - 2099
 df_yfslarvae3_cesm585 <- predict_cells(2070:2099, yfs_larvae, 254,
                                        9, 'ssp585', cesm_temps3, 
-                                       cesm_salts3, yfslarvae_formula)
+                                       cesm_salts3, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae3_cesm585, file = here("data", "df_yfslarvae3_cesm585.rds"))
 
 # Plot
@@ -4170,7 +4291,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_yfslarvae1_gfdl126 <- predict_cells(2015:2039, yfs_larvae, 254,
                                        9, 'ssp126', gfdl_temps1, 
-                                       gfdl_salts1, yfslarvae_formula)
+                                       gfdl_salts1, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae1_gfdl126, file = here("data", "df_yfslarvae1_gfdl126.rds"))
 
 # Plot
@@ -4192,7 +4314,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_yfslarvae2_gfdl126 <- predict_cells(2040:2069, yfs_larvae, 254,
                                        9, 'ssp126', gfdl_temps2, 
-                                       gfdl_salts2, yfslarvae_formula)
+                                       gfdl_salts2, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae2_gfdl126, file = here("data", "df_yfslarvae2_gfdl126.rds"))
 
 # Plot
@@ -4214,7 +4337,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_yfslarvae3_gfdl126 <- predict_cells(2070:2099, yfs_larvae, 254,
                                        9, 'ssp126', gfdl_temps3, 
-                                       gfdl_salts3, yfslarvae_formula)
+                                       gfdl_salts3, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae3_gfdl126, file = here("data", "df_yfslarvae3_gfdl126.rds"))
 
 # Plot
@@ -4235,7 +4359,8 @@ dev.off()
 ## 2015 - 2039
 df_yfslarvae1_gfdl585 <- predict_cells(2015:2039, yfs_larvae, 254,
                                        9, 'ssp585', gfdl_temps1, 
-                                       gfdl_salts1, yfslarvae_formula)
+                                       gfdl_salts1, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae1_gfdl585, file = here("data", "df_yfslarvae1_gfdl585.rds"))
 
 # Plot
@@ -4254,7 +4379,8 @@ dev.off()
 ## 2040 - 2069
 df_yfslarvae2_gfdl585 <- predict_cells(2040:2069, yfs_larvae, 254,
                                        9, 'ssp585', gfdl_temps2, 
-                                       gfdl_salts2, yfslarvae_formula)
+                                       gfdl_salts2, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae2_gfdl585, file = here("data", "df_yfslarvae2_gfdl585.rds"))
 
 # Plot
@@ -4273,7 +4399,8 @@ dev.off()
 ## 2070 - 2099
 df_yfslarvae3_gfdl585 <- predict_cells(2070:2099, yfs_larvae, 254,
                                        9, 'ssp585', gfdl_temps3, 
-                                       gfdl_salts3, yfslarvae_formula)
+                                       gfdl_salts3, yfslarvae_formula,
+                                       yfs_larvae_temps)
 saveRDS(df_yfslarvae3_gfdl585, file = here("data", "df_yfslarvae3_gfdl585.rds"))
 
 # Plot
@@ -4299,7 +4426,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_yfslarvae1_miroc126 <- predict_cells(2015:2039, yfs_larvae, 254,
                                         9, 'ssp126', miroc_temps1, 
-                                        miroc_salts1, yfslarvae_formula)
+                                        miroc_salts1, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae1_miroc126, file = here("data", "df_yfslarvae1_miroc126.rds"))
 
 # Plot
@@ -4321,7 +4449,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_yfslarvae2_miroc126 <- predict_cells(2040:2069, yfs_larvae, 254,
                                         9, 'ssp126', miroc_temps2, 
-                                        miroc_salts2, yfslarvae_formula)
+                                        miroc_salts2, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae2_miroc126, file = here("data", "df_yfslarvae2_miroc126.rds"))
 
 # Plot
@@ -4343,7 +4472,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_yfslarvae3_miroc126 <- predict_cells(2070:2099, yfs_larvae, 254,
                                         9, 'ssp126', miroc_temps3, 
-                                        miroc_salts3, yfslarvae_formula)
+                                        miroc_salts3, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae3_miroc126, file = here("data", "df_yfslarvae3_miroc126.rds"))
 
 # Plot
@@ -4364,7 +4494,8 @@ dev.off()
 ## 2015 - 2039
 df_yfslarvae1_miroc585 <- predict_cells(2015:2039, yfs_larvae, 254,
                                         9, 'ssp585', miroc_temps1, 
-                                        miroc_salts1, yfslarvae_formula)
+                                        miroc_salts1, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae1_miroc585, file = here("data", "df_yfslarvae1_miroc585.rds"))
 
 # Plot
@@ -4383,7 +4514,8 @@ dev.off()
 ## 2040 - 2069
 df_yfslarvae2_miroc585 <- predict_cells(2040:2069, yfs_larvae, 254,
                                         9, 'ssp585', miroc_temps2, 
-                                        miroc_salts2, yfslarvae_formula)
+                                        miroc_salts2, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae2_miroc585, file = here("data", "df_yfslarvae2_miroc585.rds"))
 
 # Plot
@@ -4402,7 +4534,8 @@ dev.off()
 ## 2070 - 2099
 df_yfslarvae3_miroc585 <- predict_cells(2070:2099, yfs_larvae, 254,
                                         9, 'ssp585', miroc_temps3,
-                                        miroc_salts3, yfslarvae_formula)
+                                        miroc_salts3, yfslarvae_formula,
+                                        yfs_larvae_temps)
 saveRDS(df_yfslarvae3_miroc585, file = here("data", "df_yfslarvae3_miroc585.rds"))
 
 # Plot
@@ -4681,7 +4814,7 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
    df_yfslarvae_miroc2, df_yfslarvae_miroc3,
    yfs_larvae, yfslarvae_formula, yfslarvae_img_animated,
    yfslarvae_dir_out, yfslarvae_img_joined, 
-   yfslarvae_img_list, yfslarvae_imgs, 
+   yfslarvae_img_list, yfslarvae_imgs, yfs_larvae_temps,
    df_yfslarvae_low1, df_yfslarvae_low2, df_yfslarvae_low3,
    df_yfslarvae_high1, df_yfslarvae_high2, df_yfslarvae_low3,
    avg_yfslarvae_low1, avg_yfslarvae_low2, avg_yfslarvae_low3,
@@ -4690,6 +4823,7 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
 
 ### Northern Rock Sole Larvae --------------------------------------------------------------------------------------------------------------------------
 nrs_larvae <- load_data('nrs_larvae.rds', nrs_larvae, roms_temps)
+nrs_larvae_temps <- readRDS(here('data', 'nrs_larvae_temps'))
 nrslarvae_formula <- formula_geog(nrs_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -4700,7 +4834,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_nrslarvae1_cesm126 <- predict_cells(2015:2039, nrs_larvae, 134,
                                        5, 'ssp126', cesm_temps1,
-                                       cesm_salts1, nrslarvae_formula)
+                                       cesm_salts1, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae1_cesm126, file = here("data", "df_nrslarvae1_cesm126.rds"))
 
 # Plot
@@ -4722,7 +4857,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_nrslarvae2_cesm126 <- predict_cells(2040:2069, nrs_larvae, 134,
                                        5, 'ssp126', cesm_temps2, 
-                                       cesm_salts2, nrslarvae_formula)
+                                       cesm_salts2, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae2_cesm126, file = here("data", "df_nrslarvae2_cesm126.rds"))
 
 # Plot
@@ -4744,7 +4880,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_nrslarvae3_cesm126 <- predict_cells(2070:2099, nrs_larvae, 134,
                                        5, 'ssp126', cesm_temps3, 
-                                       cesm_salts3, nrslarvae_formula)
+                                       cesm_salts3, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae3_cesm126, file = here("data", "df_nrslarvae3_cesm126.rds"))
 
 # Plot
@@ -4765,7 +4902,8 @@ dev.off()
 ## 2015 - 2039
 df_nrslarvae1_cesm585 <- predict_cells(2015:2039, nrs_larvae, 134,
                                        5, 'ssp585', cesm_temps1, 
-                                       cesm_salts1, nrslarvae_formula)
+                                       cesm_salts1, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae1_cesm585, file = here("data", "df_nrslarvae1_cesm585.rds"))
 
 # Plot
@@ -4784,7 +4922,8 @@ dev.off()
 ## 2040 - 2069
 df_nrslarvae2_cesm585 <- predict_cells(2040:2069, nrs_larvae, 134,
                                        5, 'ssp585', cesm_temps2, 
-                                       cesm_salts2, nrslarvae_formula)
+                                       cesm_salts2, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae2_cesm585, file = here("data", "df_nrslarvae2_cesm585.rds"))
 
 # Plot
@@ -4803,7 +4942,8 @@ dev.off()
 ## 2070 - 2099
 df_nrslarvae3_cesm585 <- predict_cells(2070:2099, nrs_larvae, 134,
                                        5, 'ssp585', cesm_temps3, 
-                                       cesm_salts3, nrslarvae_formula)
+                                       cesm_salts3, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae3_cesm585, file = here("data", "df_nrslarvae3_cesm585.rds"))
 
 # Plot
@@ -4829,7 +4969,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_nrslarvae1_gfdl126 <- predict_cells(2015:2039, nrs_larvae, 134,
                                        5, 'ssp126', gfdl_temps1, 
-                                       gfdl_salts1, nrslarvae_formula)
+                                       gfdl_salts1, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae1_gfdl126, file = here("data", "df_nrslarvae1_gfdl126.rds"))
 
 # Plot
@@ -4851,7 +4992,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_nrslarvae2_gfdl126 <- predict_cells(2040:2069, nrs_larvae, 134,
                                        5, 'ssp126', gfdl_temps2, 
-                                       gfdl_salts2, nrslarvae_formula)
+                                       gfdl_salts2, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae2_gfdl126, file = here("data", "df_nrslarvae2_gfdl126.rds"))
 
 # Plot
@@ -4873,7 +5015,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_nrslarvae3_gfdl126 <- predict_cells(2070:2099, nrs_larvae, 134,
                                        5, 'ssp126', gfdl_temps3, 
-                                       gfdl_salts3, nrslarvae_formula)
+                                       gfdl_salts3, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae3_gfdl126, file = here("data", "df_nrslarvae3_gfdl126.rds"))
 
 # Plot
@@ -4894,7 +5037,8 @@ dev.off()
 ## 2015 - 2039
 df_nrslarvae1_gfdl585 <- predict_cells(2015:2039, nrs_larvae, 134,
                                        5, 'ssp585', gfdl_temps1, 
-                                       gfdl_salts1, nrslarvae_formula)
+                                       gfdl_salts1, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae1_gfdl585, file = here("data", "df_nrslarvae1_gfdl585.rds"))
 
 # Plot
@@ -4913,7 +5057,8 @@ dev.off()
 ## 2040 - 2069
 df_nrslarvae2_gfdl585 <- predict_cells(2040:2069, nrs_larvae, 134,
                                        5, 'ssp585', gfdl_temps2, 
-                                       gfdl_salts2, nrslarvae_formula)
+                                       gfdl_salts2, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae2_gfdl585, file = here("data", "df_nrslarvae2_gfdl585.rds"))
 
 # Plot
@@ -4932,7 +5077,8 @@ dev.off()
 ## 2070 - 2099
 df_nrslarvae3_gfdl585 <- predict_cells(2070:2099, nrs_larvae, 134,
                                        5, 'ssp585', gfdl_temps3, 
-                                       gfdl_salts3, nrslarvae_formula)
+                                       gfdl_salts3, nrslarvae_formula,
+                                       nrs_larvae_temps)
 saveRDS(df_nrslarvae3_gfdl585, file = here("data", "df_nrslarvae3_gfdl585.rds"))
 
 # Plot
@@ -4958,7 +5104,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_nrslarvae1_miroc126 <- predict_cells(2015:2039, nrs_larvae, 134,
                                         5, 'ssp126', miroc_temps1, 
-                                        miroc_salts1, nrslarvae_formula)
+                                        miroc_salts1, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae1_miroc126, file = here("data", "df_nrslarvae1_miroc126.rds"))
 
 # Plot
@@ -4980,7 +5127,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_nrslarvae2_miroc126 <- predict_cells(2040:2069, nrs_larvae, 134,
                                         5, 'ssp126', miroc_temps2, 
-                                        miroc_salts2, nrslarvae_formula)
+                                        miroc_salts2, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae2_miroc126, file = here("data", "df_nrslarvae2_miroc126.rds"))
 
 # Plot
@@ -5002,7 +5150,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_nrslarvae3_miroc126 <- predict_cells(2070:2099, nrs_larvae, 134,
                                         5, 'ssp126', miroc_temps3, 
-                                        miroc_salts3, nrslarvae_formula)
+                                        miroc_salts3, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae3_miroc126, file = here("data", "df_nrslarvae3_miroc126.rds"))
 
 # Plot
@@ -5023,7 +5172,8 @@ dev.off()
 ## 2015 - 2039
 df_nrslarvae1_miroc585 <- predict_cells(2015:2039, nrs_larvae, 134,
                                         5, 'ssp585', miroc_temps1, 
-                                        miroc_salts1, nrslarvae_formula)
+                                        miroc_salts1, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae1_miroc585, file = here("data", "df_nrslarvae1_miroc585.rds"))
 
 # Plot
@@ -5042,7 +5192,8 @@ dev.off()
 ## 2040 - 2069
 df_nrslarvae2_miroc585 <- predict_cells(2040:2069, nrs_larvae, 134,
                                         5, 'ssp585', miroc_temps2, 
-                                        miroc_salts2, nrslarvae_formula)
+                                        miroc_salts2, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae2_miroc585, file = here("data", "df_nrslarvae2_miroc585.rds"))
 
 # Plot
@@ -5061,7 +5212,8 @@ dev.off()
 ## 2070 - 2099
 df_nrslarvae3_miroc585 <- predict_cells(2070:2099, nrs_larvae, 134,
                                         5, 'ssp585', miroc_temps3,
-                                        miroc_salts3, nrslarvae_formula)
+                                        miroc_salts3, nrslarvae_formula,
+                                        nrs_larvae_temps)
 saveRDS(df_nrslarvae3_miroc585, file = here("data", "df_nrslarvae3_miroc585.rds"))
 
 # Plot
@@ -5340,7 +5492,7 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
    df_nrslarvae_miroc2, df_nrslarvae_miroc3,
    nrs_larvae, nrslarvae_formula, nrslarvae_img_animated,
    nrslarvae_dir_out, nrslarvae_img_joined, 
-   nrslarvae_img_list, nrslarvae_imgs, 
+   nrslarvae_img_list, nrslarvae_imgs, nrs_larvae_temps,
    df_nrslarvae_low1, df_nrslarvae_low2, df_nrslarvae_low3,
    df_nrslarvae_high1, df_nrslarvae_high2, df_nrslarvae_low3,
    avg_nrslarvae_low1, avg_nrslarvae_low2, avg_nrslarvae_low3,
@@ -5348,6 +5500,7 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
 
 ### Pacific Cod Larvae --------------------------------------------------------------------------------------------------------------------------
 pcod_larvae <- load_data('pcod_larvae.rds', pcod_larvae, roms_temps)
+pcod_larvae_temps <- readRDS(here('data', 'pcod_larvae_temps'))
 pcodlarvae_formula <- formula_pheno(pcod_larvae)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
@@ -5358,7 +5511,8 @@ cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_pcodlarvae1_cesm126 <- predict_cells(2015:2039, pcod_larvae, 134,
                                        5, 'ssp126', cesm_temps1,
-                                       cesm_salts1, pcodlarvae_formula)
+                                       cesm_salts1, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_cesm126, file = here("data", "df_pcodlarvae1_cesm126.rds"))
 
 # Plot
@@ -5380,7 +5534,8 @@ cesm_salts2 <- readRDS(here('data', 'cesm_forecast_salt2.rds'))
 
 df_pcodlarvae2_cesm126 <- predict_cells(2040:2069, pcod_larvae, 134,
                                        5, 'ssp126', cesm_temps2, 
-                                       cesm_salts2, pcodlarvae_formula)
+                                       cesm_salts2, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_cesm126, file = here("data", "df_pcodlarvae2_cesm126.rds"))
 
 # Plot
@@ -5402,7 +5557,8 @@ cesm_salts3 <- readRDS(here('data', 'cesm_forecast_salt3.rds'))
 
 df_pcodlarvae3_cesm126 <- predict_cells(2070:2099, pcod_larvae, 134,
                                        5, 'ssp126', cesm_temps3, 
-                                       cesm_salts3, pcodlarvae_formula)
+                                       cesm_salts3, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_cesm126, file = here("data", "df_pcodlarvae3_cesm126.rds"))
 
 # Plot
@@ -5423,7 +5579,8 @@ dev.off()
 ## 2015 - 2039
 df_pcodlarvae1_cesm585 <- predict_cells(2015:2039, pcod_larvae, 134,
                                        5, 'ssp585', cesm_temps1, 
-                                       cesm_salts1, pcodlarvae_formula)
+                                       cesm_salts1, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_cesm585, file = here("data", "df_pcodlarvae1_cesm585.rds"))
 
 # Plot
@@ -5442,7 +5599,8 @@ dev.off()
 ## 2040 - 2069
 df_pcodlarvae2_cesm585 <- predict_cells(2040:2069, pcod_larvae, 134,
                                        5, 'ssp585', cesm_temps2, 
-                                       cesm_salts2, pcodlarvae_formula)
+                                       cesm_salts2, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_cesm585, file = here("data", "df_pcodlarvae2_cesm585.rds"))
 
 # Plot
@@ -5461,7 +5619,8 @@ dev.off()
 ## 2070 - 2099
 df_pcodlarvae3_cesm585 <- predict_cells(2070:2099, pcod_larvae, 134,
                                        5, 'ssp585', cesm_temps3, 
-                                       cesm_salts3, pcodlarvae_formula)
+                                       cesm_salts3, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_cesm585, file = here("data", "df_pcodlarvae3_cesm585.rds"))
 
 # Plot
@@ -5487,7 +5646,8 @@ gfdl_salts1 <- readRDS(here('data', 'gfdl_forecast_salt1.rds'))
 
 df_pcodlarvae1_gfdl126 <- predict_cells(2015:2039, pcod_larvae, 134,
                                        5, 'ssp126', gfdl_temps1, 
-                                       gfdl_salts1, pcodlarvae_formula)
+                                       gfdl_salts1, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_gfdl126, file = here("data", "df_pcodlarvae1_gfdl126.rds"))
 
 # Plot
@@ -5509,7 +5669,8 @@ gfdl_salts2 <- readRDS(here('data', 'gfdl_forecast_salt2.rds'))
 
 df_pcodlarvae2_gfdl126 <- predict_cells(2040:2069, pcod_larvae, 134,
                                        5, 'ssp126', gfdl_temps2, 
-                                       gfdl_salts2, pcodlarvae_formula)
+                                       gfdl_salts2, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_gfdl126, file = here("data", "df_pcodlarvae2_gfdl126.rds"))
 
 # Plot
@@ -5531,7 +5692,8 @@ gfdl_salts3 <- readRDS(here('data', 'gfdl_forecast_salt3.rds'))
 
 df_pcodlarvae3_gfdl126 <- predict_cells(2070:2099, pcod_larvae, 134,
                                        5, 'ssp126', gfdl_temps3, 
-                                       gfdl_salts3, pcodlarvae_formula)
+                                       gfdl_salts3, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_gfdl126, file = here("data", "df_pcodlarvae3_gfdl126.rds"))
 
 # Plot
@@ -5552,7 +5714,8 @@ dev.off()
 ## 2015 - 2039
 df_pcodlarvae1_gfdl585 <- predict_cells(2015:2039, pcod_larvae, 134,
                                        5, 'ssp585', gfdl_temps1, 
-                                       gfdl_salts1, pcodlarvae_formula)
+                                       gfdl_salts1, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_gfdl585, file = here("data", "df_pcodlarvae1_gfdl585.rds"))
 
 # Plot
@@ -5571,7 +5734,8 @@ dev.off()
 ## 2040 - 2069
 df_pcodlarvae2_gfdl585 <- predict_cells(2040:2069, pcod_larvae, 134,
                                        5, 'ssp585', gfdl_temps2, 
-                                       gfdl_salts2, pcodlarvae_formula)
+                                       gfdl_salts2, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_gfdl585, file = here("data", "df_pcodlarvae2_gfdl585.rds"))
 
 # Plot
@@ -5590,7 +5754,8 @@ dev.off()
 ## 2070 - 2099
 df_pcodlarvae3_gfdl585 <- predict_cells(2070:2099, pcod_larvae, 134,
                                        5, 'ssp585', gfdl_temps3, 
-                                       gfdl_salts3, pcodlarvae_formula)
+                                       gfdl_salts3, pcodlarvae_formula,
+                                       pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_gfdl585, file = here("data", "df_pcodlarvae3_gfdl585.rds"))
 
 # Plot
@@ -5616,7 +5781,8 @@ miroc_salts1 <- readRDS(here('data', 'miroc_forecast_salt1.rds'))
 
 df_pcodlarvae1_miroc126 <- predict_cells(2015:2039, pcod_larvae, 134,
                                         5, 'ssp126', miroc_temps1, 
-                                        miroc_salts1, pcodlarvae_formula)
+                                        miroc_salts1, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_miroc126, file = here("data", "df_pcodlarvae1_miroc126.rds"))
 
 # Plot
@@ -5638,7 +5804,8 @@ miroc_salts2 <- readRDS(here('data', 'miroc_forecast_salt2.rds'))
 
 df_pcodlarvae2_miroc126 <- predict_cells(2040:2069, pcod_larvae, 134,
                                         5, 'ssp126', miroc_temps2, 
-                                        miroc_salts2, pcodlarvae_formula)
+                                        miroc_salts2, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_miroc126, file = here("data", "df_pcodlarvae2_miroc126.rds"))
 
 # Plot
@@ -5660,7 +5827,8 @@ miroc_salts3 <- readRDS(here('data', 'miroc_forecast_salt3.rds'))
 
 df_pcodlarvae3_miroc126 <- predict_cells(2070:2099, pcod_larvae, 134,
                                         5, 'ssp126', miroc_temps3, 
-                                        miroc_salts3, pcodlarvae_formula)
+                                        miroc_salts3, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_miroc126, file = here("data", "df_pcodlarvae3_miroc126.rds"))
 
 # Plot
@@ -5681,7 +5849,8 @@ dev.off()
 ## 2015 - 2039
 df_pcodlarvae1_miroc585 <- predict_cells(2015:2039, pcod_larvae, 134,
                                         5, 'ssp585', miroc_temps1, 
-                                        miroc_salts1, pcodlarvae_formula)
+                                        miroc_salts1, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae1_miroc585, file = here("data", "df_pcodlarvae1_miroc585.rds"))
 
 # Plot
@@ -5700,7 +5869,8 @@ dev.off()
 ## 2040 - 2069
 df_pcodlarvae2_miroc585 <- predict_cells(2040:2069, pcod_larvae, 134,
                                         5, 'ssp585', miroc_temps2, 
-                                        miroc_salts2, pcodlarvae_formula)
+                                        miroc_salts2, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae2_miroc585, file = here("data", "df_pcodlarvae2_miroc585.rds"))
 
 # Plot
@@ -5719,7 +5889,8 @@ dev.off()
 ## 2070 - 2099
 df_pcodlarvae3_miroc585 <- predict_cells(2070:2099, pcod_larvae, 134,
                                         5, 'ssp585', miroc_temps3,
-                                        miroc_salts3, pcodlarvae_formula)
+                                        miroc_salts3, pcodlarvae_formula,
+                                        pcod_larvae_temps)
 saveRDS(df_pcodlarvae3_miroc585, file = here("data", "df_pcodlarvae3_miroc585.rds"))
 
 # Plot
@@ -5998,7 +6169,7 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
    df_pcodlarvae_miroc2, df_pcodlarvae_miroc3,
    pcod_larvae, pcodlarvae_formula, pcodlarvae_img_animated,
    pcodlarvae_dir_out, pcodlarvae_img_joined, 
-   pcodlarvae_img_list, pcodlarvae_imgs,
+   pcodlarvae_img_list, pcodlarvae_imgs, pcod_larvae_temps,
    df_pcodlarvae_low1, df_pcodlarvae_low2, df_pcodlarvae_low3,
    df_pcodlarvae_high1, df_pcodlarvae_high2, df_pcodlarvae_low3,
    avg_pcodlarvae_low1, avg_pcodlarvae_low2, avg_pcodlarvae_low3,
