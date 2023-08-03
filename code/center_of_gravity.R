@@ -425,8 +425,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-pkegg_COG[[2]]
-mean(pkegg_COG[[1]]$distance, na.rm = TRUE)
+pkegg_COG[[3]]
+mean(pkegg_COG[[2]]$distance, na.rm = TRUE)
 
 plot_COG(pklarvae_COG)
 dev.copy(jpeg,
@@ -438,11 +438,12 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-pklarvae_COG[[2]]
+pklarvae_COG[[3]]
 mean(pklarvae_COG[[2]]$distance, na.rm = TRUE)
 
 lifestage_dist(pkegg_COG, pklarvae_COG)
 temp_dist(pkegg_COG)
+temp_dist(pklarvae_COG)
 
 # Flathead Sole
 plot_COG(fhsegg_COG)
@@ -454,8 +455,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-fhsegg_COG[[2]]
-mean(fhsegg_COG[[1]]$distance, na.rm = TRUE)
+fhsegg_COG[[3]]
+mean(fhsegg_COG[[2]]$distance, na.rm = TRUE)
 
 plot_COG(fhslarvae_COG)
 dev.copy(jpeg,
@@ -467,11 +468,12 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-fhslarvae_COG[[2]]
+fhslarvae_COG[[3]]
 mean(fhslarvae_COG[[2]]$distance, na.rm = TRUE)
 
 lifestage_dist(fhsegg_COG, fhslarvae_COG)
 temp_dist(fhsegg_COG)
+temp_dist(fhslarvae_COG)
 
 # Alaska Plaice
 plot_COG(akpegg_COG)
@@ -483,8 +485,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-akpegg_COG[[2]]
-mean(akpegg_COG[[1]]$distance, na.rm = TRUE)
+akpegg_COG[[3]]
+mean(akpegg_COG[[2]]$distance, na.rm = TRUE)
 
 plot_COG(akplarvae_COG)
 dev.copy(jpeg,
@@ -495,10 +497,12 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-akplarvae_COG[[2]]
-mean(akplarvae_COG[[1]]$distance, na.rm = TRUE)
+akplarvae_COG[[3]]
+mean(akplarvae_COG[[2]]$distance, na.rm = TRUE)
 
 lifestage_dist(akpegg_COG, akplarvae_COG)
+temp_dist(akpegg_COG)
+temp_dist(akplarvae_COG)
 
 # Yellowfin Sole
 plot_COG(yfslarvae_COG)
@@ -510,8 +514,10 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-yfslarvae_COG[[2]]
-mean(yfslarvae_COG[[1]]$distance, na.rm = TRUE)
+yfslarvae_COG[[3]]
+mean(yfslarvae_COG[[2]]$distance, na.rm = TRUE)
+
+temp_dist(yfslarvae_COG)
 
 # Northern Rock Sole
 plot_COG(nrslarvae_COG)
@@ -523,8 +529,10 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-nrslarvae_COG[[2]]
-mean(nrslarvae_COG[[1]]$distance, na.rm = TRUE)
+nrslarvae_COG[[3]]
+mean(nrslarvae_COG[[2]]$distance, na.rm = TRUE)
+
+temp_dist(nrslarvae_COG)
 
 # Pacific Cod
 plot_COG(pcodlarvae_COG)
@@ -536,5 +544,7 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-pcodlarvae_COG[[2]]
-mean(pcodlarvae_COG[[1]]$distance, na.rm = TRUE)
+pcodlarvae_COG[[3]]
+mean(pcodlarvae_COG[[2]]$distance, na.rm = TRUE)
+
+temp_dist(pcodlarvae_COG)
