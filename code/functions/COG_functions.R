@@ -84,14 +84,14 @@ COG_time <- function(hindcast, list1, list2, list3){
   temp2_COG <- COG_loop2(list2, temp2_COG)
   temp3_COG <- COG_loop2(list3, temp3_COG)
   
-  avg1_lat <- rowMeans(do.call(cbind, lapply(time1_COG, "[", "value")))
-  avg1_lon <- rowMeans(do.call(cbind, lapply(time1_COG, "[", "value1")))
+  avg1_lat <- rowMeans(do.call(cbind, lapply(time1_COG, "[", "value")), na.rm = TRUE)
+  avg1_lon <- rowMeans(do.call(cbind, lapply(time1_COG, "[", "value1")), na.rm = TRUE)
   
-  avg2_lat <- rowMeans(do.call(cbind, lapply(time2_COG, "[", "value")))
-  avg2_lon <- rowMeans(do.call(cbind, lapply(time2_COG, "[", "value1")))
+  avg2_lat <- rowMeans(do.call(cbind, lapply(time2_COG, "[", "value")), na.rm = TRUE)
+  avg2_lon <- rowMeans(do.call(cbind, lapply(time2_COG, "[", "value1")), na.rm = TRUE)
   
-  avg3_lat <- rowMeans(do.call(cbind, lapply(time3_COG, "[", "value")))
-  avg3_lon <- rowMeans(do.call(cbind, lapply(time3_COG, "[", "value1")))
+  avg3_lat <- rowMeans(do.call(cbind, lapply(time3_COG, "[", "value")), na.rm = TRUE)
+  avg3_lon <- rowMeans(do.call(cbind, lapply(time3_COG, "[", "value1")), na.rm = TRUE)
   
   lats <- rbind(hindcast_COG$value, avg1_lat, avg2_lat, avg3_lat)
   lons <- rbind(hindcast_COG$value1, avg1_lon, avg2_lon, avg3_lon)
@@ -129,7 +129,7 @@ COG_time <- function(hindcast, list1, list2, list3){
 
 # Scatterplot of COGs
 plot_COG <- function(COG){
-  ggplot(data = COG[[1]], 
+  ggplot(data = COG[[2]], 
          aes(x = lon, y = lat)) +
     geom_point(aes(color = period), size = 4) +
     geom_path() +
@@ -147,14 +147,14 @@ plot_COG <- function(COG){
 
 # Calculate distance between life stage COG for each time period
 lifestage_dist <- function(data1, data2){
-  d1 <- distHaversine(c(data1[[1]]$lon[1], data1[[1]]$lat[1]),
-                      c(data2[[1]]$lon[1], data2[[1]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data1[[1]]$lon[2], data1[[1]]$lat[2]),
-                      c(data2[[1]]$lon[2], data2[[1]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data1[[1]]$lon[3], data1[[1]]$lat[3]),
-                      c(data2[[1]]$lon[3], data2[[1]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data1[[1]]$lon[4], data1[[1]]$lat[4]),
-                      c(data2[[1]]$lon[4], data2[[1]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data1[[2]]$lon[1], data1[[2]]$lat[1]),
+                      c(data2[[2]]$lon[1], data2[[2]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data1[[2]]$lon[2], data1[[2]]$lat[2]),
+                      c(data2[[2]]$lon[2], data2[[2]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data1[[2]]$lon[3], data1[[2]]$lat[3]),
+                      c(data2[[2]]$lon[3], data2[[2]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data1[[2]]$lon[4], data1[[2]]$lat[4]),
+                      c(data2[[2]]$lon[4], data2[[2]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
 }
