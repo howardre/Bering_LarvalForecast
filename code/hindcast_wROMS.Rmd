@@ -2076,7 +2076,7 @@ dev.off()
 
 Create prediction grid to compare with projections
 ```{r}
-nrs_larvae_temps <- scale_temp(nrslarvae_gams_t, nrs_larvae)
+nrs_larvae_temps <- scale_temp1(nrslarvae_gams_t, nrs_larvae)
 nrs_larvae_hindcast <- hindcast_loop(1988:2014, nrs_larvae, 5, 134, nrslarvae_gams_t, roms_temps)
 nrs_larvae_hindcast$temperature <- ifelse(between(nrs_larvae_hindcast$temperature, 
                                                  min(nrs_larvae_temps$x),
