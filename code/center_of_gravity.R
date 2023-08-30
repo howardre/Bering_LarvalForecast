@@ -35,19 +35,29 @@ df_pkegg1_miroc585 <- readRDS(here('data', 'df_pkegg1_miroc585.rds'))
 df_pkegg2_miroc585 <- readRDS(here('data', 'df_pkegg2_miroc585.rds'))
 df_pkegg3_miroc585 <- readRDS(here('data', 'df_pkegg3_miroc585.rds'))
 
-pkegg1_list <- list(df_pkegg1_cesm126, df_pkegg1_cesm585,
-                   df_pkegg1_gfdl126, df_pkegg1_gfdl585,
-                   df_pkegg1_miroc126, df_pkegg1_miroc585)
+pkegg1_sdm <- list(df_pkegg1_cesm126[[2]], df_pkegg1_cesm585[[2]],
+                   df_pkegg1_gfdl126[[2]], df_pkegg1_gfdl585[[2]],
+                   df_pkegg1_miroc126[[2]], df_pkegg1_miroc585[[2]])
+pkegg1_temp <- list(df_pkegg1_cesm126[[3]], df_pkegg1_cesm585[[3]],
+                    df_pkegg1_gfdl126[[3]], df_pkegg1_gfdl585[[3]],
+                    df_pkegg1_miroc126[[3]], df_pkegg1_miroc585[[3]])
 
-pkegg2_list <- list(df_pkegg2_cesm126, df_pkegg2_cesm585,
-                   df_pkegg2_gfdl126, df_pkegg2_gfdl585,
-                   df_pkegg2_miroc126, df_pkegg2_miroc585)
+pkegg2_sdm <- list(df_pkegg2_cesm126[[2]], df_pkegg2_cesm585[[2]],
+                   df_pkegg2_gfdl126[[2]], df_pkegg2_gfdl585[[2]],
+                   df_pkegg2_miroc126[[2]], df_pkegg2_miroc585[[2]])
+pkegg2_temp <- list(df_pkegg2_cesm126[[3]], df_pkegg2_cesm585[[3]],
+                   df_pkegg2_gfdl126[[3]], df_pkegg2_gfdl585[[3]],
+                   df_pkegg2_miroc126[[3]], df_pkegg2_miroc585[[3]])
 
-pkegg3_list <- list(df_pkegg3_cesm126, df_pkegg3_cesm585,
-                   df_pkegg3_gfdl126, df_pkegg3_gfdl585,
-                   df_pkegg3_miroc126, df_pkegg3_miroc585)
+pkegg3_sdm <- list(df_pkegg3_cesm126[[2]], df_pkegg3_cesm585[[2]],
+                   df_pkegg3_gfdl126[[2]], df_pkegg3_gfdl585[[2]],
+                   df_pkegg3_miroc126[[2]], df_pkegg3_miroc585[[2]])
+pkegg3_temp <- list(df_pkegg3_cesm126[[3]], df_pkegg3_cesm585[[3]],
+                   df_pkegg3_gfdl126[[3]], df_pkegg3_gfdl585[[3]],
+                   df_pkegg3_miroc126[[3]], df_pkegg3_miroc585[[3]])
 
-pkegg_COG <- COG_time(pkegg_hindcast, pkegg1_list, pkegg2_list, pkegg3_list)
+pkegg_COG <- COG_calc(pkegg1_sdm, pkegg2_sdm, pkegg3_sdm,
+                      pkegg1_temp, pkegg2_temp, pkegg3_temp) # need to change to add hindcast
 saveRDS(pkegg_COG, here('data', 'pkegg_COG'))
 
 rm(df_pkegg1_cesm126, df_pkegg1_cesm585, df_pkegg1_gfdl126, df_pkegg1_gfdl585,
