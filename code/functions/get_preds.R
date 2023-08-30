@@ -1,7 +1,7 @@
 # New method to use bias corrected ROMS output
 get_preds <- function(data, the_year, doy,
                       the_month, proj, temp_output, 
-                      salt_output, formula){
+                      salt_output, formula, temp_range){
   nlat = 40
   nlon = 60
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
@@ -65,20 +65,80 @@ get_preds <- function(data, the_year, doy,
                                   exclude = "s(year)"))
   grid_extent$pred[grid_extent$dist > 30000] <- NA
   grid_extent$roms_temperature[grid_extent$dist > 30000] <- NA
-  return(grid_extent)
+  grid_extent$pred_scaled <- rescale(grid_extent$pred)
+  grid_extent$temperature <- ifelse(between(grid_extent$roms_temperature, 
+                                            min(temp_range$x),
+                                            max(temp_range$x)), 1, 0)
+  COG_year <- COG_pred(grid_extent)
+  COG_temp <- COG_temp(grid_extent)
+  grid_extent <- subset(grid_extent, select = -c(pred_scaled, temperature))
+  final_list <- list(grid_extent, COG_year, COG_temp)
+  return(final_list)
 }
-
 
 # New function to loop through years
 pred_loop <- function(range, data, doy, month, 
                       proj, temp_output, salt_output,
-                      the_formula){
+                      the_formula, temp_range){
   grids <- list()
   for(j in range) {
     grid <- get_preds(data, j, doy, month,
                       proj, temp_output, salt_output,
-                      the_formula)
+                      the_formula, temp_range)
     grids[[paste("year", j, sep = "")]] <- grid
   }
   return(grids)
+}
+
+# sandbox for COG
+# Calculate COG for predictions
+COG_pred <- function(data){
+  temp1 <- data %>% dplyr::mutate(pred = pred_scaled * lat) %>%
+    dplyr::summarize(value = sum(pred, na.rm = TRUE)) %>%
+    dplyr::select(value)
+  
+  temp2 <- data %>%
+    dplyr::summarize(value = sum(pred_scaled, na.rm = TRUE)) %>%
+    dplyr::select(value)
+  
+  COG_x <- temp1 / temp2
+  
+  temp3 <- data %>% dplyr::mutate(pred = pred_scaled * lon) %>%
+    dplyr::summarize(value1 = sum(pred, na.rm = TRUE)) %>%
+    dplyr::select(value1)
+  
+  temp4 <- data %>%
+    dplyr::summarize(value1 = sum(pred_scaled, na.rm = TRUE)) %>%
+    dplyr::select(value1)
+  
+  COG_y <- temp3 / temp4
+  
+  COG <- as.data.frame(cbind(COG_x, COG_y))
+  return(COG)
+}
+
+# Calculate COG for temperature
+COG_temp <- function(data){
+  temp1 <- data %>% dplyr::mutate(temp = temperature * lat) %>%
+    dplyr::summarize(value = sum(temp, na.rm = TRUE)) %>%
+    dplyr::select(value)
+  
+  temp2 <- data %>%
+    dplyr::summarize(value = sum(temperature, na.rm = TRUE)) %>%
+    dplyr::select(value)
+  
+  COG_x <- temp1 / temp2
+  
+  temp3 <- data %>% dplyr::mutate(temp = temperature * lon) %>%
+    dplyr::summarize(value1 = sum(temp, na.rm = TRUE)) %>%
+    dplyr::select(value1)
+  
+  temp4 <- data %>%
+    dplyr::summarize(value1 = sum(temperature, na.rm = TRUE)) %>%
+    dplyr::select(value1)
+  
+  COG_y <- temp3 / temp4
+  
+  COG <- as.data.frame(cbind(COG_x, COG_y))
+  return(COG)
 }

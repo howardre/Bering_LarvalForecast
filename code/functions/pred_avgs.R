@@ -5,16 +5,16 @@ predict_cells <- function(range, data, day,
                           salts, formula, temp_range){
   preds <- pred_loop(range, data, day,
                      month, scenario, temps,
-                     salts, formula)
-  df <- data.frame(lat = preds[[1]]$lat,
-                   lon = preds[[1]]$lon,
-                   temperature = rowMeans(do.call(cbind, lapply(preds, "[", "roms_temperature"))),
-                   avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "pred"))))
+                     salts, formula, temp_range)
+  new_list <- lapply(preds, "[[", 1)
+  COG_abun <- lapply(preds, "[[", 2)
+  COG_temp <- lapply(preds, "[[", 3)
+  df <- data.frame(lat = new_list[[1]]$lat,
+                   lon = new_list[[1]]$lon,
+                   avg_pred = rowMeans(do.call(cbind, lapply(new_list, "[", "pred"))))
   df$pred_scaled <- rescale(df$avg_pred)
-  df$temperature <- ifelse(between(df$temperature, 
-                                   min(temp_range$x),
-                                   max(temp_range$x)), 1, 0)
-  return(df)
+  final_list <- list(df, COG_abun, COG_temp)
+  return(final_list)
 }
 
 # Averaging of all GCMs and scenarios
