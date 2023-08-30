@@ -8,7 +8,7 @@ COG_pred <- function(data){
     dplyr::summarize(value = sum(pred_scaled, na.rm = TRUE)) %>%
     dplyr::select(value)
   
-  COG_y <- temp1 / temp2
+  COG_x <- temp1 / temp2
   
   temp3 <- data %>% dplyr::mutate(pred = pred_scaled * lon) %>%
     dplyr::summarize(value1 = sum(pred, na.rm = TRUE)) %>%
@@ -18,9 +18,9 @@ COG_pred <- function(data){
     dplyr::summarize(value1 = sum(pred_scaled, na.rm = TRUE)) %>%
     dplyr::select(value1)
   
-  COG_x <- temp3 / temp4
+  COG_y <- temp3 / temp4
   
-  COG <- as.data.frame(cbind(COG_y, COG_x))
+  COG <- as.data.frame(cbind(COG_x, COG_y))
   return(COG)
 }
 
@@ -34,7 +34,7 @@ COG_temp <- function(data){
     dplyr::summarize(value = sum(temperature, na.rm = TRUE)) %>%
     dplyr::select(value)
   
-  COG_y <- temp1 / temp2
+  COG_x <- temp1 / temp2
   
   temp3 <- data %>% dplyr::mutate(temp = temperature * lon) %>%
     dplyr::summarize(value1 = sum(temp, na.rm = TRUE)) %>%
@@ -44,9 +44,9 @@ COG_temp <- function(data){
     dplyr::summarize(value1 = sum(temperature, na.rm = TRUE)) %>%
     dplyr::select(value1)
   
-  COG_x <- temp3 / temp4
+  COG_y <- temp3 / temp4
   
-  COG <- as.data.frame(cbind(COG_y, COG_x))
+  COG <- as.data.frame(cbind(COG_x, COG_y))
   return(COG)
 }
 
