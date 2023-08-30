@@ -605,7 +605,7 @@ df_pkegg_merged1 <- list(df_pkegg1_cesm126, df_pkegg1_cesm585,
 avg_pkegg_merged1 <- predict_avgs(df_pkegg_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pkegg_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_pkegg_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/pollock_forecast/pkegg_avgs',
               'pollock_egg_avg1.jpg'),
@@ -623,7 +623,7 @@ df_pkegg_merged2 <- list(df_pkegg2_cesm126, df_pkegg2_cesm585,
 avg_pkegg_merged2 <- predict_avgs(df_pkegg_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pkegg_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_pkegg_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/pollock_forecast/pkegg_avgs',
               'pollock_egg_avg2.jpg'),
@@ -641,7 +641,7 @@ df_pkegg_merged3 <- list(df_pkegg3_cesm126, df_pkegg3_cesm585,
 avg_pkegg_merged3 <- predict_avgs(df_pkegg_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pkegg_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_pkegg_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/pollock_forecast/pkegg_avgs',
               'pollock_egg_avg3.jpg'),
@@ -677,12 +677,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pkegg_low1)
-grid_multipanel(avg_pkegg_low2)
-grid_multipanel(avg_pkegg_low3)
-grid_multipanel(avg_pkegg_high1)
-grid_multipanel(avg_pkegg_high2)
-grid_multipanel(avg_pkegg_high3)
+grid_avg_multipanel(avg_pkegg_low1)
+grid_avg_multipanel(avg_pkegg_low2)
+grid_avg_multipanel(avg_pkegg_low3)
+grid_avg_multipanel(avg_pkegg_high1)
+grid_avg_multipanel(avg_pkegg_high2)
+grid_avg_multipanel(avg_pkegg_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -759,26 +759,6 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
 pk_larvae <- load_data('pk_larvae.rds', pk_larvae, roms_temps)
 pk_larvae_temps <- readRDS(here('data', 'pk_larvae_temps'))
 pklarvae_formula <- formula_geog(pk_larvae)
-
-### Sandbox
-test_pk <- get_preds(pk_larvae, 2015, 154,
-                      6, 'ssp126', cesm_temps1,
-                      cesm_salts1, pklarvae_formula,
-                      pk_larvae_temps)
-
-loop_pk <- pred_loop(2015:2020, pk_larvae, 154, 6, 
-                     'ssp126', cesm_temps1, cesm_salts1,
-                     pklarvae_formula, pk_larvae_temps)
-
-final_pk <- predict_cells(2015:2020, pk_larvae, 134,
-                          5, 'ssp126', cesm_temps1,
-                          cesm_salts1, pklarvae_formula,
-                          pk_larvae_temps)
-
-
-test_df <- data.frame(lat = loop_pk[[1]][[1]]$lat,
-                 lon = loop_pk[[1]][[1]]$lon,
-                 avg_pred = rowMeans(do.call(cbind, lapply(loop_pk[[1]], "[", "pred"))))
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------

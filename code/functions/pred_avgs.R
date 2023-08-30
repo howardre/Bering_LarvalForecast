@@ -19,10 +19,10 @@ predict_cells <- function(range, data, day,
 
 # Averaging of all GCMs and scenarios
 predict_avgs <- function(preds){
-  df <- data.frame(lat = preds[[1]]$lat,
-                   lon = preds[[1]]$lon,
-                   temperature = rowMeans(do.call(cbind, lapply(preds, "[", "roms_temperature"))),
-                   avg_pred = rowMeans(do.call(cbind, lapply(preds, "[", "avg_pred"))))
+  new_list <- lapply(preds, "[[", 1)
+  df <- data.frame(lat = new_list[[1]]$lat,
+                   lon = new_list[[1]]$lon,
+                   avg_pred = rowMeans(do.call(cbind, lapply(new_list, "[", "avg_pred"))))
   df$pred_scaled <- rescale(df$avg_pred)
   return(df)
 }
