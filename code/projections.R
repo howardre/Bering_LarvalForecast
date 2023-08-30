@@ -760,6 +760,26 @@ pk_larvae <- load_data('pk_larvae.rds', pk_larvae, roms_temps)
 pk_larvae_temps <- readRDS(here('data', 'pk_larvae_temps'))
 pklarvae_formula <- formula_geog(pk_larvae)
 
+### Sandbox
+test_pk <- get_preds(pk_larvae, 2015, 154,
+                      6, 'ssp126', cesm_temps1,
+                      cesm_salts1, pklarvae_formula,
+                      pk_larvae_temps)
+
+loop_pk <- pred_loop(2015:2020, pk_larvae, 154, 6, 
+                     'ssp126', cesm_temps1, cesm_salts1,
+                     pklarvae_formula, pk_larvae_temps)
+
+final_pk <- predict_cells(2015:2020, pk_larvae, 134,
+                          5, 'ssp126', cesm_temps1,
+                          cesm_salts1, pklarvae_formula,
+                          pk_larvae_temps)
+
+
+test_df <- data.frame(lat = loop_pk[[1]][[1]]$lat,
+                 lon = loop_pk[[1]][[1]]$lon,
+                 avg_pred = rowMeans(do.call(cbind, lapply(loop_pk[[1]], "[", "pred"))))
+
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
 ## 2015 - 2039
