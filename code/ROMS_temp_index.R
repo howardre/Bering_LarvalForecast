@@ -104,7 +104,6 @@ roms_temps[roms_temps$year == 2007, 'mean'] <- mean_extract(temp_output5, "2007-
 roms_temps[roms_temps$year == 2008, 'mean'] <- mean_extract(temp_output5, "2008-02-01", "2008-04-30") 
 roms_temps[roms_temps$year == 2009, 'mean'] <- mean_extract(temp_output5, "2009-02-01", "2009-04-30")
 roms_temps[roms_temps$year == 2010, 'mean'] <- mean_extract(temp_output6, "2010-02-01", "2010-04-30")
-roms_temps[roms_temps$year == 2011, 'mean'] <- mean_extract(temp_output6, "2011-02-01", "2011-04-30") 
 roms_temps[roms_temps$year == 2012, 'mean'] <- mean_extract(temp_output6, "2012-02-01", "2012-04-30") 
 roms_temps[roms_temps$year == 2013, 'mean'] <- mean_extract(temp_output6, "2013-02-01", "2013-04-30") 
 roms_temps[roms_temps$year == 2014, 'mean'] <- mean_extract(temp_output6, "2014-02-01", "2014-04-30") 
