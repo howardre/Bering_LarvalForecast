@@ -89,19 +89,29 @@ df_pklarvae1_miroc585 <- readRDS(here('data', 'df_pklarvae1_miroc585.rds'))
 df_pklarvae2_miroc585 <- readRDS(here('data', 'df_pklarvae2_miroc585.rds'))
 df_pklarvae3_miroc585 <- readRDS(here('data', 'df_pklarvae3_miroc585.rds'))
 
-pklarvae1_list <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
-                    df_pklarvae1_gfdl126, df_pklarvae1_gfdl585,
-                    df_pklarvae1_miroc126, df_pklarvae1_miroc585)
+pklarvae1_sdm <- list(df_pklarvae1_cesm126[[2]], df_pklarvae1_cesm585[[2]],
+                   df_pklarvae1_gfdl126[[2]], df_pklarvae1_gfdl585[[2]],
+                   df_pklarvae1_miroc126[[2]], df_pklarvae1_miroc585[[2]])
+pklarvae1_temp <- list(df_pklarvae1_cesm126[[3]], df_pklarvae1_cesm585[[3]],
+                    df_pklarvae1_gfdl126[[3]], df_pklarvae1_gfdl585[[3]],
+                    df_pklarvae1_miroc126[[3]], df_pklarvae1_miroc585[[3]])
 
-pklarvae2_list <- list(df_pklarvae2_cesm126, df_pklarvae2_cesm585,
-                    df_pklarvae2_gfdl126, df_pklarvae2_gfdl585,
-                    df_pklarvae2_miroc126, df_pklarvae2_miroc585)
+pklarvae2_sdm <- list(df_pklarvae2_cesm126[[2]], df_pklarvae2_cesm585[[2]],
+                   df_pklarvae2_gfdl126[[2]], df_pklarvae2_gfdl585[[2]],
+                   df_pklarvae2_miroc126[[2]], df_pklarvae2_miroc585[[2]])
+pklarvae2_temp <- list(df_pklarvae2_cesm126[[3]], df_pklarvae2_cesm585[[3]],
+                    df_pklarvae2_gfdl126[[3]], df_pklarvae2_gfdl585[[3]],
+                    df_pklarvae2_miroc126[[3]], df_pklarvae2_miroc585[[3]])
 
-pklarvae3_list <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585,
-                    df_pklarvae3_gfdl126, df_pklarvae3_gfdl585,
-                    df_pklarvae3_miroc126, df_pklarvae3_miroc585)
+pklarvae3_sdm <- list(df_pklarvae3_cesm126[[2]], df_pklarvae3_cesm585[[2]],
+                   df_pklarvae3_gfdl126[[2]], df_pklarvae3_gfdl585[[2]],
+                   df_pklarvae3_miroc126[[2]], df_pklarvae3_miroc585[[2]])
+pklarvae3_temp <- list(df_pklarvae3_cesm126[[3]], df_pklarvae3_cesm585[[3]],
+                    df_pklarvae3_gfdl126[[3]], df_pklarvae3_gfdl585[[3]],
+                    df_pklarvae3_miroc126[[3]], df_pklarvae3_miroc585[[3]])
 
-pklarvae_COG <- COG_time(pklarvae_hindcast, pklarvae1_list, pklarvae2_list, pklarvae3_list)
+pklarvae_COG <- COG_calc(pklarvae1_sdm, pklarvae2_sdm, pklarvae3_sdm,
+                      pklarvae1_temp, pklarvae2_temp, pklarvae3_temp) # need to change to add hindcast
 saveRDS(pklarvae_COG, here('data', 'pklarvae_COG'))
 
 rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585, df_pklarvae1_gfdl126, df_pklarvae1_gfdl585,
