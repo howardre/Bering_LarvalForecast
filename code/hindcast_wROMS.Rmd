@@ -218,10 +218,7 @@ var_ratio_pkegg_space_t #0.11
 Create prediction grid to compare with projections
 ```{r}
 pk_egg_temps <- scale_temp(pkegg_gams_t, pk_egg)
-pk_egg_hindcast <- hindcast_loop(1988:2014, pk_egg, 5, 134, pkegg_gams_t, roms_temps)
-pk_egg_hindcast$temperature <- ifelse(between(pk_egg_hindcast$temperature, 
-                                              min(pk_egg_temps$x),
-                                              max(pk_egg_temps$x)), 1, 0)
+pk_egg_hindcast <- hindcast_cells(c(unique(pk_egg$year)), pk_egg, 134, 5, pkegg_gams_t, roms_temps, pk_egg_temps)
 saveRDS(pk_egg_temps, here('data', 'pk_egg_temps')) # to use in predictions
 saveRDS(pk_egg_hindcast, here('data', 'pk_egg_hindcast'))
 ```
