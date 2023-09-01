@@ -424,11 +424,9 @@ var_ratio_pklarvae_space_t #0.26
 Create prediction grid to compare with projections
 ```{r}
 pk_larvae_temps <- scale_temp(pklarvae_gams_t, pk_larvae)
-pk_larvae_hindcast <- hindcast_loop(1988:2014, pk_larvae, 5, 134, pklarvae_gams_t, roms_temps)
-pk_larvae_hindcast$temperature <- ifelse(between(pk_larvae_hindcast$temperature, 
-                                                 min(pk_larvae_temps$x),
-                                                 max(pk_larvae_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(pk_larvae_temps, here('data', 'pk_larvae_temps'))
+pk_larvae_hindcast <- hindcast_cells(c(unique(pk_larvae$year)), 
+                                     pk_larvae, 134, 5, pklarvae_gams_t, roms_temps, pk_larvae_temps)
+saveRDS(pk_larvae_temps, here('data', 'pk_larvae_temps')) # to use in predictions
 saveRDS(pk_larvae_hindcast, here('data', 'pk_larvae_hindcast'))
 ```
 
@@ -643,11 +641,9 @@ var_ratio_fhsegg_space_t #0.12
 Create prediction grid to compare with projections
 ```{r}
 fhs_egg_temps <- scale_temp(fhsegg_gams_t, fhs_egg)
-fhs_egg_hindcast <- hindcast_loop(1988:2014, fhs_egg, 6, 154, fhsegg_gams_t, roms_temps)
-fhs_egg_hindcast$temperature <- ifelse(between(fhs_egg_hindcast$temperature, 
-                                                 min(fhs_egg_temps$x),
-                                                 max(fhs_egg_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(fhs_egg_temps, here('data', 'fhs_egg_temps'))
+fhs_egg_hindcast <- hindcast_cells(c(unique(fhs_egg$year)), 
+                                     fhs_egg, 154, 6, fhsegg_gams_t, roms_temps, fhs_egg_temps)
+saveRDS(fhs_egg_temps, here('data', 'fhs_egg_temps')) # to use in predictions
 saveRDS(fhs_egg_hindcast, here('data', 'fhs_egg_hindcast'))
 ```
 
@@ -837,11 +833,9 @@ dev.off()
 Create prediction grid to compare with projections
 ```{r}
 fhs_larvae_temps <- scale_temp(fhslarvae_gams_t, fhs_larvae)
-fhs_larvae_hindcast <- hindcast_loop(1988:2014, fhs_larvae, 5, 138, fhslarvae_gams_t, roms_temps)
-fhs_larvae_hindcast$temperature <- ifelse(between(fhs_larvae_hindcast$temperature, 
-                                                 min(fhs_larvae_temps$x),
-                                                 max(fhs_larvae_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(fhs_larvae_temps, here('data', 'fhs_larvae_temps'))
+fhs_larvae_hindcast <- hindcast_cells(c(unique(fhs_larvae$year)), 
+                                     fhs_larvae, 138, 5, fhslarvae_gams_t, roms_temps, fhs_larvae_temps)
+saveRDS(fhs_larvae_temps, here('data', 'fhs_larvae_temps')) # to use in predictions
 saveRDS(fhs_larvae_hindcast, here('data', 'fhs_larvae_hindcast'))
 ```
 
@@ -1234,11 +1228,9 @@ dev.off()
 Create prediction grid to compare with projections
 ```{r}
 yfs_larvae_temps <- scale_temp1(yfslarvae_gams_t, yfs_larvae)
-yfs_larvae_hindcast <- hindcast_loop(1988:2014, yfs_larvae, 9, 254, yfslarvae_gams_t, roms_temps)
-yfs_larvae_hindcast$temperature <- ifelse(between(yfs_larvae_hindcast$temperature, 
-                                                 min(yfs_larvae_temps$x),
-                                                 max(yfs_larvae_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(yfs_larvae_temps, here('data', 'yfs_larvae_temps'))
+yfs_larvae_hindcast <- hindcast_cells(c(unique(yfs_larvae$year)), 
+                                     yfs_larvae, 254, 9, yfslarvae_gams_t, roms_temps, yfs_larvae_temps)
+saveRDS(yfs_larvae_temps, here('data', 'yfs_larvae_temps')) # to use in predictions
 saveRDS(yfs_larvae_hindcast, here('data', 'yfs_larvae_hindcast'))
 ```
 
@@ -1465,11 +1457,9 @@ var_ratio_akpegg_space_t # 0.35
 Create prediction grid to compare with projections
 ```{r}
 akp_egg_temps <- scale_temp(akpegg_gams_t, akp_egg)
-akp_egg_hindcast <- hindcast_loop(1988:2014, akp_egg, 5, 134, akpegg_gams_t, roms_temps)
-akp_egg_hindcast$temperature <- ifelse(between(akp_egg_hindcast$temperature, 
-                                                 min(akp_egg_temps$x),
-                                                 max(akp_egg_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(akp_egg_temps, here('data', 'akp_egg_temps'))
+akp_egg_hindcast <- hindcast_cells(c(unique(akp_egg$year)), 
+                                     akp_egg, 134, 5, akpegg_gams_t, roms_temps, akp_egg_temps)
+saveRDS(akp_egg_temps, here('data', 'akp_egg_temps')) # to use in predictions
 saveRDS(akp_egg_hindcast, here('data', 'akp_egg_hindcast'))
 ```
 
@@ -1670,11 +1660,9 @@ var_ratio_akplarvae_space_t # 0.32
 Create prediction grid to compare with projections
 ```{r}
 akp_larvae_temps <- scale_temp(akplarvae_gams_t, akp_larvae)
-akp_larvae_hindcast <- hindcast_loop(1988:2014, akp_larvae, 5, 140, akplarvae_gams_t, roms_temps)
-akp_larvae_hindcast$temperature <- ifelse(between(akp_larvae_hindcast$temperature, 
-                                                 min(akp_larvae_temps$x),
-                                                 max(akp_larvae_temps$x)), 1, 0) # check to make sure this is continuous
-saveRDS(akp_larvae_temps, here('data', 'akp_larvae_temps'))
+akp_larvae_hindcast <- hindcast_cells(c(unique(akp_larvae$year)), 
+                                     akp_larvae, 140, 5, akplarvae_gams_t, roms_temps, akp_larvae_temps)
+saveRDS(akp_larvae_temps, here('data', 'akp_larvae_temps')) # to use in predictions
 saveRDS(akp_larvae_hindcast, here('data', 'akp_larvae_hindcast'))
 ```
 
@@ -1881,11 +1869,9 @@ var_ratio_pcodlarvae_space_t #  0.12
 Create prediction grid to compare with projections
 ```{r}
 pcod_larvae_temps <- scale_temp(pcodlarvae_gams_t, pcod_larvae)
-pcod_larvae_hindcast <- hindcast_loop(1988:2014, pcod_larvae, 5, 134, pcodlarvae_gams_t, roms_temps)
-pcod_larvae_hindcast$temperature <- ifelse(between(pcod_larvae_hindcast$temperature, 
-                                                 min(pcod_larvae_temps$x),
-                                                 max(pcod_larvae_temps$x)), 1, 0)
-saveRDS(pcod_larvae_temps, here('data', 'pcod_larvae_temps'))
+pcod_larvae_hindcast <- hindcast_cells(c(unique(pcod_larvae$year)), 
+                                     pcod_larvae, 134, 5, pcodlarvae_gams_t, roms_temps, pcod_larvae_temps)
+saveRDS(pcod_larvae_temps, here('data', 'pcod_larvae_temps')) # to use in predictions
 saveRDS(pcod_larvae_hindcast, here('data', 'pcod_larvae_hindcast'))
 ```
 
@@ -2074,11 +2060,9 @@ dev.off()
 Create prediction grid to compare with projections
 ```{r}
 nrs_larvae_temps <- scale_temp1(nrslarvae_gams_t, nrs_larvae)
-nrs_larvae_hindcast <- hindcast_loop(1988:2014, nrs_larvae, 5, 134, nrslarvae_gams_t, roms_temps)
-nrs_larvae_hindcast$temperature <- ifelse(between(nrs_larvae_hindcast$temperature, 
-                                                 min(nrs_larvae_temps$x),
-                                                 max(nrs_larvae_temps$x)), 1, 0)
-saveRDS(nrs_larvae_temps, here('data', 'nrs_larvae_temps'))
+nrs_larvae_hindcast <- hindcast_cells(c(unique(nrs_larvae$year)), 
+                                     nrs_larvae, 134, 5, nrslarvae_gams_t, roms_temps, nrs_larvae_temps)
+saveRDS(nrs_larvae_temps, here('data', 'nrs_larvae_temps')) # to use in predictions
 saveRDS(nrs_larvae_hindcast, here('data', 'nrs_larvae_hindcast'))
 ```
 
