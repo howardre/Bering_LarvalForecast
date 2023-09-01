@@ -96,7 +96,7 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
                                                     lag(lat))) / 1000)
   start_dist <- distHaversine(c(avg_data$lon[1], avg_data$lat[1]),
                               c(avg_data$lon[4], avg_data$lat[4])) / 1000
-  COG_list <- list(hindcast_COG, historic_COG, 
+  COG_list <- list(hindcast,
                    abun_years1, abun_years2, abun_years3, 
                    temp_years1, temp_years2, temp_years3, 
                    avg_temp, avg_dist, start_dist)
@@ -182,7 +182,7 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
 # 
 # # Scatterplot of COGs
 plot_COG <- function(COG){
-  ggplot(data = COG[[2]],
+  ggplot(data = COG[[10]],
          aes(x = lon, y = lat)) +
     geom_point(aes(color = period), size = 4) +
     geom_path() +
@@ -200,27 +200,44 @@ plot_COG <- function(COG){
 # 
 # Calculate distance between life stage COG for each time period
 lifestage_dist <- function(data1, data2){
-  d1 <- distHaversine(c(data1[[2]]$lon[1], data1[[2]]$lat[1]),
-                      c(data2[[2]]$lon[1], data2[[2]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data1[[2]]$lon[2], data1[[2]]$lat[2]),
-                      c(data2[[2]]$lon[2], data2[[2]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data1[[2]]$lon[3], data1[[2]]$lat[3]),
-                      c(data2[[2]]$lon[3], data2[[2]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data1[[2]]$lon[4], data1[[2]]$lat[4]),
-                      c(data2[[2]]$lon[4], data2[[2]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data1[[10]]$lon[1], data1[[10]]$lat[1]),
+                      c(data2[[10]]$lon[1], data2[[10]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data1[[10]]$lon[2], data1[[10]]$lat[2]),
+                      c(data2[[10]]$lon[2], data2[[10]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data1[[10]]$lon[3], data1[[10]]$lat[3]),
+                      c(data2[[10]]$lon[3], data2[[10]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data1[[10]]$lon[4], data1[[10]]$lat[4]),
+                      c(data2[[10]]$lon[4], data2[[10]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
 }
 
 temp_dist <- function(data){
-  d1 <- distHaversine(c(data[[1]]$lon[1], data[[1]]$lat[1]),
-                      c(data[[2]]$lon[1], data[[2]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data[[1]]$lon[2], data[[1]]$lat[2]),
-                      c(data[[2]]$lon[2], data[[2]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data[[1]]$lon[3], data[[1]]$lat[3]),
-                      c(data[[2]]$lon[3], data[[2]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data[[1]]$lon[4], data[[1]]$lat[4]),
-                      c(data[[2]]$lon[4], data[[2]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data[[9]]$lon[1], data[[9]]$lat[1]),
+                      c(data[[10]]$lon[1], data[[10]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data[[9]]$lon[2], data[[9]]$lat[2]),
+                      c(data[[10]]$lon[2], data[[10]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data[[9]]$lon[3], data[[9]]$lat[3]),
+                      c(data[[10]]$lon[3], data[[10]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data[[9]]$lon[4], data[[9]]$lat[4]),
+                      c(data[[10]]$lon[4], data[[10]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
+}
+
+period_dist <- function(data){
+  p1 <- (data[[1]][[2]][[length(data[[1]][[2]])]]$value - # hindcast has different # of years depending on species
+           data[[1]][[2]][[1]]$value) / length(data[[1]][[2]])
+  p2 <- as.vector((data[[2]][[25]][1] - data[[2]][[1]][1]) / 25)
+  p3 <- as.vector((data[[3]][[30]][1] - data[[3]][[1]][1]) / 30)
+  p4 <- as.vector((data[[4]][[30]][1] - data[[4]][[1]][1]) / 30)
+  t1 <- (data[[1]][[3]][[length(data[[1]][[3]])]]$value - 
+           data[[1]][[3]][[1]]$value) / length(data[[1]][[3]])
+  t2 <- as.vector((data[[5]][[25]][1] - data[[5]][[1]][1]) / 25)
+  t3 <- as.vector((data[[6]][[30]][1] - data[[6]][[1]][1]) / 30)
+  t4 <- as.vector((data[[7]][[30]][1] - data[[7]][[1]][1]) / 30)
+  abundance <- c(p1, p2, p3, p4)
+  temperature <- c(t1, t2, t3, t4)
+  final_df <- data.frame(abundance, temperature)
+  return(final_df)
 }
