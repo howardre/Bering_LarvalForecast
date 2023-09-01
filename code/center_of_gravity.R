@@ -56,7 +56,10 @@ pkegg3_temp <- list(df_pkegg3_cesm126[[3]], df_pkegg3_cesm585[[3]],
                    df_pkegg3_gfdl126[[3]], df_pkegg3_gfdl585[[3]],
                    df_pkegg3_miroc126[[3]], df_pkegg3_miroc585[[3]])
 
-pkegg_COG <- COG_calc(pkegg1_sdm, pkegg2_sdm, pkegg3_sdm,
+hindcast_COG <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(pkegg_hindcast[[3]], "[", "value")), na.rm = TRUE),
+                           avg_lon = rowMeans(do.call(cbind, lapply(pkegg_hindcast[[3]], "[", "value1")), na.rm = TRUE))
+
+pkegg_COG <- COG_calc(pkegg_hindcast, pkegg1_sdm, pkegg2_sdm, pkegg3_sdm,
                       pkegg1_temp, pkegg2_temp, pkegg3_temp) # need to change to add hindcast
 saveRDS(pkegg_COG, here('data', 'pkegg_COG'))
 

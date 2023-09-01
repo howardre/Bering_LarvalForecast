@@ -50,7 +50,7 @@ COG_temp <- function(data){
   return(COG)
 }
 
-COG_calc <- function(my_list1, my_list2, my_list3, my_list4, my_list5, my_list6){
+COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5, my_list6){
   keys1 <- unique(names(my_list1[[1]])) # create list of names of year data frames
   keys2 <- unique(names(my_list2[[1]]))
   keys3 <- unique(names(my_list3[[1]]))
@@ -60,6 +60,10 @@ COG_calc <- function(my_list1, my_list2, my_list3, my_list4, my_list5, my_list6)
   temp_years1 <- lapply(keys1, function(x) colMeans(do.call(rbind, lapply(my_list4, "[[", x)), na.rm = TRUE))
   temp_years2 <- lapply(keys2, function(x) colMeans(do.call(rbind, lapply(my_list5, "[[", x)), na.rm = TRUE))
   temp_years3 <- lapply(keys3, function(x) colMeans(do.call(rbind, lapply(my_list6, "[[", x)), na.rm = TRUE))
+  hindcast_COG <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(hindcast[[2]], "[", "value")), na.rm = TRUE),
+                             avg_lon = rowMeans(do.call(cbind, lapply(hindcast[[2]], "[", "value1")), na.rm = TRUE))
+  historic_COG <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(hindcast[[3]], "[", "value")), na.rm = TRUE),
+                             avg_lon = rowMeans(do.call(cbind, lapply(hindcast[[3]], "[", "value1")), na.rm = TRUE))
   overall_COG1 <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(abun_years1, "[", "value")), na.rm = TRUE),
                              avg_lon = rowMeans(do.call(cbind, lapply(abun_years1, "[", "value1")), na.rm = TRUE)) # average per period
   overall_COG2 <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(abun_years2, "[", "value")), na.rm = TRUE),
@@ -72,16 +76,16 @@ COG_calc <- function(my_list1, my_list2, my_list3, my_list4, my_list5, my_list6)
                              avg_lon = rowMeans(do.call(cbind, lapply(temp_years2, "[", "value1")), na.rm = TRUE))
   climate_COG3 <- data.frame(avg_lat = rowMeans(do.call(cbind, lapply(temp_years3, "[", "value")), na.rm = TRUE),
                              avg_lon = rowMeans(do.call(cbind, lapply(temp_years3, "[", "value1")), na.rm = TRUE))
-  lat_abun <- rbind(overall_COG1$avg_lat, overall_COG2$avg_lat, overall_COG3$avg_lat) # combine into data frame
-  lat_clim <- rbind(climate_COG1$avg_lat, climate_COG2$avg_lat, climate_COG3$avg_lat)
-  lon_abun <- rbind(overall_COG1$avg_lon, overall_COG2$avg_lon, overall_COG3$avg_lon)
-  lon_clim <- rbind(climate_COG1$avg_lon, climate_COG2$avg_lon, climate_COG3$avg_lon)
+  lat_abun <- rbind(hindcast_COG$avg_lat, overall_COG1$avg_lat, overall_COG2$avg_lat, overall_COG3$avg_lat) # combine into data frame
+  lat_clim <- rbind(historic_COG$avg_lat, climate_COG1$avg_lat, climate_COG2$avg_lat, climate_COG3$avg_lat)
+  lon_abun <- rbind(hindcast_COG$avg_lon, overall_COG1$avg_lon, overall_COG2$avg_lon, overall_COG3$avg_lon)
+  lon_clim <- rbind(historic_COG$avg_lon, climate_COG1$avg_lon, climate_COG2$avg_lon, climate_COG3$avg_lon)
   avg_abun <- cbind(lat_abun, lon_abun)
   avg_clim <- cbind(lat_clim, lon_clim)
   colnames(avg_abun) <- c("lat", "lon")
-  rownames(avg_abun) <- c("time1", "time2", "time3")
+  rownames(avg_abun) <- c("hindcast", "time1", "time2", "time3")
   colnames(avg_clim) <- c("lat", "lon")
-  rownames(avg_clim) <- c("time1", "time2", "time3")
+  rownames(avg_clim) <- c("hindcast", "time1", "time2", "time3")
   avg_abun <- as.data.frame(avg_abun)
   avg_clim <- as.data.frame(avg_clim)
   avg_data <- as.data.frame(tibble::rownames_to_column(avg_abun, "period"))
@@ -91,9 +95,10 @@ COG_calc <- function(my_list1, my_list2, my_list3, my_list4, my_list5, my_list6)
                                               cbind(lag(lon), 
                                                     lag(lat))) / 1000)
   start_dist <- distHaversine(c(avg_data$lon[1], avg_data$lat[1]),
-                              c(avg_data$lon[3], avg_data$lat[3])) / 1000
-  COG_list <- list(abun_years1, abun_years2, abun_years3, 
-                   temp_years1, temp_years2, temp_years3,
+                              c(avg_data$lon[4], avg_data$lat[4])) / 1000
+  COG_list <- list(hindcast_COG, historic_COG, 
+                   abun_years1, abun_years2, abun_years3, 
+                   temp_years1, temp_years2, temp_years3, 
                    avg_temp, avg_dist, start_dist)
   return(COG_list)
 }
