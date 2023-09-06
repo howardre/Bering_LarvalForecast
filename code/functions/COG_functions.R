@@ -225,19 +225,54 @@ temp_dist <- function(data){
   return(distances)
 }
 
-period_dist <- function(data){
-  p1 <- (data[[1]][[2]][[length(data[[1]][[2]])]]$value - # hindcast has different # of years depending on species
-           data[[1]][[2]][[1]]$value) / length(data[[1]][[2]])
-  p2 <- as.vector((data[[2]][[25]][1] - data[[2]][[1]][1]) / 25)
-  p3 <- as.vector((data[[3]][[30]][1] - data[[3]][[1]][1]) / 30)
-  p4 <- as.vector((data[[4]][[30]][1] - data[[4]][[1]][1]) / 30)
-  t1 <- (data[[1]][[3]][[length(data[[1]][[3]])]]$value - 
-           data[[1]][[3]][[1]]$value) / length(data[[1]][[3]])
-  t2 <- as.vector((data[[5]][[25]][1] - data[[5]][[1]][1]) / 25)
-  t3 <- as.vector((data[[6]][[30]][1] - data[[6]][[1]][1]) / 30)
-  t4 <- as.vector((data[[7]][[30]][1] - data[[7]][[1]][1]) / 30)
-  abundance <- c(p1, p2, p3, p4)
-  temperature <- c(t1, t2, t3, t4)
-  final_df <- data.frame(abundance, temperature)
-  return(final_df)
+# period_dist <- function(data){
+#   p1 <- (data[[1]][[2]][[length(data[[1]][[2]])]]$value - # hindcast has different # of years depending on species
+#            data[[1]][[2]][[1]]$value) / length(data[[1]][[2]])
+#   p2 <- as.vector((data[[2]][[25]][1] - data[[2]][[1]][1]) / 25)
+#   p3 <- as.vector((data[[3]][[30]][1] - data[[3]][[1]][1]) / 30)
+#   p4 <- as.vector((data[[4]][[30]][1] - data[[4]][[1]][1]) / 30)
+#   t1 <- (data[[1]][[3]][[length(data[[1]][[3]])]]$value - 
+#            data[[1]][[3]][[1]]$value) / length(data[[1]][[3]])
+#   t2 <- as.vector((data[[5]][[25]][1] - data[[5]][[1]][1]) / 25)
+#   t3 <- as.vector((data[[6]][[30]][1] - data[[6]][[1]][1]) / 30)
+#   t4 <- as.vector((data[[7]][[30]][1] - data[[7]][[1]][1]) / 30)
+#   abundance <- c(p1, p2, p3, p4)
+#   temperature <- c(t1, t2, t3, t4)
+#   final_df <- data.frame(abundance, temperature)
+#   return(final_df)
+# }
+
+velocity_calc <- function(data_COG){
+  data_period1 <- as.data.frame(cbind(lapply(data_COG[[2]], "[[", 1), deparse.level = 1))
+  data_period1$latitude <- as.numeric(data_period1$V1)
+  data_period1 <- tibble::rowid_to_column(data_period1, "id")
+  data_period2 <- as.data.frame(cbind(lapply(data_COG[[3]], "[[", 1), deparse.level = 1))
+  data_period2$latitude <- as.numeric(data_period2$V1)
+  data_period2 <- tibble::rowid_to_column(data_period2, "id")
+  data_period3 <- as.data.frame(cbind(lapply(data_COG[[4]], "[[", 1), deparse.level = 1))
+  data_period3$latitude <- as.numeric(data_period3$V1)
+  data_period3 <- tibble::rowid_to_column(data_period3, "id")
+  temp_period1 <- as.data.frame(cbind(lapply(data_COG[[5]], "[[", 1), deparse.level = 1))
+  temp_period1$latitude <- as.numeric(temp_period1$V1)
+  temp_period1 <- tibble::rowid_to_column(temp_period1, "id")
+  temp_period2 <- as.data.frame(cbind(lapply(data_COG[[6]], "[[", 1), deparse.level = 1))
+  temp_period2$latitude <- as.numeric(temp_period2$V1)
+  temp_period2 <- tibble::rowid_to_column(temp_period2, "id")
+  temp_period3 <- as.data.frame(cbind(lapply(data_COG[[7]], "[[", 1), deparse.level = 1))
+  temp_period3$latitude <- as.numeric(temp_period3$V1)
+  temp_period3 <- tibble::rowid_to_column(temp_period3, "id")
+  data_lm1 <- lm(formula = latitude ~ id, data = data_period1)
+  data_lm2 <- lm(formula = latitude ~ id, data = data_period2)
+  data_lm3 <- lm(formula = latitude ~ id, data = data_period3)
+  temp_lm1 <- lm(formula = latitude ~ id, data = temp_period1)
+  temp_lm2 <- lm(formula = latitude ~ id, data = temp_period2)
+  temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3)
+  data_slope1 <- data_lm1$coefficients[2]
+  data_slope2 <- data_lm2$coefficients[2]
+  data_slope3 <- data_lm3$coefficients[2]
+  temp_slope1 <- temp_lm1$coefficients[2]
+  temp_slope2 <- temp_lm2$coefficients[2]
+  temp_slope3 <- temp_lm3$coefficients[2]
+  return(list(data_slope1, data_slope2, data_slope3,
+              temp_slope1, temp_slope2, temp_slope3))
 }

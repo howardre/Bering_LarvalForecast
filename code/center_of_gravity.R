@@ -645,82 +645,70 @@ temp_dist(pcodlarvae_COG)
 # Calculate COG per year, then regress latitude against year with slope being the velocity
 # Already have the COG per year averaged for each time period
 # Just put those into a linear regression
+pkegg_velocity <- velocity_calc(pkegg_COG)
+pklarvae_velocity <- velocity_calc(pklarvae_COG)
+fhsegg_velocity <- velocity_calc(fhsegg_COG)
+fhslarvae_velocity <- velocity_calc(fhslarvae_COG)
+akpegg_velocity <- velocity_calc(akpegg_COG)
+akplarvae_velocity <- velocity_calc(akplarvae_COG)
+yfslarvae_velocity <- velocity_calc(yfslarvae_COG)
+nrslarvae_velocity <- velocity_calc(nrslarvae_COG)
+pcodlarvae_velocity <- velocity_calc(pcodlarvae_COG)
 
-pkegg_period1 <- as.data.frame(cbind(lapply(pkegg_COG[[2]], "[[", 1), deparse.level = 1))
-pkegg_period1$latitude <- as.numeric(pkegg_period1$V1)
-pkegg_period1 <- tibble::rowid_to_column(pkegg_period1, "id")
-
-
-  ggplot(data = pkegg_period1) +
-  geom_point(aes(x = latitude, y = id))
-           
-
-pkegg_dists <- period_dist(pkegg_COG)
-pklarvae_dists <- period_dist(pklarvae_COG)
-fhsegg_dists <- period_dist(fhsegg_COG)
-fhslarvae_dists <- period_dist(fhslarvae_COG)
-akpegg_dists <- period_dist(akpegg_COG)
-akplarvae_dists <- period_dist(akplarvae_COG)
-yfslarvae_dists <- period_dist(yfslarvae_COG)
-nrslarvae_dists <- period_dist(nrslarvae_COG)
-pcodlarvae_dists <- period_dist(pcodlarvae_COG)
-
-period1 <- data.frame(abundance = c(pkegg_dists[2, ]$abundance,
-                                    pklarvae_dists[2, ]$abundance,
-                                    fhsegg_dists[2, ]$abundance,
-                                    fhslarvae_dists[2, ]$abundance,
-                                    akpegg_dists[2, ]$abundance,
-                                    akplarvae_dists[2, ]$abundance,
-                                    yfslarvae_dists[2, ]$abundance,
-                                    nrslarvae_dists[2, ]$abundance,
-                                    pcodlarvae_dists[2, ]$abundance),
-                      temperature = c(pkegg_dists[2, ]$temperature,
-                                      pklarvae_dists[2, ]$temperature,
-                                      fhsegg_dists[2, ]$temperature,
-                                      fhslarvae_dists[2, ]$temperature,
-                                      akpegg_dists[2, ]$temperature,
-                                      akplarvae_dists[2, ]$temperature,
-                                      yfslarvae_dists[2, ]$temperature,
-                                      nrslarvae_dists[2, ]$temperature,
-                                      pcodlarvae_dists[2, ]$temperature))
-period2 <- data.frame(abundance = c(pkegg_dists[3, ]$abundance,
-                                    pklarvae_dists[3, ]$abundance,
-                                    fhsegg_dists[3, ]$abundance,
-                                    fhslarvae_dists[3, ]$abundance,
-                                    akpegg_dists[3, ]$abundance,
-                                    akplarvae_dists[3, ]$abundance,
-                                    yfslarvae_dists[3, ]$abundance,
-                                    nrslarvae_dists[3, ]$abundance,
-                                    pcodlarvae_dists[3, ]$abundance),
-                      temperature = c(pkegg_dists[3, ]$temperature,
-                                      pklarvae_dists[3, ]$temperature,
-                                      fhsegg_dists[3, ]$temperature,
-                                      fhslarvae_dists[3, ]$temperature,
-                                      akpegg_dists[3, ]$temperature,
-                                      akplarvae_dists[3, ]$temperature,
-                                      yfslarvae_dists[3, ]$temperature,
-                                      nrslarvae_dists[3, ]$temperature,
-                                      pcodlarvae_dists[3, ]$temperature))
-period3 <- data.frame(abundance = c(pkegg_dists[4, ]$abundance,
-                                    pklarvae_dists[4, ]$abundance,
-                                    fhsegg_dists[4, ]$abundance,
-                                    fhslarvae_dists[4, ]$abundance,
-                                    akpegg_dists[4, ]$abundance,
-                                    akplarvae_dists[4, ]$abundance,
-                                    yfslarvae_dists[4, ]$abundance,
-                                    nrslarvae_dists[4, ]$abundance,
-                                    pcodlarvae_dists[4, ]$abundance),
-                      temperature = c(pkegg_dists[4, ]$temperature,
-                                      pklarvae_dists[4, ]$temperature,
-                                      fhsegg_dists[4, ]$temperature,
-                                      fhslarvae_dists[4, ]$temperature,
-                                      akpegg_dists[4, ]$temperature,
-                                      akplarvae_dists[4, ]$temperature,
-                                      yfslarvae_dists[4, ]$temperature,
-                                      nrslarvae_dists[4, ]$temperature,
-                                      pcodlarvae_dists[4, ]$temperature))
-
-plot(x = hindcast$temperature, y = hindcast$abundance) # all zeroes due to temperature calculation?
+period1 <- data.frame(abundance = c(pkegg_velocity[[1]],
+                                    pklarvae_velocity[[1]],
+                                    fhsegg_velocity[[1]],
+                                    fhslarvae_velocity[[1]],
+                                    akpegg_velocity[[1]],
+                                    akplarvae_velocity[[1]],
+                                    yfslarvae_velocity[[1]],
+                                    nrslarvae_velocity[[1]],
+                                    pcodlarvae_velocity[[1]]),
+                      temperature = c(pkegg_velocity[[4]],
+                                      pklarvae_velocity[[4]],
+                                      fhsegg_velocity[[4]],
+                                      fhslarvae_velocity[[4]],
+                                      akpegg_velocity[[4]],
+                                      akplarvae_velocity[[4]],
+                                      yfslarvae_velocity[[4]],
+                                      nrslarvae_velocity[[4]],
+                                      pcodlarvae_velocity[[4]]))
+period2 <- data.frame(abundance = c(pkegg_velocity[[2]],
+                                    pklarvae_velocity[[2]],
+                                    fhsegg_velocity[[2]],
+                                    fhslarvae_velocity[[2]],
+                                    akpegg_velocity[[2]],
+                                    akplarvae_velocity[[2]],
+                                    yfslarvae_velocity[[2]],
+                                    nrslarvae_velocity[[2]],
+                                    pcodlarvae_velocity[[2]]),
+                      temperature = c(pkegg_velocity[[5]],
+                                      pklarvae_velocity[[5]],
+                                      fhsegg_velocity[[5]],
+                                      fhslarvae_velocity[[5]],
+                                      akpegg_velocity[[5]],
+                                      akplarvae_velocity[[5]],
+                                      yfslarvae_velocity[[5]],
+                                      nrslarvae_velocity[[5]],
+                                      pcodlarvae_velocity[[5]]))
+period3 <- data.frame(abundance = c(pkegg_velocity[[3]],
+                                    pklarvae_velocity[[3]],
+                                    fhsegg_velocity[[3]],
+                                    fhslarvae_velocity[[3]],
+                                    akpegg_velocity[[3]],
+                                    akplarvae_velocity[[3]],
+                                    yfslarvae_velocity[[3]],
+                                    nrslarvae_velocity[[3]],
+                                    pcodlarvae_velocity[[3]]),
+                      temperature = c(pkegg_velocity[[6]],
+                                      pklarvae_velocity[[6]],
+                                      fhsegg_velocity[[6]],
+                                      fhslarvae_velocity[[6]],
+                                      akpegg_velocity[[6]],
+                                      akplarvae_velocity[[6]],
+                                      yfslarvae_velocity[[6]],
+                                      nrslarvae_velocity[[6]],
+                                      pcodlarvae_velocity[[6]]))
 
 library(ggplot2)
 library(gridExtra)
@@ -747,3 +735,12 @@ plot3 <- ggplot(data = period3,
                  se = FALSE) +
   stat_poly_eq()
 grid.arrange(plot1, plot2, plot3, nrow = 1)
+
+# Tracking climate velocity?
+# Negative means that they aren't shifting as fast as climate velocity
+period1$bias <- (sign(period1$temperature) * period1$temperature) * (period1$abundance - period1$temperature)
+period2$bias <- (sign(period2$temperature) * period2$temperature) * (period2$abundance - period2$temperature)
+period3$bias <- (sign(period3$temperature) * period3$temperature) * (period3$abundance - period3$temperature)
+period1$relative_bias <- (period1$abundance - period1$temperature) / period1$temperature
+period2$relative_bias <- (period2$abundance - period2$temperature) / period2$temperature
+period3$relative_bias <- (period3$abundance - period3$temperature) / period3$temperature
