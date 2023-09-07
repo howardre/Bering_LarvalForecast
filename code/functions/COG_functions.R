@@ -182,7 +182,7 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
 # 
 # # Scatterplot of COGs
 plot_COG <- function(COG){
-  ggplot(data = COG[[10]],
+  ggplot(data = COG[[9]],
          aes(x = lon, y = lat)) +
     geom_point(aes(color = period), size = 4) +
     geom_path() +
@@ -261,12 +261,12 @@ velocity_calc <- function(data_COG){
   temp_period3 <- as.data.frame(cbind(lapply(data_COG[[7]], "[[", 1), deparse.level = 1))
   temp_period3$latitude <- as.numeric(temp_period3$V1)
   temp_period3 <- tibble::rowid_to_column(temp_period3, "id")
-  data_lm1 <- lm(formula = latitude ~ id, data = data_period1)
-  data_lm2 <- lm(formula = latitude ~ id, data = data_period2)
-  data_lm3 <- lm(formula = latitude ~ id, data = data_period3)
-  temp_lm1 <- lm(formula = latitude ~ id, data = temp_period1)
-  temp_lm2 <- lm(formula = latitude ~ id, data = temp_period2)
-  temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3)
+  data_lm1 <- lm(formula = latitude ~ id, data = data_period1, na.action = na.omit)
+  data_lm2 <- lm(formula = latitude ~ id, data = data_period2, na.action = na.omit)
+  data_lm3 <- lm(formula = latitude ~ id, data = data_period3, na.action = na.omit)
+  temp_lm1 <- lm(formula = latitude ~ id, data = temp_period1, na.action = na.omit)
+  temp_lm2 <- lm(formula = latitude ~ id, data = temp_period2, na.action = na.omit)
+  temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3, na.action = na.omit)
   data_slope1 <- data_lm1$coefficients[2]
   data_slope2 <- data_lm2$coefficients[2]
   data_slope3 <- data_lm3$coefficients[2]
