@@ -738,9 +738,27 @@ grid.arrange(plot1, plot2, plot3, nrow = 1)
 
 # Tracking climate velocity?
 # Negative means that they aren't shifting as fast as climate velocity
-period1$bias <- (sign(period1$temperature) * period1$temperature) * (period1$abundance - period1$temperature)
-period2$bias <- (sign(period2$temperature) * period2$temperature) * (period2$abundance - period2$temperature)
-period3$bias <- (sign(period3$temperature) * period3$temperature) * (period3$abundance - period3$temperature)
-period1$relative_bias <- (period1$abundance - period1$temperature) / period1$temperature
-period2$relative_bias <- (period2$abundance - period2$temperature) / period2$temperature
-period3$relative_bias <- (period3$abundance - period3$temperature) / period3$temperature
+# Something up with the AKP egg temperatures
+period1$bias <- sign(period1$temperature) * (period1$abundance - period1$temperature)
+period2$bias <- sign(period2$temperature) * (period2$abundance - period2$temperature)
+period3$bias <- sign(period3$temperature) * (period3$abundance - period3$temperature)
+# period1$relative_bias <- (sign(period1$temperature) * (period1$abundance - period1$temperature)) / period1$temperature
+# period2$relative_bias <- (sign(period2$temperature) * (period2$abundance - period2$temperature)) / period2$temperature
+# period3$relative_bias <- (sign(period3$temperature) * (period3$abundance - period3$temperature)) / period3$temperature
+
+mean(period1$bias)
+mean(period2$bias)
+mean(period3$bias)
+
+# mean(period1$relative_bias)
+# mean(period2$relative_bias)
+# mean(period3$relative_bias)
+
+# Sandbox
+temp_period3 <- as.data.frame(cbind(lapply(fhsegg_COG[[7]], "[[", 1), deparse.level = 1))
+temp_period3$latitude <- as.numeric(temp_period3$V1)
+temp_period3 <- tibble::rowid_to_column(temp_period3, "id")
+hist(temp_period3$latitude)
+temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3, na.action = na.exclude)
+summary(temp_lm3)
+
