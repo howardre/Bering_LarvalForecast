@@ -182,10 +182,18 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
 # 
 # # Scatterplot of COGs
 plot_COG <- function(COG){
-  ggplot(data = COG[[9]],
-         aes(x = lon, y = lat)) +
-    geom_point(aes(color = period), size = 4) +
-    geom_path() +
+  ggplot() +
+    geom_point(data = COG[[9]],
+               aes(x = lon, y = lat,
+                   color = period), size = 4) +
+    geom_path(data = COG[[9]],
+              aes(x = lon, y = lat)) +
+    geom_point(data = COG[[8]],
+               aes(x = lon, y = lat,
+                   color = period), size = 4) +
+    geom_path(data = COG[[8]],
+              aes(x = lon, y = lat),
+              linetype = 2) +
     theme_classic() +
     theme(axis.ticks = element_blank(),
           axis.text = element_text(family = "serif", size = 16),
@@ -200,27 +208,27 @@ plot_COG <- function(COG){
 # 
 # Calculate distance between life stage COG for each time period
 lifestage_dist <- function(data1, data2){
-  d1 <- distHaversine(c(data1[[10]]$lon[1], data1[[10]]$lat[1]),
-                      c(data2[[10]]$lon[1], data2[[10]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data1[[10]]$lon[2], data1[[10]]$lat[2]),
-                      c(data2[[10]]$lon[2], data2[[10]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data1[[10]]$lon[3], data1[[10]]$lat[3]),
-                      c(data2[[10]]$lon[3], data2[[10]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data1[[10]]$lon[4], data1[[10]]$lat[4]),
-                      c(data2[[10]]$lon[4], data2[[10]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data1[[9]]$lon[1], data1[[9]]$lat[1]),
+                      c(data2[[9]]$lon[1], data2[[9]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data1[[9]]$lon[2], data1[[9]]$lat[2]),
+                      c(data2[[9]]$lon[2], data2[[9]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data1[[9]]$lon[3], data1[[9]]$lat[3]),
+                      c(data2[[9]]$lon[3], data2[[9]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data1[[9]]$lon[4], data1[[9]]$lat[4]),
+                      c(data2[[9]]$lon[4], data2[[9]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
 }
 
 temp_dist <- function(data){
-  d1 <- distHaversine(c(data[[9]]$lon[1], data[[9]]$lat[1]),
-                      c(data[[10]]$lon[1], data[[10]]$lat[1])) / 1000
-  d2 <- distHaversine(c(data[[9]]$lon[2], data[[9]]$lat[2]),
-                      c(data[[10]]$lon[2], data[[10]]$lat[2])) / 1000
-  d3 <- distHaversine(c(data[[9]]$lon[3], data[[9]]$lat[3]),
-                      c(data[[10]]$lon[3], data[[10]]$lat[3])) / 1000
-  d4 <- distHaversine(c(data[[9]]$lon[4], data[[9]]$lat[4]),
-                      c(data[[10]]$lon[4], data[[10]]$lat[4])) / 1000
+  d1 <- distHaversine(c(data[[8]]$lon[1], data[[8]]$lat[1]),
+                      c(data[[9]]$lon[1], data[[9]]$lat[1])) / 1000
+  d2 <- distHaversine(c(data[[8]]$lon[2], data[[8]]$lat[2]),
+                      c(data[[9]]$lon[2], data[[9]]$lat[2])) / 1000
+  d3 <- distHaversine(c(data[[8]]$lon[3], data[[8]]$lat[3]),
+                      c(data[[9]]$lon[3], data[[9]]$lat[3])) / 1000
+  d4 <- distHaversine(c(data[[8]]$lon[4], data[[8]]$lat[4]),
+                      c(data[[9]]$lon[4], data[[9]]$lat[4])) / 1000
   distances <- list(d1, d2, d3, d4)
   return(distances)
 }
@@ -243,6 +251,9 @@ temp_dist <- function(data){
 # }
 
 velocity_calc <- function(data_COG){
+  data_hindcast <- as.data.frame(cbind(lapply(data_COG[[1]][[2]], "[[", 1), deparse.level = 1))
+  data_hindcast$latitude <- as.numeric(data_hindcast$V1)
+  data_hindcast <- tibble::rowid_to_column(data_hindcast, "id")
   data_period1 <- as.data.frame(cbind(lapply(data_COG[[2]], "[[", 1), deparse.level = 1))
   data_period1$latitude <- as.numeric(data_period1$V1)
   data_period1 <- tibble::rowid_to_column(data_period1, "id")
@@ -252,6 +263,9 @@ velocity_calc <- function(data_COG){
   data_period3 <- as.data.frame(cbind(lapply(data_COG[[4]], "[[", 1), deparse.level = 1))
   data_period3$latitude <- as.numeric(data_period3$V1)
   data_period3 <- tibble::rowid_to_column(data_period3, "id")
+  temp_hindcast <- as.data.frame(cbind(lapply(data_COG[[1]][[3]], "[[", 1), deparse.level = 1))
+  temp_hindcast$latitude <- as.numeric(temp_hindcast$V1)
+  temp_hindcast <- tibble::rowid_to_column(temp_hindcast, "id")
   temp_period1 <- as.data.frame(cbind(lapply(data_COG[[5]], "[[", 1), deparse.level = 1))
   temp_period1$latitude <- as.numeric(temp_period1$V1)
   temp_period1 <- tibble::rowid_to_column(temp_period1, "id")
@@ -261,12 +275,16 @@ velocity_calc <- function(data_COG){
   temp_period3 <- as.data.frame(cbind(lapply(data_COG[[7]], "[[", 1), deparse.level = 1))
   temp_period3$latitude <- as.numeric(temp_period3$V1)
   temp_period3 <- tibble::rowid_to_column(temp_period3, "id")
+  hindcast_lm1 <- lm(formula = latitude ~ id, data = data_hindcast, na.action = na.omit)
+  hindcast_lm2 <- lm(formula = latitude ~ id, data = temp_hindcast, na.action = na.omit)
   data_lm1 <- lm(formula = latitude ~ id, data = data_period1, na.action = na.omit)
   data_lm2 <- lm(formula = latitude ~ id, data = data_period2, na.action = na.omit)
   data_lm3 <- lm(formula = latitude ~ id, data = data_period3, na.action = na.omit)
   temp_lm1 <- lm(formula = latitude ~ id, data = temp_period1, na.action = na.omit)
   temp_lm2 <- lm(formula = latitude ~ id, data = temp_period2, na.action = na.omit)
   temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3, na.action = na.omit)
+  hindcast_slope1 <- hindcast_lm1$coefficients[2]
+  hindcast_slope2 <- hindcast_lm2$coefficients[2]
   data_slope1 <- data_lm1$coefficients[2]
   data_slope2 <- data_lm2$coefficients[2]
   data_slope3 <- data_lm3$coefficients[2]
@@ -274,5 +292,6 @@ velocity_calc <- function(data_COG){
   temp_slope2 <- temp_lm2$coefficients[2]
   temp_slope3 <- temp_lm3$coefficients[2]
   return(list(data_slope1, data_slope2, data_slope3,
-              temp_slope1, temp_slope2, temp_slope3))
+              temp_slope1, temp_slope2, temp_slope3,
+              hindcast_slope1, hindcast_slope2))
 }
