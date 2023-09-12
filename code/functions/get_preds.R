@@ -93,22 +93,22 @@ pred_loop <- function(range, data, doy, month,
 # sandbox for COG
 # Calculate COG for predictions
 COG_pred <- function(data){
-  temp1 <- data %>% dplyr::mutate(pred = pred_scaled * lat) %>%
+  temp1 <- data %>% dplyr::mutate(pred = pred * lat) %>%
     dplyr::summarize(value = sum(pred, na.rm = TRUE)) %>%
     dplyr::select(value)
   
   temp2 <- data %>%
-    dplyr::summarize(value = sum(pred_scaled, na.rm = TRUE)) %>%
+    dplyr::summarize(value = sum(pred, na.rm = TRUE)) %>%
     dplyr::select(value)
   
   COG_x <- temp1 / temp2
   
-  temp3 <- data %>% dplyr::mutate(pred = pred_scaled * lon) %>%
+  temp3 <- data %>% dplyr::mutate(pred = pred * lon) %>%
     dplyr::summarize(value1 = sum(pred, na.rm = TRUE)) %>%
     dplyr::select(value1)
   
   temp4 <- data %>%
-    dplyr::summarize(value1 = sum(pred_scaled, na.rm = TRUE)) %>%
+    dplyr::summarize(value1 = sum(pred, na.rm = TRUE)) %>%
     dplyr::select(value1)
   
   COG_y <- temp3 / temp4
