@@ -515,8 +515,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-pkegg_COG[[11]]
-mean(pkegg_COG[[10]]$distance, na.rm = TRUE)
+pkegg_COG[[10]]
+mean(pkegg_COG[[9]]$distance, na.rm = TRUE)
 
 plot_COG(pklarvae_COG)
 dev.copy(jpeg,
@@ -528,8 +528,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-pklarvae_COG[[11]]
-mean(pklarvae_COG[[10]]$distance, na.rm = TRUE)
+pklarvae_COG[[10]]
+mean(pklarvae_COG[[9]]$distance, na.rm = TRUE)
 
 lifestage_dist(pkegg_COG, pklarvae_COG)
 temp_dist(pkegg_COG)
@@ -545,8 +545,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-fhsegg_COG[[3]]
-mean(fhsegg_COG[[2]]$distance, na.rm = TRUE)
+fhsegg_COG[[10]]
+mean(fhsegg_COG[[9]]$distance, na.rm = TRUE)
 
 plot_COG(fhslarvae_COG)
 dev.copy(jpeg,
@@ -558,8 +558,8 @@ dev.copy(jpeg,
          units = 'in')
 dev.off()
 
-fhslarvae_COG[[3]]
-mean(fhslarvae_COG[[2]]$distance, na.rm = TRUE)
+fhslarvae_COG[[10]]
+mean(fhslarvae_COG[[9]]$distance, na.rm = TRUE)
 
 lifestage_dist(fhsegg_COG, fhslarvae_COG)
 temp_dist(fhsegg_COG)
@@ -575,8 +575,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-akpegg_COG[[3]]
-mean(akpegg_COG[[2]]$distance, na.rm = TRUE)
+akpegg_COG[[10]]
+mean(akpegg_COG[[9]]$distance, na.rm = TRUE)
 
 plot_COG(akplarvae_COG)
 dev.copy(jpeg,
@@ -587,8 +587,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-akplarvae_COG[[3]]
-mean(akplarvae_COG[[2]]$distance, na.rm = TRUE)
+akplarvae_COG[[10]]
+mean(akplarvae_COG[[9]]$distance, na.rm = TRUE)
 
 lifestage_dist(akpegg_COG, akplarvae_COG)
 temp_dist(akpegg_COG)
@@ -604,8 +604,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-yfslarvae_COG[[3]]
-mean(yfslarvae_COG[[2]]$distance, na.rm = TRUE)
+yfslarvae_COG[[10]]
+mean(yfslarvae_COG[[9]]$distance, na.rm = TRUE)
 
 temp_dist(yfslarvae_COG)
 
@@ -619,8 +619,8 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-nrslarvae_COG[[3]]
-mean(nrslarvae_COG[[2]]$distance, na.rm = TRUE)
+nrslarvae_COG[[10]]
+mean(nrslarvae_COG[[9]]$distance, na.rm = TRUE)
 
 temp_dist(nrslarvae_COG)
 
@@ -634,17 +634,14 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
-pcodlarvae_COG[[3]]
-mean(pcodlarvae_COG[[2]]$distance, na.rm = TRUE)
+pcodlarvae_COG[[10]]
+mean(pcodlarvae_COG[[9]]$distance, na.rm = TRUE)
 
 temp_dist(pcodlarvae_COG)
 
 # Velocity
-# May need to rethink how we do this
 # Pinsky et al. (2013) used linear regression to calculate rate of change
 # Calculate COG per year, then regress latitude against year with slope being the velocity
-# Already have the COG per year averaged for each time period
-# Just put those into a linear regression
 pkegg_velocity <- velocity_calc(pkegg_COG)
 pklarvae_velocity <- velocity_calc(pklarvae_COG)
 fhsegg_velocity <- velocity_calc(fhsegg_COG)
@@ -655,6 +652,24 @@ yfslarvae_velocity <- velocity_calc(yfslarvae_COG)
 nrslarvae_velocity <- velocity_calc(nrslarvae_COG)
 pcodlarvae_velocity <- velocity_calc(pcodlarvae_COG)
 
+hindcast <- data.frame(abundance = c(pkegg_velocity[[7]],
+                                     pklarvae_velocity[[7]],
+                                     fhsegg_velocity[[7]],
+                                     fhslarvae_velocity[[7]],
+                                     akpegg_velocity[[7]],
+                                     akplarvae_velocity[[7]],
+                                     yfslarvae_velocity[[7]],
+                                     nrslarvae_velocity[[7]],
+                                     pcodlarvae_velocity[[7]]),
+                       temperature = c(pkegg_velocity[[8]],
+                                       pklarvae_velocity[[8]],
+                                       fhsegg_velocity[[8]],
+                                       fhslarvae_velocity[[8]],
+                                       akpegg_velocity[[8]],
+                                       akplarvae_velocity[[8]],
+                                       yfslarvae_velocity[[8]],
+                                       nrslarvae_velocity[[8]],
+                                       pcodlarvae_velocity[[8]]))
 period1 <- data.frame(abundance = c(pkegg_velocity[[1]],
                                     pklarvae_velocity[[1]],
                                     fhsegg_velocity[[1]],
@@ -713,6 +728,14 @@ period3 <- data.frame(abundance = c(pkegg_velocity[[3]],
 library(ggplot2)
 library(gridExtra)
 library(ggpmisc)
+hindcast_plot <- ggplot(data = hindcast,
+                        aes(x = temperature,
+                            y = abundance)) +
+  geom_point() +
+  stat_poly_line(method = "lm",
+                 se = FALSE) +
+  stat_poly_eq(method = "lm")
+
 plot1 <- ggplot(data = period1, 
                 aes(x = temperature, 
                     y = abundance)) +
@@ -720,6 +743,7 @@ plot1 <- ggplot(data = period1,
   stat_poly_line(method = "lm",
                  se = FALSE) +
   stat_poly_eq(method = "lm")
+
 plot2 <- ggplot(data = period2,
                 aes(x = temperature,
                     y = abundance)) +
@@ -727,38 +751,47 @@ plot2 <- ggplot(data = period2,
   stat_poly_line(method = "lm",
                  se = FALSE) +
   stat_poly_eq(method = "lm")
+
 plot3 <- ggplot(data = period3,
                 aes(x = temperature,
                     y = abundance)) +
   geom_point() +
   stat_poly_line(method = "lm",
                  se = FALSE) +
-  stat_poly_eq()
+  stat_poly_eq(method = "lm")
+
+# Not working due to lack of relationship in hindcast
+# Not sure if this works with the hindcast?
 grid.arrange(plot1, plot2, plot3, nrow = 1)
 
-# Tracking climate velocity?
+# Tracking climate velocity
 # Negative means that they aren't shifting as fast as climate velocity
 # Something up with the AKP egg temperatures
+hindcast$bias <- sign(hindcast$temperature) * (hindcast$abundance - hindcast$temperature)
 period1$bias <- sign(period1$temperature) * (period1$abundance - period1$temperature)
 period2$bias <- sign(period2$temperature) * (period2$abundance - period2$temperature)
 period3$bias <- sign(period3$temperature) * (period3$abundance - period3$temperature)
-# period1$relative_bias <- (sign(period1$temperature) * (period1$abundance - period1$temperature)) / period1$temperature
-# period2$relative_bias <- (sign(period2$temperature) * (period2$abundance - period2$temperature)) / period2$temperature
-# period3$relative_bias <- (sign(period3$temperature) * (period3$abundance - period3$temperature)) / period3$temperature
+hindcast$relative_bias <- (sign(hindcast$temperature) * (hindcast$abundance - hindcast$temperature)) / hindcast$temperature
+period1$relative_bias <- (sign(period1$temperature) * (period1$abundance - period1$temperature)) / period1$temperature
+period2$relative_bias <- (sign(period2$temperature) * (period2$abundance - period2$temperature)) / period2$temperature
+period3$relative_bias <- (sign(period3$temperature) * (period3$abundance - period3$temperature)) / period3$temperature
 
-mean(period1$bias)
-mean(period2$bias)
-mean(period3$bias)
+t.test(hindcast$bias)
+t.test(period1$bias)
+t.test(period2$bias)
+t.test(period3$bias)
+t.test(hindcast$relative_bias)
+t.test(period1$relative_bias)
+t.test(period2$relative_bias)
+t.test(period3$relative_bias)
 
-# mean(period1$relative_bias)
-# mean(period2$relative_bias)
-# mean(period3$relative_bias)
+# Look at relationship between thermal niche and abundance
+summary(lm(abundance ~ temperature, data = hindcast))
+summary(lm(abundance ~ temperature, data = period1))
+summary(lm(abundance ~ temperature, data = period2))
+summary(lm(abundance ~ temperature, data = period3))
 
 # Sandbox
-temp_period3 <- as.data.frame(cbind(lapply(fhsegg_COG[[7]], "[[", 1), deparse.level = 1))
-temp_period3$latitude <- as.numeric(temp_period3$V1)
-temp_period3 <- tibble::rowid_to_column(temp_period3, "id")
-hist(temp_period3$latitude)
-temp_lm3 <- lm(formula = latitude ~ id, data = temp_period3, na.action = na.exclude)
-summary(temp_lm3)
-
+data_hindcast <- as.data.frame(cbind(lapply(akpegg_COG[[1]][[2]], "[[", 1), deparse.level = 1))
+data_hindcast$latitude <- as.numeric(data_hindcast$V1)
+data_hindcast <- tibble::rowid_to_column(data_hindcast, "id")
