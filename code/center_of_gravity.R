@@ -760,30 +760,29 @@ plot3 <- ggplot(data = period3,
                  se = FALSE) +
   stat_poly_eq(method = "lm")
 
-# Not working due to lack of relationship in hindcast
-# Not sure if this works with the hindcast?
-grid.arrange(plot1, plot2, plot3, nrow = 1)
+grid.arrange(hindcast_plot, plot1, plot2, plot3, nrow = 1)
 
 # Tracking climate velocity
 # Negative means that they aren't shifting as fast as climate velocity
 # Something up with the AKP egg temperatures
+# Not sure relative bias needed since using scaled values
 hindcast$bias <- sign(hindcast$temperature) * (hindcast$abundance - hindcast$temperature)
 period1$bias <- sign(period1$temperature) * (period1$abundance - period1$temperature)
 period2$bias <- sign(period2$temperature) * (period2$abundance - period2$temperature)
 period3$bias <- sign(period3$temperature) * (period3$abundance - period3$temperature)
-hindcast$relative_bias <- (sign(hindcast$temperature) * (hindcast$abundance - hindcast$temperature)) / hindcast$temperature
-period1$relative_bias <- (sign(period1$temperature) * (period1$abundance - period1$temperature)) / period1$temperature
-period2$relative_bias <- (sign(period2$temperature) * (period2$abundance - period2$temperature)) / period2$temperature
-period3$relative_bias <- (sign(period3$temperature) * (period3$abundance - period3$temperature)) / period3$temperature
+# hindcast$relative_bias <- (sign(hindcast$temperature) * (hindcast$abundance - hindcast$temperature)) / hindcast$temperature
+# period1$relative_bias <- (sign(period1$temperature) * (period1$abundance - period1$temperature)) / period1$temperature
+# period2$relative_bias <- (sign(period2$temperature) * (period2$abundance - period2$temperature)) / period2$temperature
+# period3$relative_bias <- (sign(period3$temperature) * (period3$abundance - period3$temperature)) / period3$temperature
 
 t.test(hindcast$bias)
 t.test(period1$bias)
 t.test(period2$bias)
 t.test(period3$bias)
-t.test(hindcast$relative_bias)
-t.test(period1$relative_bias)
-t.test(period2$relative_bias)
-t.test(period3$relative_bias)
+# t.test(hindcast$relative_bias)
+# t.test(period1$relative_bias)
+# t.test(period2$relative_bias)
+# t.test(period3$relative_bias)
 
 # Look at relationship between thermal niche and abundance
 summary(lm(abundance ~ temperature, data = hindcast))
