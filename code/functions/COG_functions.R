@@ -183,17 +183,19 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
 # # Scatterplot of COGs
 plot_COG <- function(COG){
   ggplot() +
+    geom_path(data = COG[[9]],
+              aes(x = lon, y = lat, linetype = "Species")) +
     geom_point(data = COG[[9]],
                aes(x = lon, y = lat,
-                   color = period), size = 4) +
-    geom_path(data = COG[[9]],
-              aes(x = lon, y = lat)) +
+                   color = period), 
+               size = 4.5) +
+    geom_path(data = COG[[8]],
+              aes(x = lon, y = lat, linetype = "Temperature")) +
     geom_point(data = COG[[8]],
                aes(x = lon, y = lat,
-                   color = period), size = 4) +
-    geom_path(data = COG[[8]],
-              aes(x = lon, y = lat),
-              linetype = 2) +
+                   color = period), 
+               size = 4.5) +
+    scale_color_manual(values = c("goldenrod3", "coral2", "darkturquoise", "darkslateblue")) +
     theme_classic() +
     theme(axis.ticks = element_blank(),
           axis.text = element_text(family = "serif", size = 16),
