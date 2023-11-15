@@ -181,31 +181,40 @@ COG_calc <- function(hindcast, my_list1, my_list2, my_list3, my_list4, my_list5,
 # }
 # 
 # # Scatterplot of COGs
-plot_COG <- function(COG){
+plot_COG <- function(COG, species){
   ggplot() +
     geom_path(data = COG[[9]],
-              aes(x = lon, y = lat, linetype = "Species")) +
+              aes(x = lon, y = lat, linetype = "Species"),
+              size = 1) +
     geom_point(data = COG[[9]],
                aes(x = lon, y = lat,
                    color = period), 
-               size = 4.5) +
+               size = 5) +
     geom_path(data = COG[[8]],
-              aes(x = lon, y = lat, linetype = "Temperature")) +
+              aes(x = lon, y = lat, linetype = "Temperature"),
+              size = 1) +
     geom_point(data = COG[[8]],
                aes(x = lon, y = lat,
                    color = period), 
-               size = 4.5) +
-    scale_color_manual(values = c("goldenrod3", "coral2", "darkturquoise", "darkslateblue")) +
+               size = 5) +
+    scale_linetype_manual(values = c("solid", "dotted")) +
+    scale_color_manual(values = c("goldenrod3", "coral2", "darkturquoise", "darkslateblue"),
+                       labels = c("Hindcast", "2015-2039", "2040-2069", "2070-2099")) +
     theme_classic() +
     theme(axis.ticks = element_blank(),
-          axis.text = element_text(family = "serif", size = 16),
-          axis.title = element_text(family = "serif", size = 20),
+          axis.text = element_text(family = "serif", size = 18),
+          plot.title = element_text(size = 24, family = "serif", 
+                                    face = "bold", hjust = 0.5),
+          axis.title = element_text(family = "serif", size = 22),
           axis.text.x = element_text(angle = 45, vjust = 0.7),
-          strip.text = element_text(family = "serif", size = 20),
-          legend.title = element_text(family = "serif", size = 18),
-          legend.text = element_text(family = "serif", size = 16)) +
-    labs(x = "Longitude",
-         y = "Latitude")
+          legend.title = element_text(family = "serif", size = 22,
+                                      face = "bold"),
+          legend.text = element_text(family = "serif", size = 20)) +
+    labs(x = "Longitude \u00B0W",
+         y = "Latitude \u00B0N",
+         color = "Time Period",
+         linetype = "COG",
+         title = species)
 }
 # 
 # Calculate distance between life stage COG for each time period

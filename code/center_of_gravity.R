@@ -506,24 +506,24 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585, df_pcodlarvae1_gfdl126, df_pc
 
 ## Visualization and Calc ----
 # Pollock
-plot_COG(pkegg_COG)
+plot_COG(pkegg_COG, "Walleye Pollock Eggs")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_egg_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
 pkegg_COG[[10]]
 mean(pkegg_COG[[9]]$distance, na.rm = TRUE)
 
-plot_COG(pklarvae_COG)
+plot_COG(pklarvae_COG, "Walleye Pollock Larvae")
 dev.copy(jpeg,
          here('results/pollock_forecast',
               'pollock_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
@@ -536,24 +536,24 @@ temp_dist(pkegg_COG)
 temp_dist(pklarvae_COG)
 
 # Flathead Sole
-plot_COG(fhsegg_COG)
+plot_COG(fhsegg_COG, "Flathead Sole Eggs")
 dev.copy(jpeg,
          here('results/flathead_forecast',
               'flathead_egg_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
 fhsegg_COG[[10]]
 mean(fhsegg_COG[[9]]$distance, na.rm = TRUE)
 
-plot_COG(fhslarvae_COG)
+plot_COG(fhslarvae_COG, "Flathead Sole Larvae")
 dev.copy(jpeg,
          here('results/flathead_forecast',
               'flathead_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
@@ -566,24 +566,24 @@ temp_dist(fhsegg_COG)
 temp_dist(fhslarvae_COG)
 
 # Alaska Plaice
-plot_COG(akpegg_COG)
+plot_COG(akpegg_COG, "Alaska Plaice Eggs")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_egg_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
 akpegg_COG[[10]]
 mean(akpegg_COG[[9]]$distance, na.rm = TRUE)
 
-plot_COG(akplarvae_COG)
+plot_COG(akplarvae_COG, "Alaska Plaice Larvae")
 dev.copy(jpeg,
          here('results/plaice_forecast',
               'plaice_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
@@ -595,12 +595,12 @@ temp_dist(akpegg_COG)
 temp_dist(akplarvae_COG)
 
 # Yellowfin Sole
-plot_COG(yfslarvae_COG)
+plot_COG(yfslarvae_COG, "Yellowfin Sole Larvae")
 dev.copy(jpeg,
          here('results/yellowfin_forecast',
               'yellowfin_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
@@ -610,12 +610,12 @@ mean(yfslarvae_COG[[9]]$distance, na.rm = TRUE)
 temp_dist(yfslarvae_COG)
 
 # Northern Rock Sole
-plot_COG(nrslarvae_COG)
+plot_COG(nrslarvae_COG, "Northern Rock Sole Larvae")
 dev.copy(jpeg,
          here('results/rocksole_forecast',
               'rocksole_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
@@ -625,12 +625,12 @@ mean(nrslarvae_COG[[9]]$distance, na.rm = TRUE)
 temp_dist(nrslarvae_COG)
 
 # Pacific Cod
-plot_COG(pcodlarvae_COG)
+plot_COG(pcodlarvae_COG, "Pacific Cod Larvae")
 dev.copy(jpeg,
          here('results/cod_forecast',
               'cod_larvae_COG.jpg'),
-         height = 6,
-         width = 6,
+         height = 7,
+         width = 8,
          res = 200,
          units = 'in')
 dev.off()
