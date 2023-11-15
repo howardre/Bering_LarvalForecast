@@ -9,6 +9,9 @@ library(date)
 library(ggplot2)
 
 ### Functions ----
+# This calculates the mean for the hindcast during the baseline years
+# Jenny's paper shows that the set of years selected really doens't matter
+# Part 1 of the calculation for temperature and salinity
 hindcast_mean_temp <- function(hindcast_dfs){
   
   baseline_years <- 1985:2014 # define baseline/ref years (here based on Cheng et al 2021)
@@ -19,9 +22,8 @@ hindcast_mean_temp <- function(hindcast_dfs){
   ROMS_baseline_dat <- hindcast_dfs %>% # select ref yrs from df
     filter(., year %in% baseline_years)
   
-  # estimate a monthly-avg temp for each grid cell for each month
-  # for the reference period
-  # (so an avg temp for each month at each grid cell averaged across 1980 - 2014)
+  # estimate a monthly-avg temp for each grid cell for each month for the reference period
+  # (so an avg temp for each month at each grid cell averaged across 1985 - 2014)
   ROMS_baseline_dat_mo <- ROMS_baseline_dat %>%
     mutate(lon = lon,
            lat = lat) %>%
@@ -29,6 +31,7 @@ hindcast_mean_temp <- function(hindcast_dfs){
     summarize(mo_baseline_value = mean(temp))
   return(ROMS_baseline_dat_mo)
 }
+
 hindcast_mean_salt <- function(hindcast_dfs){
   
   baseline_years <- 1985:2014 # define baseline/ref years (here based on Cheng et al 2021)
@@ -41,7 +44,7 @@ hindcast_mean_salt <- function(hindcast_dfs){
   
   # estimate a monthly-avg temp for each grid cell for each month
   # for the reference period
-  # (so an avg temp for each month at each grid cell averaged across 1980 - 2014)
+  # (so an avg temp for each month at each grid cell averaged across 1985 - 2014)
   ROMS_baseline_dat_mo <- ROMS_baseline_dat %>%
     mutate(lon = lon,
            lat = lat) %>%
@@ -49,6 +52,9 @@ hindcast_mean_salt <- function(hindcast_dfs){
     summarize(mo_baseline_value = mean(salt))
   return(ROMS_baseline_dat_mo)
 }
+
+# These two functions are for the projections (CESM, GFDL, MIROC)
+# Part 2 of the equation
 baseline_mean_temp <- function(baseline_dfs){
   baseline_years <- 1985:2014
   baseline_dat <- baseline_dfs %>% # select ref yrs from df
@@ -56,12 +62,13 @@ baseline_mean_temp <- function(baseline_dfs){
   
   # estimate a monthly-avg temp for each grid cell for each month
   # for the ref period
-  # (so an avg temp for each month at each grid cell averaged across 1980 - 2014)
+  # (so an avg temp for each month at each grid cell averaged across 1985 - 2014)
   baseline_dat_mo <- baseline_dat %>%
     group_by(month, lat, lon) %>%
     summarize(mean_proj_baseline = mean(temp))
   return(baseline_dat_mo)
 }
+
 baseline_mean_salt <- function(baseline_dfs){
   baseline_years <- 1985:2014
   baseline_dat <- baseline_dfs %>% # select ref yrs from df
@@ -75,6 +82,10 @@ baseline_mean_salt <- function(baseline_dfs){
     summarize(mean_proj_baseline = mean(salt))
   return(baseline_dat_mo)
 }
+
+# One function for parts 3-5
+# Part 3 of the equation
+# This calculates the average salinity and temperature per grid cell
 forecast_deltas_temp <- function(forecast_dfs, projection_years,  
                                  baseline_means, hindcast_means){
   proj_dat <- forecast_dfs %>%
@@ -84,8 +95,8 @@ forecast_deltas_temp <- function(forecast_dfs, projection_years,
     group_by(projection, year, month, lat, lon) %>%
     summarise(mo_avg_proj = mean(temp))
   
-  #4 calculate deltas (difference btw raw projected temp and mean proj temp across
-  # ref period)
+  # Part 4 calculate deltas 
+  # This is the difference between the raw projected temp/salt and mean projected temp/salt across ref period
   
   # combine the monthly means for historical period and projected df into one df
   delta_dat <- merge(proj_dat, baseline_means,
@@ -94,7 +105,7 @@ forecast_deltas_temp <- function(forecast_dfs, projection_years,
   delta_dat <- delta_dat %>%
     mutate(delta = (mo_avg_proj - mean_proj_baseline))
   
-  #5 add deltas mean of the hindcast during the reference years (step 1)
+  # Part 5 is to add deltas mean of the hindcast during the reference years (step 1)
   bcs <- merge(hindcast_means, delta_dat,
                by = c("lat", "lon", "month"))
   
@@ -102,8 +113,12 @@ forecast_deltas_temp <- function(forecast_dfs, projection_years,
     mutate(bc = delta + mo_baseline_value)
   return(bcs)
 }
+
+
 forecast_deltas_salt <- function(forecast_dfs, projection_years,  
                                  baseline_means, hindcast_means){
+  # Part 3 of the equation
+  # This calculates the average salinity and temperature per grid cell
   proj_dat <- forecast_dfs %>%
     filter(., year %in% projection_years)
   
@@ -111,8 +126,8 @@ forecast_deltas_salt <- function(forecast_dfs, projection_years,
     group_by(projection, year, month, lat, lon) %>%
     summarise(mo_avg_proj = mean(salt))
   
-  #4 calculate deltas (difference btw raw projected temp and mean proj temp across
-  # ref period)
+  # Part 4 calculate deltas 
+  # This is the difference between the raw projected temp/salt and mean projected temp/salt across ref period
   
   # combine the monthly means for historical period and projected df into one df
   delta_dat <- merge(proj_dat, baseline_means,
@@ -121,7 +136,7 @@ forecast_deltas_salt <- function(forecast_dfs, projection_years,
   delta_dat <- delta_dat %>%
     mutate(delta = (mo_avg_proj - mean_proj_baseline))
   
-  #5 add deltas mean of the hindcast during the reference years (step 1)
+  # Part 5 is to add deltas mean of the hindcast during the reference years (step 1)
   bcs <- merge(hindcast_means, delta_dat,
                by = c("lat", "lon", "month"))
   
@@ -130,10 +145,7 @@ forecast_deltas_salt <- function(forecast_dfs, projection_years,
   return(bcs)
 }
 
-# To run the forecast function, memory limit likely needs to be increased
 # The steps for bias correction are outlined in the functions (steps 1-5)
-
-memory.limit(300000)
 
 ### CESM ----
 # Temperature
@@ -347,23 +359,28 @@ ggplot(cesm_dfs, aes(x = year,
                      group = projection,
                      fill = projection)) +
   geom_line(aes(group = projection,
-                color = projection)) +
+                color = projection),
+            show.legend = FALSE) +
   geom_ribbon(aes(group = projection,
                   fill = projection,
                   ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "CESM Projections",
-       y = "Temperature (C)",
-       x = "Year") +
-  theme_bw() +
-  theme(axis.title = element_text(size = 22),
-        axis.text = element_text(size = 19),
-        plot.title = element_text(size = 28),
-        legend.text = element_text(size = 19),
-        legend.title = element_text(size = 20),
+       y = "Temperature (\u00B0C)",
+       x = "Year",
+       fill = "Projection") +
+  scale_fill_manual(values = c("goldenrod3", "darkslateblue", "coral2"),
+                    labels = c('Historical', "SSP1-2.6", "SSP5-8.5")) +
+  scale_color_manual(values = c("goldenrod3", "darkslateblue", "coral2")) +
+  theme_classic() +
+  theme(axis.ticks = element_blank(),
+        axis.title = element_text(size = 30),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 40, hjust = 0.5),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 28),
         text = element_text(family = "serif"))
-
 dev.copy(jpeg, 'F:/results/cesm_roms_temps.jpg', 
          height = 10, width = 20, units = 'in', res = 200)
 dev.off()
@@ -390,23 +407,28 @@ ggplot(gfdl_dfs, aes(x = year,
                      group = projection,
                      fill = projection)) +
   geom_line(aes(group = projection,
-                color = projection)) +
+                color = projection),
+            show.legend = FALSE) +
   geom_ribbon(aes(group = projection,
                   fill = projection,
                   ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "GFDL Projections",
-       y = "Temperature (C)",
-       x = "Year") +
-  theme_bw() +
-  theme(axis.title = element_text(size = 22),
-        axis.text = element_text(size = 19),
-        plot.title = element_text(size = 28),
-        legend.text = element_text(size = 19),
-        legend.title = element_text(size = 20),
+       y = "Temperature (\u00B0C)",
+       x = "Year",
+       fill = "Projection") +
+  scale_fill_manual(values = c("goldenrod3", "darkslateblue", "coral2"),
+                    labels = c('Historical', "SSP1-2.6", "SSP5-8.5")) +
+  scale_color_manual(values = c("goldenrod3", "darkslateblue", "coral2")) +
+  theme_classic() +
+  theme(axis.ticks = element_blank(),
+        axis.title = element_text(size = 30),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 40, hjust = 0.5),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 28),
         text = element_text(family = "serif"))
-
 dev.copy(jpeg, 'F:/results/gfdl_roms_temps.jpg', 
          height = 10, width = 20, units = 'in', res = 200)
 dev.off()
@@ -433,23 +455,28 @@ ggplot(miroc_dfs, aes(x = year,
                       group = projection,
                       fill = projection)) +
   geom_line(aes(group = projection,
-                color = projection)) +
+                color = projection),
+            show.legend = FALSE) +
   geom_ribbon(aes(group = projection,
                   fill = projection,
                   ymin = min,
                   ymax = max),
               alpha = 0.2) +
   labs(title = "MIROC Projections",
-       y = "Temperature (C)",
-       x = "Year") +
-  theme_bw() +
-  theme(axis.title = element_text(size = 22),
-        axis.text = element_text(size = 19),
-        plot.title = element_text(size = 28),
-        legend.text = element_text(size = 19),
-        legend.title = element_text(size = 20),
+       y = "Temperature (\u00B0C)",
+       x = "Year",
+       fill = "Projection") +
+  scale_fill_manual(values = c("goldenrod3", "darkslateblue", "coral2"),
+                    labels = c('Historical', "SSP1-2.6", "SSP5-8.5")) +
+  scale_color_manual(values = c("goldenrod3", "darkslateblue", "coral2")) +
+  theme_classic() +
+  theme(axis.ticks = element_blank(),
+        axis.title = element_text(size = 30),
+        axis.text = element_text(size = 25),
+        plot.title = element_text(size = 40, hjust = 0.5),
+        legend.text = element_text(size = 25),
+        legend.title = element_text(size = 28),
         text = element_text(family = "serif"))
-
 dev.copy(jpeg, 'F:/results/miroc_roms_temps.jpg', 
          height = 10, width = 20, units = 'in', res = 200)
 dev.off()
