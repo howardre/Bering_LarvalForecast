@@ -1,10 +1,13 @@
 # Libraries
 library(marmap)
+library(here)
+library(dplyr)
 
 
 # Load fish data
-clean_data <- function(file, temperature){
+clean_data <- function(file, roms){
   df <- as.data.frame(filter(readRDS(here('data', file))))
+  temperature <- as.data.frame(readRDS(here('data', roms)))
   df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
   df$catch <- df$larvalcatchper10m2 + 1
   df <- na.omit(df)
@@ -12,7 +15,7 @@ clean_data <- function(file, temperature){
   return(df)
 }
 
-pk_egg <- clean_data('pk_egg.rds', roms_temps)
+pk_egg <- clean_data('pk_egg.rds', 'roms_temps.rds')
 
 # Load bathymetry
 BS_bathy <- getNOAA.bathy(lon1 = -176.5, lon2 = -156.5, 
