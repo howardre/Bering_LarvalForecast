@@ -47,7 +47,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 # Load fish data
 clean_data <- function(file, temperature){
-  df <- as.data.frame(filter(readRDS(here('data', file))))
+  df <- as.data.frame(readRDS(here('data', file)))
   df$mean_temp <- temperature$mean[match(df$year, temperature$year)]
   df <- na.omit(df)
   return(df)
