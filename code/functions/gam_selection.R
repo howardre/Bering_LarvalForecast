@@ -1,5 +1,5 @@
 gam_selection <- function(data){
-  gam_base <- gam(catch ~ s(year, bs = 're') + 
+  gam_base <- gam(larvalcatchper10m2 ~ s(year, bs = 're') + 
                     s(doy, k = 9, bs = "tp", m = 1) +
                     te(lon, lat, bs = "tp", m = 1) +
                     s(roms_temperature, k = 5, bs = "tp", m = 1) +
@@ -7,7 +7,7 @@ gam_selection <- function(data){
                   data = data,
                   family = tw(link = 'log'),
                   method = 'REML')
-  gam_vc_phen <- gam(catch ~ s(year, bs = 're') +
+  gam_vc_phen <- gam(larvalcatchper10m2 ~ s(year, bs = 're') +
                        s(doy, k = 9, bs = "tp", m = 1) +
                        te(lon, lat, bs = "tp", m = 1) +
                        s(roms_temperature, k = 5, bs = "tp", m = 1) +
@@ -16,7 +16,7 @@ gam_selection <- function(data){
                      data = data,
                      family = tw(link = 'log'),
                      method = 'REML')
-  gam_vc_geog <- gam(catch ~ s(year, bs = 're') +
+  gam_vc_geog <- gam(larvalcatchper10m2 ~ s(year, bs = 're') +
                        s(doy, k = 9, bs = "tp", m = 1) +
                        te(lon, lat, bs = "tp", m = 1) +
                        s(roms_temperature, k = 5, bs = "tp", m = 1) +

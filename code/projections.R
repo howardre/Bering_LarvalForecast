@@ -23,17 +23,16 @@ source(here('code/functions', 'get_preds.R'))
 source(here('code/functions', 'pred_avgs.R'))
 
 # Functions
-# Loads the data, adds ROMS temperatures, sets up catch for GAM
+# Loads the data, adds ROMS temperatures, sets up larvalcatchper10m2 for GAM
 load_data <- function(file, data, temps){
   data <- as.data.frame(readRDS(here('data', file)))
   data$mean_temp <- temps$mean[match(data$year, temps$year)]
-  data$catch <- data$larvalcatchper10m2 + 1
   return(data)
 }
 
 # Create GAM formulas
 formula_pheno <- function(data){
-  gam(catch ~ s(year, bs = 're') +
+  gam(larvalcatchper10m2 ~ s(year, bs = 're') +
         s(doy, k = 9, bs = "tp", m = 1) +
         te(lon, lat, bs = "tp", m = 1) +
         s(roms_temperature, bs = "tp", k = 5, m = 1) +
@@ -45,7 +44,7 @@ formula_pheno <- function(data){
 }
 
 formula_geog <- function(data){
-  gam(catch ~ s(year, bs = 're') +
+  gam(larvalcatchper10m2 ~ s(year, bs = 're') +
         s(doy, k = 9, bs = "tp", m = 1) +
         te(lon, lat, bs = "tp", m = 1) +
         s(roms_temperature, bs = "tp", k = 5, m = 1) +
@@ -73,7 +72,7 @@ roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
 pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
 pk_egg_temps <- readRDS(here('data', 'pk_egg_temps'))
-pkegg_formula <- gam(catch ~ s(year, bs = 're') +
+pkegg_formula <- gam(larvalcatchper10m2 ~ s(year, bs = 're') +
                        s(doy, k = 9, bs = "tp", m = 1) +
                        te(lon, lat, bs = "tp", m = 1) +
                        s(roms_temperature, bs = "tp", k = 5, m = 1) +
