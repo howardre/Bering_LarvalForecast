@@ -24,10 +24,11 @@ source(here('code/functions', 'pred_avgs.R'))
 
 # Functions
 # Loads the data, adds ROMS temperatures, sets up larvalcatchper10m2 for GAM
-load_data <- function(file, data, temps){
+load_data <- function(file, temps){
   data <- as.data.frame(readRDS(here('data', file)))
   data$mean_temp <- temps$mean[match(data$year, temps$year)]
-  return(data)
+  df <- na.omit(data)
+  return(df)
 }
 
 # Create GAM formulas
@@ -35,8 +36,8 @@ formula_pheno <- function(data){
   gam(larvalcatchper10m2 ~ s(year, bs = 're') +
         s(doy, k = 9, bs = "tp", m = 1) +
         te(lon, lat, bs = "tp", m = 1) +
-        s(roms_temperature, bs = "tp", k = 5, m = 1) +
-        s(roms_salinity, bs = "tp", k = 5, m = 1) +
+        s(roms_temperature, k = 5, bs = "tp", m = 1) +
+        s(roms_salinity, k = 5, bs = "tp", m = 1) +
         s(doy, by = mean_temp, bs = "tp", m = 1), # phenology
       data = data,
       family = tw(link = "log"),
@@ -47,9 +48,9 @@ formula_geog <- function(data){
   gam(larvalcatchper10m2 ~ s(year, bs = 're') +
         s(doy, k = 9, bs = "tp", m = 1) +
         te(lon, lat, bs = "tp", m = 1) +
-        s(roms_temperature, bs = "tp", k = 5, m = 1) +
-        s(roms_salinity, bs = "tp", k = 5, m = 1) +
-        s(lat, lon, by = mean_temp, bs = "tp", m = 1), # geography
+        s(roms_temperature, k = 5, bs = "tp", m = 1) +
+        s(roms_salinity, k = 5, bs = "tp", m = 1) +
+        s(lon, lat, by = mean_temp, bs = "tp", m = 1), # geography
       data = data,
       family = tw(link = "log"),
       method = 'REML')
@@ -70,16 +71,9 @@ base_dir <- getwd()
 roms_temps <- readRDS(here('data', 'roms_temps.rds'))
 
 ### Pollock Eggs --------------------------------------------------------------------------------------------------------------------------
-pk_egg <- load_data('pk_egg.rds', pk_egg, roms_temps)
+pk_egg <- load_data('pk_egg.rds', roms_temps)
 pk_egg_temps <- readRDS(here('data', 'pk_egg_temps'))
-pkegg_formula <- gam(larvalcatchper10m2 ~ s(year, bs = 're') +
-                       s(doy, k = 9, bs = "tp", m = 1) +
-                       te(lon, lat, bs = "tp", m = 1) +
-                       s(roms_temperature, bs = "tp", k = 5, m = 1) +
-                       s(lat, lon, by = mean_temp, bs = "tp", m = 1), # geography
-                     data = pk_egg,
-                     family = tw(link = "log"),
-                     method = 'REML') # different for pollock eggs due to SSS removal
+pkegg_formula <- formula_geog(pk_egg)
 
 #### Forecast and average into 3 time periods ---------------------------------------------------------------------------------------------
 ##### CESM 126 ----------------------------------------------------------------------------------------------------------------------------
@@ -751,11 +745,11 @@ rm(df_pkegg1_cesm126, df_pkegg1_cesm585,
    df_pkegg_low1, df_pkegg_low2, df_pkegg_low3,
    df_pkegg_high1, df_pkegg_high2, df_pkegg_low3,
    avg_pkegg_low1, avg_pkegg_low2, avg_pkegg_low3,
-   avg_pkegg_high1, avg_pkegg_high2, avg_pkegg_low3)
-
+   avg_pkegg_high1, avg_pkegg_high2, avg_pkegg_low3,
+   avg_pkegg_high3, df_pkegg_high3)
 
 ### Pollock Larvae --------------------------------------------------------------------------------------------------------------------------
-pk_larvae <- load_data('pk_larvae.rds', pk_larvae, roms_temps)
+pk_larvae <- load_data('pk_larvae.rds', roms_temps)
 pk_larvae_temps <- readRDS(here('data', 'pk_larvae_temps'))
 pklarvae_formula <- formula_geog(pk_larvae)
 
@@ -1282,7 +1276,7 @@ df_pklarvae_merged1 <- list(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
 avg_pklarvae_merged1 <- predict_avgs(df_pklarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pklarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_pklarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/pollock_forecast/pklarvae_avgs',
               'pollock_larvae_avg1.jpg'),
@@ -1300,7 +1294,7 @@ df_pklarvae_merged2 <- list(df_pklarvae2_cesm126, df_pklarvae2_cesm585,
 avg_pklarvae_merged2 <- predict_avgs(df_pklarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pklarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_pklarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/pollock_forecast/pklarvae_avgs',
               'pollock_larvae_avg2.jpg'),
@@ -1318,7 +1312,7 @@ df_pklarvae_merged3 <- list(df_pklarvae3_cesm126, df_pklarvae3_cesm585,
 avg_pklarvae_merged3 <- predict_avgs(df_pklarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pklarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_pklarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/pollock_forecast/pklarvae_avgs',
               'pollock_larvae_avg3.jpg'),
@@ -1354,12 +1348,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pklarvae_low1)
-grid_multipanel(avg_pklarvae_low2)
-grid_multipanel(avg_pklarvae_low3)
-grid_multipanel(avg_pklarvae_high1)
-grid_multipanel(avg_pklarvae_high2)
-grid_multipanel(avg_pklarvae_high3)
+grid_avg_multipanel(avg_pklarvae_low1)
+grid_avg_multipanel(avg_pklarvae_low2)
+grid_avg_multipanel(avg_pklarvae_low3)
+grid_avg_multipanel(avg_pklarvae_high1)
+grid_avg_multipanel(avg_pklarvae_high2)
+grid_avg_multipanel(avg_pklarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -1429,10 +1423,11 @@ rm(df_pklarvae1_cesm126, df_pklarvae1_cesm585,
    df_pklarvae_low1, df_pklarvae_low2, df_pklarvae_low3,
    df_pklarvae_high1, df_pklarvae_high2, df_pklarvae_low3,
    avg_pklarvae_low1, avg_pklarvae_low2, avg_pklarvae_low3,
-   avg_pklarvae_high1, avg_pklarvae_high2, avg_pklarvae_low3)
+   avg_pklarvae_high1, avg_pklarvae_high2, avg_pklarvae_low3,
+   avg_pklarvae_high3, df_pklarvae_high3)
 
 ### Flathead Eggs --------------------------------------------------------------------------------------------------------------------------
-fhs_egg <- load_data('fhs_egg.rds', fhs_egg, roms_temps)
+fhs_egg <- load_data('fhs_egg.rds', roms_temps)
 fhs_egg_temps <- readRDS(here('data', 'fhs_egg_temps'))
 fhsegg_formula <- formula_geog(fhs_egg)
 
@@ -1443,9 +1438,9 @@ cesm_temps1 <- readRDS(here('data', 'cesm_forecast_temp1.rds'))
 cesm_salts1 <- readRDS(here('data', 'cesm_forecast_salt1.rds'))
 
 df_fhsegg1_cesm126 <- predict_cells(2015:2039, fhs_egg, 154,
-                                   6, 'ssp126', cesm_temps1,
-                                   cesm_salts1, fhsegg_formula,
-                                   fhs_egg_temps)
+                                    6, 'ssp126', cesm_temps1,
+                                    cesm_salts1, fhsegg_formula,
+                                    fhs_egg_temps)
 saveRDS(df_fhsegg1_cesm126, file = here("data", "df_fhsegg1_cesm126.rds"))
 
 # Plot
@@ -1959,7 +1954,7 @@ df_fhsegg_merged1 <- list(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
 avg_fhsegg_merged1 <- predict_avgs(df_fhsegg_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhsegg_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_fhsegg_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhsegg_avgs',
               'flathead_egg_avg1.jpg'),
@@ -1977,7 +1972,7 @@ df_fhsegg_merged2 <- list(df_fhsegg2_cesm126, df_fhsegg2_cesm585,
 avg_fhsegg_merged2 <- predict_avgs(df_fhsegg_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhsegg_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_fhsegg_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhsegg_avgs',
               'flathead_egg_avg2.jpg'),
@@ -1995,7 +1990,7 @@ df_fhsegg_merged3 <- list(df_fhsegg3_cesm126, df_fhsegg3_cesm585,
 avg_fhsegg_merged3 <- predict_avgs(df_fhsegg_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhsegg_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_fhsegg_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhsegg_avgs',
               'flathead_egg_avg3.jpg'),
@@ -2031,12 +2026,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_fhsegg_low1)
-grid_multipanel(avg_fhsegg_low2)
-grid_multipanel(avg_fhsegg_low3)
-grid_multipanel(avg_fhsegg_high1)
-grid_multipanel(avg_fhsegg_high2)
-grid_multipanel(avg_fhsegg_high3)
+grid_avg_multipanel(avg_fhsegg_low1)
+grid_avg_multipanel(avg_fhsegg_low2)
+grid_avg_multipanel(avg_fhsegg_low3)
+grid_avg_multipanel(avg_fhsegg_high1)
+grid_avg_multipanel(avg_fhsegg_high2)
+grid_avg_multipanel(avg_fhsegg_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -2106,11 +2101,12 @@ rm(df_fhsegg1_cesm126, df_fhsegg1_cesm585,
    df_fhsegg_low1, df_fhsegg_low2, df_fhsegg_low3,
    df_fhsegg_high1, df_fhsegg_high2, df_fhsegg_low3,
    avg_fhsegg_low1, avg_fhsegg_low2, avg_fhsegg_low3,
-   avg_fhsegg_high1, avg_fhsegg_high2, avg_fhsegg_low3)
+   avg_fhsegg_high1, avg_fhsegg_high2, avg_fhsegg_low3,
+   avg_fhsegg_high3, df_fhsegg_high3)
 
 
 ### Flathead Larvae --------------------------------------------------------------------------------------------------------------------------
-fhs_larvae <- load_data('fhs_larvae.rds', fhs_larvae, roms_temps)
+fhs_larvae <- load_data('fhs_larvae.rds', roms_temps)
 fhs_larvae_temps <- readRDS(here('data', 'fhs_larvae_temps'))
 fhslarvae_formula <- formula_geog(fhs_larvae)
 
@@ -2637,7 +2633,7 @@ df_fhslarvae_merged1 <- list(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585,
 avg_fhslarvae_merged1 <- predict_avgs(df_fhslarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhslarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_fhslarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhslarvae_avgs',
               'flathead_larvae_avg1.jpg'),
@@ -2655,7 +2651,7 @@ df_fhslarvae_merged2 <- list(df_fhslarvae2_cesm126, df_fhslarvae2_cesm585,
 avg_fhslarvae_merged2 <- predict_avgs(df_fhslarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhslarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_fhslarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhslarvae_avgs',
               'flathead_larvae_avg2.jpg'),
@@ -2673,7 +2669,7 @@ df_fhslarvae_merged3 <- list(df_fhslarvae3_cesm126, df_fhslarvae3_cesm585,
 avg_fhslarvae_merged3 <- predict_avgs(df_fhslarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_fhslarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_fhslarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/flathead_forecast/fhslarvae_avgs',
               'flathead_larvae_avg3.jpg'),
@@ -2709,12 +2705,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_fhslarvae_low1)
-grid_multipanel(avg_fhslarvae_low2)
-grid_multipanel(avg_fhslarvae_low3)
-grid_multipanel(avg_fhslarvae_high1)
-grid_multipanel(avg_fhslarvae_high2)
-grid_multipanel(avg_fhslarvae_high3)
+grid_avg_multipanel(avg_fhslarvae_low1)
+grid_avg_multipanel(avg_fhslarvae_low2)
+grid_avg_multipanel(avg_fhslarvae_low3)
+grid_avg_multipanel(avg_fhslarvae_high1)
+grid_avg_multipanel(avg_fhslarvae_high2)
+grid_avg_multipanel(avg_fhslarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -2757,37 +2753,38 @@ image_write(image = fhslarvae_img_animated,
             path = here('results', 'flathead_forecast', "fhslarvae_avgs.gif"))
 
 ##### Clear environment -------------------------------------------------------------------------------------------------------------------------
-rm(df_fhlarvae1_cesm126, df_fhlarvae1_cesm585,
-   df_fhlarvae1_gfdl126, df_fhlarvae1_gfdl585,
-   df_fhlarvae1_miroc126, df_fhlarvae1_miroc585,
-   df_fhlarvae2_cesm126, df_fhlarvae2_cesm585,
-   df_fhlarvae2_gfdl126, df_fhlarvae2_gfdl585,
-   df_fhlarvae2_miroc126, df_fhlarvae2_miroc585,
-   df_fhlarvae3_cesm126, df_fhlarvae3_cesm585,
-   df_fhlarvae3_gfdl126, df_fhlarvae3_gfdl585,
-   df_fhlarvae3_miroc126, df_fhlarvae3_miroc585,
-   avg_fhlarvae_merged1, avg_fhlarvae_merged2,
-   avg_fhlarvae_merged3, df_fhlarvae_merged1,
-   df_fhlarvae_merged2, df_fhlarvae_merged3,
-   avg_fhlarvae_cesm1, avg_fhlarvae_cesm2,
-   avg_fhlarvae_cesm3, avg_fhlarvae_gfdl1,
-   avg_fhlarvae_gfdl2, avg_fhlarvae_gfdl3,
-   avg_fhlarvae_miroc1, avg_fhlarvae_miroc2,
-   avg_fhlarvae_miroc3, df_fhlarvae_cesm1,
-   df_fhlarvae_cesm2, df_fhlarvae_cesm3,
-   df_fhlarvae_gfdl1, df_fhlarvae_gfdl2,
-   df_fhlarvae_gfdl3, df_fhlarvae_miroc1,
-   df_fhlarvae_miroc2, df_fhlarvae_miroc3,
-   fhs_larvae, fhlarvae_formula, fhlarvae_img_animated,
-   fhlarvae_dir_out, fhlarvae_img_joined, 
-   fhlarvae_img_list, fhlarvae_imgs, fhs_larvae_temps,
+rm(df_fhslarvae1_cesm126, df_fhslarvae1_cesm585,
+   df_fhslarvae1_gfdl126, df_fhslarvae1_gfdl585,
+   df_fhslarvae1_miroc126, df_fhslarvae1_miroc585,
+   df_fhslarvae2_cesm126, df_fhslarvae2_cesm585,
+   df_fhslarvae2_gfdl126, df_fhslarvae2_gfdl585,
+   df_fhslarvae2_miroc126, df_fhslarvae2_miroc585,
+   df_fhslarvae3_cesm126, df_fhslarvae3_cesm585,
+   df_fhslarvae3_gfdl126, df_fhslarvae3_gfdl585,
+   df_fhslarvae3_miroc126, df_fhslarvae3_miroc585,
+   avg_fhslarvae_merged1, avg_fhslarvae_merged2,
+   avg_fhslarvae_merged3, df_fhslarvae_merged1,
+   df_fhslarvae_merged2, df_fhslarvae_merged3,
+   avg_fhslarvae_cesm1, avg_fhslarvae_cesm2,
+   avg_fhslarvae_cesm3, avg_fhslarvae_gfdl1,
+   avg_fhslarvae_gfdl2, avg_fhslarvae_gfdl3,
+   avg_fhslarvae_miroc1, avg_fhslarvae_miroc2,
+   avg_fhslarvae_miroc3, df_fhslarvae_cesm1,
+   df_fhslarvae_cesm2, df_fhslarvae_cesm3,
+   df_fhslarvae_gfdl1, df_fhslarvae_gfdl2,
+   df_fhslarvae_gfdl3, df_fhslarvae_miroc1,
+   df_fhslarvae_miroc2, df_fhslarvae_miroc3,
+   fhs_larvae, fhslarvae_formula, fhslarvae_img_animated,
+   fhslarvae_dir_out, fhslarvae_img_joined, 
+   fhslarvae_img_list, fhslarvae_imgs, fhs_larvae_temps,
    df_fhslarvae_low1, df_fhslarvae_low2, df_fhslarvae_low3,
    df_fhslarvae_high1, df_fhslarvae_high2, df_fhslarvae_low3,
    avg_fhslarvae_low1, avg_fhslarvae_low2, avg_fhslarvae_low3,
-   avg_fhslarvae_high1, avg_fhslarvae_high2, avg_fhslarvae_low3)
+   avg_fhslarvae_high1, avg_fhslarvae_high2, avg_fhslarvae_low3,
+   avg_fhslarvae_high3, df_fhslarvae_high3)
 
 ### Alaska Plaice Eggs --------------------------------------------------------------------------------------------------------------------------
-akp_egg <- load_data('akp_egg.rds', akp_egg, roms_temps)
+akp_egg <- load_data('akp_egg.rds', roms_temps)
 akp_egg_temps <- readRDS(here('data', 'akp_egg_temps'))
 akpegg_formula <- formula_geog(akp_egg)
 
@@ -3313,7 +3310,7 @@ df_akpegg_merged1 <- list(df_akpegg1_cesm126, df_akpegg1_cesm585,
 avg_akpegg_merged1 <- predict_avgs(df_akpegg_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akpegg_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_akpegg_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg1.jpg'),
@@ -3331,7 +3328,7 @@ df_akpegg_merged2 <- list(df_akpegg2_cesm126, df_akpegg2_cesm585,
 avg_akpegg_merged2 <- predict_avgs(df_akpegg_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akpegg_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_akpegg_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg2.jpg'),
@@ -3349,7 +3346,7 @@ df_akpegg_merged3 <- list(df_akpegg3_cesm126, df_akpegg3_cesm585,
 avg_akpegg_merged3 <- predict_avgs(df_akpegg_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akpegg_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_akpegg_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/plaice_forecast/akpegg_avgs',
               'plaice_egg_avg3.jpg'),
@@ -3385,12 +3382,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_akpegg_low1)
-grid_multipanel(avg_akpegg_low2)
-grid_multipanel(avg_akpegg_low3)
-grid_multipanel(avg_akpegg_high1)
-grid_multipanel(avg_akpegg_high2)
-grid_multipanel(avg_akpegg_high3)
+grid_avg_multipanel(avg_akpegg_low1)
+grid_avg_multipanel(avg_akpegg_low2)
+grid_avg_multipanel(avg_akpegg_low3)
+grid_avg_multipanel(avg_akpegg_high1)
+grid_avg_multipanel(avg_akpegg_high2)
+grid_avg_multipanel(avg_akpegg_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -3460,11 +3457,12 @@ rm(df_akpegg1_cesm126, df_akpegg1_cesm585,
    df_akpegg_low1, df_akpegg_low2, df_akpegg_low3,
    df_akpegg_high1, df_akpegg_high2, df_akpegg_low3,
    avg_akpegg_low1, avg_akpegg_low2, avg_akpegg_low3,
-   avg_akpegg_high1, avg_akpegg_high2, avg_akpegg_low3)
+   avg_akpegg_high1, avg_akpegg_high2, avg_akpegg_low3,
+   avg_akpegg_high3, df_akpegg_high3)
 
 
 ### Alaska Plaice Larvae --------------------------------------------------------------------------------------------------------------------------
-akp_larvae <- load_data('akp_larvae.rds', akp_larvae, roms_temps)
+akp_larvae <- load_data('akp_larvae.rds', roms_temps)
 akp_larvae_temps <- readRDS(here('data', 'akp_larvae_temps'))
 akplarvae_formula <- formula_geog(akp_larvae)
 
@@ -3991,7 +3989,7 @@ df_akplarvae_merged1 <- list(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
 avg_akplarvae_merged1 <- predict_avgs(df_akplarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akplarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_akplarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg1.jpg'),
@@ -4009,7 +4007,7 @@ df_akplarvae_merged2 <- list(df_akplarvae2_cesm126, df_akplarvae2_cesm585,
 avg_akplarvae_merged2 <- predict_avgs(df_akplarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akplarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_akplarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg2.jpg'),
@@ -4027,7 +4025,7 @@ df_akplarvae_merged3 <- list(df_akplarvae3_cesm126, df_akplarvae3_cesm585,
 avg_akplarvae_merged3 <- predict_avgs(df_akplarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_akplarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_akplarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/plaice_forecast/akplarvae_avgs',
               'plaice_larvae_avg3.jpg'),
@@ -4063,12 +4061,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_akplarvae_low1)
-grid_multipanel(avg_akplarvae_low2)
-grid_multipanel(avg_akplarvae_low3)
-grid_multipanel(avg_akplarvae_high1)
-grid_multipanel(avg_akplarvae_high2)
-grid_multipanel(avg_akplarvae_high3)
+grid_avg_multipanel(avg_akplarvae_low1)
+grid_avg_multipanel(avg_akplarvae_low2)
+grid_avg_multipanel(avg_akplarvae_low3)
+grid_avg_multipanel(avg_akplarvae_high1)
+grid_avg_multipanel(avg_akplarvae_high2)
+grid_avg_multipanel(avg_akplarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -4138,11 +4136,12 @@ rm(df_akplarvae1_cesm126, df_akplarvae1_cesm585,
    df_akplarvae_low1, df_akplarvae_low2, df_akplarvae_low3,
    df_akplarvae_high1, df_akplarvae_high2, df_akplarvae_low3,
    avg_akplarvae_low1, avg_akplarvae_low2, avg_akplarvae_low3,
-   avg_akplarvae_high1, avg_akplarvae_high2, avg_akplarvae_low3)
+   avg_akplarvae_high1, avg_akplarvae_high2, avg_akplarvae_low3,
+   avg_akplarvae_high3, df_akplarvae_high3)
 
 
 ### Yellowfin Sole Larvae --------------------------------------------------------------------------------------------------------------------------
-yfs_larvae <- load_data('yfs_larvae.rds', yfs_larvae, roms_temps)
+yfs_larvae <- load_data('yfs_larvae.rds', roms_temps)
 yfs_larvae_temps <- readRDS(here('data', 'yfs_larvae_temps'))
 yfslarvae_formula <- formula_geog(yfs_larvae)
 
@@ -4669,7 +4668,7 @@ df_yfslarvae_merged1 <- list(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
 avg_yfslarvae_merged1 <- predict_avgs(df_yfslarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_yfslarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_yfslarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/yellowfin_forecast/yfslarvae_avgs',
               'yellowfin_larvae_avg1.jpg'),
@@ -4687,7 +4686,7 @@ df_yfslarvae_merged2 <- list(df_yfslarvae2_cesm126, df_yfslarvae2_cesm585,
 avg_yfslarvae_merged2 <- predict_avgs(df_yfslarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_yfslarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_yfslarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/yellowfin_forecast/yfslarvae_avgs',
               'yellowfin_larvae_avg2.jpg'),
@@ -4705,7 +4704,7 @@ df_yfslarvae_merged3 <- list(df_yfslarvae3_cesm126, df_yfslarvae3_cesm585,
 avg_yfslarvae_merged3 <- predict_avgs(df_yfslarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_yfslarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_yfslarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/yellowfin_forecast/yfslarvae_avgs',
               'yellowfin_larvae_avg3.jpg'),
@@ -4741,12 +4740,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_yfslarvae_low1)
-grid_multipanel(avg_yfslarvae_low2)
-grid_multipanel(avg_yfslarvae_low3)
-grid_multipanel(avg_yfslarvae_high1)
-grid_multipanel(avg_yfslarvae_high2)
-grid_multipanel(avg_yfslarvae_high3)
+grid_avg_multipanel(avg_yfslarvae_low1)
+grid_avg_multipanel(avg_yfslarvae_low2)
+grid_avg_multipanel(avg_yfslarvae_low3)
+grid_avg_multipanel(avg_yfslarvae_high1)
+grid_avg_multipanel(avg_yfslarvae_high2)
+grid_avg_multipanel(avg_yfslarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -4816,11 +4815,12 @@ rm(df_yfslarvae1_cesm126, df_yfslarvae1_cesm585,
    df_yfslarvae_low1, df_yfslarvae_low2, df_yfslarvae_low3,
    df_yfslarvae_high1, df_yfslarvae_high2, df_yfslarvae_low3,
    avg_yfslarvae_low1, avg_yfslarvae_low2, avg_yfslarvae_low3,
-   avg_yfslarvae_high1, avg_yfslarvae_high2, avg_yfslarvae_low3)
+   avg_yfslarvae_high1, avg_yfslarvae_high2, avg_yfslarvae_low3,
+   avg_yfslarvae_high3, df_yfslarvae_high3)
 
 
 ### Northern Rock Sole Larvae --------------------------------------------------------------------------------------------------------------------------
-nrs_larvae <- load_data('nrs_larvae.rds', nrs_larvae, roms_temps)
+nrs_larvae <- load_data('nrs_larvae.rds', roms_temps)
 nrs_larvae_temps <- readRDS(here('data', 'nrs_larvae_temps'))
 nrslarvae_formula <- formula_geog(nrs_larvae)
 
@@ -5347,7 +5347,7 @@ df_nrslarvae_merged1 <- list(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
 avg_nrslarvae_merged1 <- predict_avgs(df_nrslarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_nrslarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_nrslarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg1.jpg'),
@@ -5365,7 +5365,7 @@ df_nrslarvae_merged2 <- list(df_nrslarvae2_cesm126, df_nrslarvae2_cesm585,
 avg_nrslarvae_merged2 <- predict_avgs(df_nrslarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_nrslarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_nrslarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg2.jpg'),
@@ -5383,7 +5383,7 @@ df_nrslarvae_merged3 <- list(df_nrslarvae3_cesm126, df_nrslarvae3_cesm585,
 avg_nrslarvae_merged3 <- predict_avgs(df_nrslarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_nrslarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_nrslarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/rocksole_forecast/nrslarvae_avgs',
               'rocksole_larvae_avg3.jpg'),
@@ -5419,12 +5419,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_nrslarvae_low1)
-grid_multipanel(avg_nrslarvae_low2)
-grid_multipanel(avg_nrslarvae_low3)
-grid_multipanel(avg_nrslarvae_high1)
-grid_multipanel(avg_nrslarvae_high2)
-grid_multipanel(avg_nrslarvae_high3)
+grid_avg_multipanel(avg_nrslarvae_low1)
+grid_avg_multipanel(avg_nrslarvae_low2)
+grid_avg_multipanel(avg_nrslarvae_low3)
+grid_avg_multipanel(avg_nrslarvae_high1)
+grid_avg_multipanel(avg_nrslarvae_high2)
+grid_avg_multipanel(avg_nrslarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -5494,10 +5494,11 @@ rm(df_nrslarvae1_cesm126, df_nrslarvae1_cesm585,
    df_nrslarvae_low1, df_nrslarvae_low2, df_nrslarvae_low3,
    df_nrslarvae_high1, df_nrslarvae_high2, df_nrslarvae_low3,
    avg_nrslarvae_low1, avg_nrslarvae_low2, avg_nrslarvae_low3,
-   avg_nrslarvae_high1, avg_nrslarvae_high2, avg_nrslarvae_low3)
+   avg_nrslarvae_high1, avg_nrslarvae_high2, avg_nrslarvae_low3,
+   avg_nrslarvae_high3, df_nrslarvae_high3)
 
 ### Pacific Cod Larvae --------------------------------------------------------------------------------------------------------------------------
-pcod_larvae <- load_data('pcod_larvae.rds', pcod_larvae, roms_temps)
+pcod_larvae <- load_data('pcod_larvae.rds', roms_temps)
 pcod_larvae_temps <- readRDS(here('data', 'pcod_larvae_temps'))
 pcodlarvae_formula <- formula_pheno(pcod_larvae)
 
@@ -6024,7 +6025,7 @@ df_pcodlarvae_merged1 <- list(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
 avg_pcodlarvae_merged1 <- predict_avgs(df_pcodlarvae_merged1)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pcodlarvae_merged1, "Forecasted Distribution 2015 - 2039")
+grid_avg(avg_pcodlarvae_merged1, "Forecasted Distribution 2015 - 2039")
 dev.copy(jpeg,
          here('results/cod_forecast/pcodlarvae_avgs',
               'cod_larvae_avg1.jpg'),
@@ -6042,7 +6043,7 @@ df_pcodlarvae_merged2 <- list(df_pcodlarvae2_cesm126, df_pcodlarvae2_cesm585,
 avg_pcodlarvae_merged2 <- predict_avgs(df_pcodlarvae_merged2)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pcodlarvae_merged2, "Forecasted Distribution 2040 - 2069")
+grid_avg(avg_pcodlarvae_merged2, "Forecasted Distribution 2040 - 2069")
 dev.copy(jpeg,
          here('results/cod_forecast/pcodlarvae_avgs',
               'cod_larvae_avg2.jpg'),
@@ -6060,7 +6061,7 @@ df_pcodlarvae_merged3 <- list(df_pcodlarvae3_cesm126, df_pcodlarvae3_cesm585,
 avg_pcodlarvae_merged3 <- predict_avgs(df_pcodlarvae_merged3)
 
 windows(width = 6, height = 6, family = "serif")
-grid_predict(avg_pcodlarvae_merged3, "Forecasted Distribution 2070 - 2099")
+grid_avg(avg_pcodlarvae_merged3, "Forecasted Distribution 2070 - 2099")
 dev.copy(jpeg,
          here('results/cod_forecast/pcodlarvae_avgs',
               'cod_larvae_avg3.jpg'),
@@ -6096,12 +6097,12 @@ par(mfrow = c(2, 3),
     oma = c(3, 25, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-grid_multipanel(avg_pcodlarvae_low1)
-grid_multipanel(avg_pcodlarvae_low2)
-grid_multipanel(avg_pcodlarvae_low3)
-grid_multipanel(avg_pcodlarvae_high1)
-grid_multipanel(avg_pcodlarvae_high2)
-grid_multipanel(avg_pcodlarvae_high3)
+grid_avg_multipanel(avg_pcodlarvae_low1)
+grid_avg_multipanel(avg_pcodlarvae_low2)
+grid_avg_multipanel(avg_pcodlarvae_low3)
+grid_avg_multipanel(avg_pcodlarvae_high1)
+grid_avg_multipanel(avg_pcodlarvae_high2)
+grid_avg_multipanel(avg_pcodlarvae_high3)
 mtext("SSP1-2.6", 
       side = 2, 
       line = 12, 
@@ -6171,4 +6172,5 @@ rm(df_pcodlarvae1_cesm126, df_pcodlarvae1_cesm585,
    df_pcodlarvae_low1, df_pcodlarvae_low2, df_pcodlarvae_low3,
    df_pcodlarvae_high1, df_pcodlarvae_high2, df_pcodlarvae_low3,
    avg_pcodlarvae_low1, avg_pcodlarvae_low2, avg_pcodlarvae_low3,
-   avg_pcodlarvae_high1, avg_pcodlarvae_high2, avg_pcodlarvae_low3)
+   avg_pcodlarvae_high1, avg_pcodlarvae_high2, avg_pcodlarvae_low3,
+   avg_pcodlarvae_high3, df_pcodlarvae_high3)
