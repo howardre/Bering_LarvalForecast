@@ -1,4 +1,4 @@
-phenology_change <- function(grids){
+phenology_change <- function(grids, bounds_min, bounds_max){
   plot(grids[[2]]$doy,
        grids[[2]]$pred,
        main = '',
@@ -7,8 +7,8 @@ phenology_change <- function(grids){
                       grids[[2]]$pred2_up,
                       grids[[2]]$pred_lw,
                       grids[[2]]$pred2_lw), na.rm = T),
-       xlim = c(min(grids[[2]]$doy, na.rm = T), 
-                max(grids[[2]]$doy, na.rm = T)),
+       xlim = c(min(bounds_min, na.rm = T), 
+                max(bounds_max, na.rm = T)),
        col = '#000000',
        lwd = 2.5,
        xlab = 'Day of the year',
