@@ -1,6 +1,6 @@
 map_vc_presentation <- function(data, gam, grids){
-  nlat = 80
-  nlon = 120
+  nlat = 40
+  nlon = 60
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   myvis_gam(gam,
