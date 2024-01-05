@@ -1,7 +1,7 @@
 # Function to make maps
 grid_predict <- function(grid, title){
   nlat = 70
-  nlon = 95
+  nlon = 90
   latd = seq(min(grid[[1]]$lat), max(grid[[1]]$lat), length.out = nlat)
   lond = seq(min(grid[[1]]$lon), max(grid[[1]]$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
@@ -60,7 +60,7 @@ grid_predict <- function(grid, title){
 # Function for multipanel figures
 grid_multipanel <- function(grid){
   nlat = 70
-  nlon = 95
+  nlon = 90
   latd = seq(min(grid[[1]]$lat), max(grid[[1]]$lat), length.out = nlat)
   lond = seq(min(grid[[1]]$lon), max(grid[[1]]$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
@@ -118,7 +118,7 @@ grid_multipanel <- function(grid){
 
 grid_avg <- function(grid, title){
   nlat = 70
-  nlon = 95
+  nlon = 90
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
   lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",
@@ -178,7 +178,7 @@ grid_avg <- function(grid, title){
 # Function for multipanel figures
 grid_avg_multipanel <- function(grid){
   nlat = 70
-  nlon = 95
+  nlon = 90
   latd = seq(min(grid$lat), max(grid$lat), length.out = nlat)
   lond = seq(min(grid$lon), max(grid$lon), length.out = nlon)
   my_color = colorRampPalette(rev(c("#FFFFCC", "#FBF2A8", "#F9E585",

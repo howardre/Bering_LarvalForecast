@@ -1,7 +1,7 @@
 # Create grids with VC GAMs
 vc_grids <- function(data, gam_list){
-  nlat = 80
-  nlon = 120
+  nlat = 70
+  nlon = 90
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   spatial_grid <- expand.grid(lond, latd)

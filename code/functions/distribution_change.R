@@ -10,8 +10,8 @@ distribution_change <- function(data, grids){
   n_in_class = hist(grids[[1]]$diff, breaks = color_sequence, plot = F)$counts > 0
   col_to_include = min(which(n_in_class == T)):max(which(n_in_class == T))
   breaks_to_include = min(which(n_in_class == T)):(max(which(n_in_class == T)) + 1)
-  nlat = 80
-  nlon = 120
+  nlat = 70
+  nlon = 90
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   image(lond,
