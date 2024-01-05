@@ -195,11 +195,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_pkegg_month_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[1]][[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_month_t #0.07
+var_ratio_pkegg_month_t
 
 var_ratio_pkegg_space_t <- (summary(pk_egg_base_t)$scale - 
                          summary(pkegg_gams_t[[2]])$scale) / summary(pk_egg_base_t)$scale
-var_ratio_pkegg_space_t #0.11
+var_ratio_pkegg_space_t
 ```
 
 Create prediction grid to compare with projections
@@ -293,7 +293,7 @@ plot_variable(pkegg_gams_t,
               "Temperature",
               " ",
               "n")
-plot_variable(pklarvae_gams_t,
+plot_variable(pkegg_gams_t,
               covariate = 5,
               bounds = c(-6.5, 9),
               "Salinity",
@@ -304,7 +304,7 @@ dev.off()
 
 Plot the variable coefficient term
 ```{r, warning = FALSE}
-pred_pkegg_t <- variable_coefficient2(pkegg_gams_t, pk_egg)
+pred_pkegg_t <- variable_coefficient(pkegg_gams_t, pk_egg)
 
 jet.colors <- colorRampPalette(alpha = TRUE,
                                c(sequential_hcl(alpha = 0.8, 15, palette = "Mint")))
@@ -346,11 +346,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pklarvae_phenology_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_phenology_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_phenology_t # 0.14
+ratio_pklarvae_phenology_t 
 
 ratio_pklarvae_geography_t <- (summary(pk_larvae_base_t)$scale - 
                       summary(pk_larvae_geography_t)$scale) / summary(pk_larvae_base_t)$scale
-ratio_pklarvae_geography_t # 0.19
+ratio_pklarvae_geography_t 
 ```
 
 Determine best GAM from 7 formulations (see function)
@@ -766,11 +766,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_fhslarvae_phenology_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_phenology_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_phenology_t # 0.30
+ratio_fhslarvae_phenology_t 
 
 ratio_fhslarvae_geography_t <- (summary(fhs_larvae_base_t)$scale - 
                       summary(fhs_larvae_geography_t)$scale) / summary(fhs_larvae_base_t)$scale
-ratio_fhslarvae_geography_t # 0.37
+ratio_fhslarvae_geography_t 
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1441,11 +1441,11 @@ VC GAM ratios
 # Use the original presence model from before
 var_ratio_akpegg_month_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[2]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_month_t # 0.29
+var_ratio_akpegg_month_t 
 
 var_ratio_akpegg_space_t <- (summary(akp_egg_base_t)$scale - 
                          summary(akpegg_gams_t[[1]][[3]])$scale) / summary(akp_egg_base_t)$scale
-var_ratio_akpegg_space_t # 0.35
+var_ratio_akpegg_space_t 
 ```
 
 Create prediction grid to compare with projections
@@ -1597,7 +1597,7 @@ AIC(akplarvae_gams_t[[1]][[1]])
 AIC(akplarvae_gams_t[[1]][[2]]) 
 AIC(akplarvae_gams_t[[1]][[3]]) 
 summary(akplarvae_gams_t[[2]]) # best is spatial VC
-AIC(akp_larvae_base_t) - AIC(akplarvae_gams_t[[2]]) # 409
+AIC(akp_larvae_base_t) - AIC(akplarvae_gams_t[[2]])
 summary(akplarvae_gams_t[[1]][[1]])
 summary(akplarvae_gams_t[[1]][[2]])
 ```
@@ -1790,11 +1790,11 @@ Use to look at mean square error, base should have higher error
 ```{r}
 ratio_pcodlarvae_phenology_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_phenology_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_phenology_t # 0.10
+ratio_pcodlarvae_phenology_t 
 
 ratio_pcodlarvae_geography_t <- (summary(pcod_larvae_base_t)$scale - 
                       summary(pcod_larvae_geography_t)$scale) / summary(pcod_larvae_base_t)$scale
-ratio_pcodlarvae_geography_t # 0.10
+ratio_pcodlarvae_geography_t 
 ```
 
 Add ROMS mean temperatures Use a representative area with averaged values from Feb - April for each year This can then be matched to the larvae/larvae data for use in variable coefficient by SST instead of year as above
@@ -1802,11 +1802,11 @@ Add ROMS mean temperatures Use a representative area with averaged values from F
 Determine best GAM from 7 formulations (see function)
 ```{r}
 pcodlarvae_gams_t <- gam_selection(pcod_larvae)
-AIC(pcodlarvae_gams_t[[1]][[1]]) # 8883
-AIC(pcodlarvae_gams_t[[1]][[2]]) # 8685
-AIC(pcodlarvae_gams_t[[1]][[3]]) # 8704
+AIC(pcodlarvae_gams_t[[1]][[1]]) 
+AIC(pcodlarvae_gams_t[[1]][[2]]) 
+AIC(pcodlarvae_gams_t[[1]][[3]]) 
 summary(pcodlarvae_gams_t[[2]]) # best is temporal VC
-AIC(pcod_larvae_base_t) - AIC(pcodlarvae_gams_t[[2]]) # 198
+AIC(pcod_larvae_base_t) - AIC(pcodlarvae_gams_t[[2]]) 
 summary(pcodlarvae_gams_t[[1]][[1]])
 summary(pcodlarvae_gams_t[[1]][[3]])
 ```
@@ -1862,9 +1862,9 @@ var_ratio_pcodlarvae_space_t
 
 Create prediction grid to compare with projections
 ```{r}
-pcod_larvae_temps <- scale_temp(pcodlarvae_gams_t, pcod_larvae)
+pcod_larvae_temps <- scale_temp1(pcodlarvae_gams_t, pcod_larvae)
 pcod_larvae_hindcast <- hindcast_cells(c(unique(pcod_larvae$year)), 
-                                     pcod_larvae, 134, 5, pcodlarvae_gams_t, roms_temps, pcod_larvae_temps)
+                                       pcod_larvae, 134, 5, pcodlarvae_gams_t, roms_temps, pcod_larvae_temps)
 saveRDS(pcod_larvae_temps, here('data', 'pcod_larvae_temps')) # to use in predictions
 saveRDS(pcod_larvae_hindcast, here('data', 'pcod_larvae_hindcast'))
 ```
@@ -2191,19 +2191,19 @@ par(mfrow = c(9, 5),
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 2,
               bounds = c(-6.5, 9),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 9),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 5,
               bounds = c(-6.5, 9),
               "Salinity",
@@ -2212,19 +2212,19 @@ plot_variable(pkegg_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(pkegg_gams_t,
               pk_egg)
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 2,
               bounds = c(-6.5, 9),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 9),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 5,
               bounds = c(-6.5, 9),
               "Salinity",
@@ -2233,19 +2233,19 @@ plot_variable(pklarvae_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(pklarvae_gams_t,
               pk_larvae)
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
@@ -2254,19 +2254,19 @@ plot_variable(fhsegg_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(fhsegg_gams_t,
               fhs_egg)
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
@@ -2275,19 +2275,19 @@ plot_variable(fhslarvae_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(fhslarvae_gams_t,
               fhs_larvae)
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 2,
               bounds = c(-4, 4),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
@@ -2296,19 +2296,19 @@ plot_variable(akpegg_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(akpegg_gams_t,
               akp_egg)
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 2,
               bounds = c(-4, 4),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
@@ -2317,19 +2317,19 @@ plot_variable(akplarvae_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(akplarvae_gams_t,
               akp_larvae)
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 2,
               bounds = c(-3, 3),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 4,
               bounds = c(-3, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 5,
               bounds = c(-3, 3),
               "Salinity",
@@ -2338,25 +2338,25 @@ plot_variable(yfslarvae_gams_t,
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 location_plot(yfslarvae_gams_t,
               yfs_larvae)
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 2,
               bounds = c(-4, 3.5),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 3.5),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 5,
               bounds = c(-4, 3.5),
               "Salinity",
               " ",
               "n")
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 6,
               bounds = c(-4, 3.5),
               "Day of Year",
@@ -2364,19 +2364,19 @@ plot_variable(pcodlarvae_gams_t,
               "n")
 location_plot(pcodlarvae_gams_t,
               pcod_larvae)
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 2,
               bounds = c(-4, 2),
               "Day of Year",
               "Species Abundance Anomalies",
               "s")
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 2),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
               "n")
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 5,
               bounds = c(-4, 2),
               "Salinity",
@@ -2522,7 +2522,7 @@ par(mfrow = c(9, 5),
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 2,
               bounds = c(-6, 8),
               "Day of Year",
@@ -2530,7 +2530,7 @@ plot_variable(pkegg_gams_t,
               "s",
               bounds_min = min(pk_egg$doy, na.rm = TRUE),
               bounds_max = max(pk_egg$doy, na.rm = TRUE))
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2538,7 +2538,7 @@ plot_variable(pkegg_gams_t,
               "n",
               bounds_min = min(pk_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(pk_egg$roms_temperature, na.rm = TRUE))
-plot_variable(pkegg_gams_t,
+plot_variable_multipanel(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
               "Salinity",
@@ -2551,7 +2551,7 @@ phenology_change(pkegg_vcgrids_t,
                  max(pk_egg$doy, na.rm = TRUE))
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 2,
               bounds = c(-6, 8),
               "Day of Year",
@@ -2559,7 +2559,7 @@ plot_variable(pklarvae_gams_t,
               "s",
               bounds_min = min(pk_egg$doy, na.rm = TRUE),
               bounds_max = max(pk_egg$doy, na.rm = TRUE))
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2567,7 +2567,7 @@ plot_variable(pklarvae_gams_t,
               "n",
               bounds_min = min(pk_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(pk_egg$roms_temperature, na.rm = TRUE))
-plot_variable(pklarvae_gams_t,
+plot_variable_multipanel(pklarvae_gams_t,
               covariate = 5,
               bounds = c(-6, 8),
               "Salinity",
@@ -2580,7 +2580,7 @@ phenology_change(pklarvae_vcgrids_t,
                  max(pk_egg$doy, na.rm = TRUE))
 distribution_change(pk_larvae,
                     pklarvae_vcgrids_t)
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
@@ -2588,7 +2588,7 @@ plot_variable(fhsegg_gams_t,
               "s",
               bounds_min = min(fhs_egg$doy, na.rm = TRUE),
               bounds_max = max(fhs_egg$doy, na.rm = TRUE))
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2596,7 +2596,7 @@ plot_variable(fhsegg_gams_t,
               "n",
               bounds_min = min(fhs_egg$roms_temperature, na.rm = TRUE),
               bounds_max = max(fhs_egg$roms_temperature, na.rm = TRUE))
-plot_variable(fhsegg_gams_t,
+plot_variable_multipanel(fhsegg_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
@@ -2609,7 +2609,7 @@ phenology_change(fhsegg_vcgrids_t,
                  max(fhs_egg$doy, na.rm = TRUE))
 distribution_change(fhs_egg,
                     fhsegg_vcgrids_t)
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
@@ -2617,7 +2617,7 @@ plot_variable(fhslarvae_gams_t,
               "s",
               bounds_min = min(fhs_larvae$doy, na.rm = TRUE),
               bounds_max = max(fhs_larvae$doy, na.rm = TRUE))
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2625,7 +2625,7 @@ plot_variable(fhslarvae_gams_t,
               "n",
               bounds_min = min(fhs_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(fhs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(fhslarvae_gams_t,
+plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
@@ -2638,7 +2638,7 @@ phenology_change(fhslarvae_vcgrids_t,
                  max(fhs_egg$doy, na.rm = TRUE))
 distribution_change(fhs_larvae,
                     fhslarvae_vcgrids_t)
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 2,
               bounds = c(-4, 4),
               "Day of Year",
@@ -2646,7 +2646,7 @@ plot_variable(akpegg_gams_t,
               "s",
               bounds_min = min(akp_egg$doy, na.rm = TRUE),
               bounds_max = max(akp_larvae$doy, na.rm = TRUE))
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2654,7 +2654,7 @@ plot_variable(akpegg_gams_t,
               "n",
               bounds_min = min(akp_egg$roms_temperature, na.rm = TRUE),
               bounds_max = max(akp_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(akpegg_gams_t,
+plot_variable_multipanel(akpegg_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
@@ -2667,7 +2667,7 @@ phenology_change(akpegg_vcgrids_t,
                  max(akp_larvae$doy, na.rm = TRUE))
 distribution_change(akp_egg,
                     akpegg_vcgrids_t)
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 2,
               bounds = c(-4, 4),
               "Day of Year",
@@ -2675,7 +2675,7 @@ plot_variable(akplarvae_gams_t,
               "s",
               bounds_min = min(akp_egg$doy, na.rm = TRUE),
               bounds_max = max(akp_larvae$doy, na.rm = TRUE))
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2683,7 +2683,7 @@ plot_variable(akplarvae_gams_t,
               "n",
               bounds_min = min(akp_egg$roms_temperature, na.rm = TRUE),
               bounds_max = max(akp_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(akplarvae_gams_t,
+plot_variable_multipanel(akplarvae_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
@@ -2696,7 +2696,7 @@ phenology_change(akplarvae_vcgrids_t,
                  max(akp_larvae$doy, na.rm = TRUE))
 distribution_change(akp_larvae,
                     akplarvae_vcgrids_t)
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 2,
               bounds = c(-3, 2),
               "Day of Year",
@@ -2704,7 +2704,7 @@ plot_variable(yfslarvae_gams_t,
               "s",
               bounds_min = min(yfs_larvae$doy, na.rm = TRUE),
               bounds_max = max(yfs_larvae$doy, na.rm = TRUE))
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 4,
               bounds = c(-3, 2),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2712,7 +2712,7 @@ plot_variable(yfslarvae_gams_t,
               "n",
               bounds_min = min(yfs_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(yfs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(yfslarvae_gams_t,
+plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 5,
               bounds = c(-3, 2),
               "Salinity",
@@ -2725,7 +2725,7 @@ phenology_change(yfslarvae_vcgrids_t,
                  max(yfs_larvae$doy, na.rm = TRUE))
 distribution_change(yfs_larvae,
                     yfslarvae_vcgrids_t)
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 2,
               bounds = c(-5.5, 2.5),
               "Day of Year",
@@ -2733,7 +2733,7 @@ plot_variable(pcodlarvae_gams_t,
               "s",
               bounds_min = min(pcod_larvae$doy, na.rm = TRUE),
               bounds_max = max(pcod_larvae$doy, na.rm = TRUE))
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 4,
               bounds = c(-5.5, 2.5),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2741,7 +2741,7 @@ plot_variable(pcodlarvae_gams_t,
               "n",
               bounds_min = min(pcod_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(pcod_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(pcodlarvae_gams_t,
+plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 5,
               bounds = c(-5.5, 2.5),
               "Salinity",
@@ -2754,7 +2754,7 @@ phenology_change(pcodlarvae_vcgrids_t,
                  max(pcod_larvae$doy, na.rm = TRUE))
 distribution_change(pcod_larvae,
                     pcodlarvae_vcgrids_t)
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 2,
               bounds = c(-5, 2),
               "Day of Year",
@@ -2762,7 +2762,7 @@ plot_variable(nrslarvae_gams_t,
               "s",
               bounds_min = min(nrs_larvae$doy, na.rm = TRUE),
               bounds_max = max(nrs_larvae$doy, na.rm = TRUE))
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 4,
               bounds = c(-5, 2),
               expression(paste("Temperature ("^0, 'C)')),
@@ -2770,7 +2770,7 @@ plot_variable(nrslarvae_gams_t,
               "n",
               bounds_min = min(nrs_larvae$roms_temperature, na.rm = TRUE),
               bounds_max = max(nrs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable(nrslarvae_gams_t,
+plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 5,
               bounds = c(-5, 2),
               "Salinity",
