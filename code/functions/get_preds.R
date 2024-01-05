@@ -2,8 +2,8 @@
 get_preds <- function(data, the_year, doy,
                       the_month, proj, temp_output, 
                       salt_output, formula, temp_range){
-  nlat = 40
-  nlon = 60
+  nlat = 70
+  nlon = 95
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   

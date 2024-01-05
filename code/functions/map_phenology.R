@@ -1,8 +1,8 @@
 map_phenology <- function(data, grids, ratio_base_geog,
                           vc_ratio_space, ratio_base_pheno,
                           vc_ratio_time){
-  nlat = 80
-  nlon = 120
+  nlat = 70
+  nlon = 95
   latd = seq(min(grids[[1]]$lat), max(grids[[1]]$lat), length.out = nlat)
   lond = seq(min(grids[[1]]$lon), max(grids[[1]]$lon), length.out = nlon)
   my_color = colorRampPalette(c("#1C0D51", "#4C408E", "#7E77B0",

@@ -1,6 +1,6 @@
 threepanel_base_mse <- function(data, base_model) {
-  nlat = 80
-  nlon = 120
+  nlat = 70
+  nlon = 95
   latd = seq(min(data$lat), max(data$lat), length.out = nlat)
   lond = seq(min(data$lon), max(data$lon), length.out = nlon)
   grid <- expand.grid(lond, latd)
