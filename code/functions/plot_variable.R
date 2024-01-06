@@ -8,7 +8,6 @@ plot_variable <- function(gam, covariate, bounds, variable, ylabel, yvalues){
        xlab = variable,
        ylab = ylabel,
        yaxt = yvalues,
-       xaxs = "i",
        seWithMean = T,
        scale = 0,
        cex.axis = 6.5,
@@ -17,19 +16,17 @@ plot_variable <- function(gam, covariate, bounds, variable, ylabel, yvalues){
        lwd = 2.5)
 }
 
-
-plot_variable_multipanel <- function(gam, covariate, bounds, variable, ylabel, yvalues, bounds_min, bounds_max){
+plot_variable_new <- function(gam, covariate, ybounds, xbounds, variable, ylabel, yvalues){
   plot(gam[[2]],
        pages = 0,
        select = covariate, 
        shade = T,
        shade.col = "#eb8055b2",
-       xlim = c(bounds_min, bounds_max),
-       ylim = bounds,
+       ylim = ybounds,
+       xlim = xbounds,
        xlab = variable,
        ylab = ylabel,
        yaxt = yvalues,
-       xaxs = "i",
        seWithMean = T,
        scale = 0,
        cex.axis = 6.5,

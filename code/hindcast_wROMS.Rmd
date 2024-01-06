@@ -2510,7 +2510,7 @@ dev.off()
 
 
 ```{r}
-# Figure containing 
+# Final multipanel figure
 tiff(here('results',
           'hindcast_output2.jpg'),
      units = "in",
@@ -2522,262 +2522,220 @@ par(mfrow = c(9, 5),
     oma = c(3, 35, 15, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-plot_variable_multipanel(pkegg_gams_t,
+plot_variable(pkegg_gams_t,
               covariate = 2,
               bounds = c(-6, 8),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(pk_egg$doy, na.rm = TRUE),
-              bounds_max = max(pk_egg$doy, na.rm = TRUE))
-plot_variable_multipanel(pkegg_gams_t,
+              "s")
+plot_variable(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(pk_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(pk_egg$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(pkegg_gams_t,
+              "n")
+plot_variable(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(pk_egg$roms_salinity, na.rm = TRUE),
-              bounds_max = max(pk_egg$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(pkegg_vcgrids_t, 
                  min(pk_egg$doy, na.rm = TRUE),
                  max(pk_egg$doy, na.rm = TRUE))
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
-plot_variable_multipanel(pklarvae_gams_t,
-              covariate = 2,
-              bounds = c(-6, 8),
-              "Day of Year",
-              "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(pk_egg$doy, na.rm = TRUE),
-              bounds_max = max(pk_egg$doy, na.rm = TRUE))
-plot_variable_multipanel(pklarvae_gams_t,
-              covariate = 4,
-              bounds = c(-6, 8),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n",
-              bounds_min = min(pk_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(pk_egg$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(pklarvae_gams_t,
+plot_variable_new(pklarvae_gams_t,
+                  covariate = 2,
+                  ybounds = c(-6, 8),
+                  xbounds = c(min(pk_egg$doy),
+                              max(pk_egg$doy)),
+                  "Day of Year",
+                  "Species Abundance Anomalies",
+                  "s")
+plot_variable_new(pklarvae_gams_t,
+                  covariate = 4,
+                  ybounds = c(-6, 8),
+                  xbounds = c(min(pk_larvae$roms_temperature),
+                              max(pk_egg$roms_temperature)),
+                  expression(paste("Temperature ("^0, 'C)')),
+                  " ",
+                  "n")
+plot_variable(pklarvae_gams_t,
               covariate = 5,
               bounds = c(-6, 8),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(pk_larvae$roms_salinity, na.rm = TRUE),
-              bounds_max = max(pk_larvae$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(pklarvae_vcgrids_t, 
                  min(pk_egg$doy, na.rm = TRUE),
                  max(pk_egg$doy, na.rm = TRUE))
 distribution_change(pk_larvae,
                     pklarvae_vcgrids_t)
-plot_variable_multipanel(fhsegg_gams_t,
+plot_variable(fhsegg_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(fhs_egg$doy, na.rm = TRUE),
-              bounds_max = max(fhs_egg$doy, na.rm = TRUE))
-plot_variable_multipanel(fhsegg_gams_t,
+              "s")
+plot_variable(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(fhs_egg$roms_temperature, na.rm = TRUE),
-              bounds_max = max(fhs_egg$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(fhsegg_gams_t,
+              "n")
+plot_variable(fhsegg_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(fhs_egg$roms_salinity, na.rm = TRUE),
-              bounds_max = max(fhs_egg$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(fhsegg_vcgrids_t, 
                  min(fhs_egg$doy, na.rm = TRUE),
                  max(fhs_egg$doy, na.rm = TRUE))
 distribution_change(fhs_egg,
                     fhsegg_vcgrids_t)
-plot_variable_multipanel(fhslarvae_gams_t,
+plot_variable(fhslarvae_gams_t,
               covariate = 2,
               bounds = c(-6.5, 3),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(fhs_larvae$doy, na.rm = TRUE),
-              bounds_max = max(fhs_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(fhslarvae_gams_t,
+              "s")
+plot_variable(fhslarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(fhs_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(fhs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(fhslarvae_gams_t,
+              "n")
+plot_variable(fhslarvae_gams_t,
               covariate = 5,
               bounds = c(-6.5, 3),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(fhs_larvae$roms_salinity, na.rm = TRUE),
-              bounds_max = max(fhs_larvae$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(fhslarvae_vcgrids_t, 
                  min(fhs_egg$doy, na.rm = TRUE),
                  max(fhs_egg$doy, na.rm = TRUE))
 distribution_change(fhs_larvae,
                     fhslarvae_vcgrids_t)
-plot_variable_multipanel(akpegg_gams_t,
-              covariate = 2,
-              bounds = c(-4, 4),
-              "Day of Year",
-              "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(akp_egg$doy, na.rm = TRUE),
-              bounds_max = max(akp_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(akpegg_gams_t,
-              covariate = 4,
-              bounds = c(-4, 4),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n",
-              bounds_min = min(akp_egg$roms_temperature, na.rm = TRUE),
-              bounds_max = max(akp_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(akpegg_gams_t,
+plot_variable_new(akpegg_gams_t,
+                  covariate = 2,
+                  ybounds = c(-4, 4),
+                  xbounds = c(min(akp_egg$doy),
+                              max(akp_larvae$doy)),
+                  "Day of Year",
+                  "Species Abundance Anomalies",
+                  "s")
+plot_variable_new(akpegg_gams_t,
+                  covariate = 4,
+                  ybounds = c(-4, 4),
+                  xbounds = c(min(akp_larvae$roms_temperature),
+                              max(akp_egg$roms_temperature)),
+                  expression(paste("Temperature ("^0, 'C)')),
+                  " ",
+                  "n")
+plot_variable(akpegg_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(akp_egg$roms_salinity, na.rm = TRUE),
-              bounds_max = max(akp_egg$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(akpegg_vcgrids_t, 
                  min(akp_egg$doy, na.rm = TRUE),
                  max(akp_larvae$doy, na.rm = TRUE))
 distribution_change(akp_egg,
                     akpegg_vcgrids_t)
-plot_variable_multipanel(akplarvae_gams_t,
-              covariate = 2,
-              bounds = c(-4, 4),
-              "Day of Year",
-              "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(akp_egg$doy, na.rm = TRUE),
-              bounds_max = max(akp_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(akplarvae_gams_t,
-              covariate = 4,
-              bounds = c(-4, 4),
-              expression(paste("Temperature ("^0, 'C)')),
-              " ",
-              "n",
-              bounds_min = min(akp_egg$roms_temperature, na.rm = TRUE),
-              bounds_max = max(akp_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(akplarvae_gams_t,
+plot_variable_new(akplarvae_gams_t,
+                  covariate = 2,
+                  ybounds = c(-4, 4),
+                  xbounds = c(min(akp_egg$doy),
+                              max(akp_larvae$doy)),
+                  "Day of Year",
+                  "Species Abundance Anomalies",
+                  "s")
+plot_variable_new(akplarvae_gams_t,
+                  covariate = 4,
+                  ybounds = c(-4, 4),
+                  xbounds = c(min(akp_larvae$roms_temperature),
+                              max(akp_egg$roms_temperature)),
+                  expression(paste("Temperature ("^0, 'C)')),
+                  " ",
+                  "n")
+plot_variable(akplarvae_gams_t,
               covariate = 5,
               bounds = c(-4, 4),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(akp_egg$roms_salinity, na.rm = TRUE),
-              bounds_max = max(akp_egg$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(akplarvae_vcgrids_t, 
                  min(akp_egg$doy, na.rm = TRUE),
                  max(akp_larvae$doy, na.rm = TRUE))
 distribution_change(akp_larvae,
                     akplarvae_vcgrids_t)
-plot_variable_multipanel(yfslarvae_gams_t,
+plot_variable(yfslarvae_gams_t,
               covariate = 2,
               bounds = c(-3, 2),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(yfs_larvae$doy, na.rm = TRUE),
-              bounds_max = max(yfs_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(yfslarvae_gams_t,
+              "s")
+plot_variable(yfslarvae_gams_t,
               covariate = 4,
               bounds = c(-3, 2),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(yfs_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(yfs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(yfslarvae_gams_t,
+              "n")
+plot_variable(yfslarvae_gams_t,
               covariate = 5,
               bounds = c(-3, 2),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(yfs_larvae$roms_salinity, na.rm = TRUE),
-              bounds_max = max(yfs_larvae$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(yfslarvae_vcgrids_t, 
                  min(yfs_larvae$doy, na.rm = TRUE),
                  max(yfs_larvae$doy, na.rm = TRUE))
 distribution_change(yfs_larvae,
                     yfslarvae_vcgrids_t)
-plot_variable_multipanel(pcodlarvae_gams_t,
+plot_variable(pcodlarvae_gams_t,
               covariate = 2,
               bounds = c(-5.5, 2.5),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(pcod_larvae$doy, na.rm = TRUE),
-              bounds_max = max(pcod_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(pcodlarvae_gams_t,
+              "s")
+plot_variable(pcodlarvae_gams_t,
               covariate = 4,
               bounds = c(-5.5, 2.5),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(pcod_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(pcod_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(pcodlarvae_gams_t,
+              "n")
+plot_variable(pcodlarvae_gams_t,
               covariate = 5,
               bounds = c(-5.5, 2.5),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(pcod_larvae$roms_salinity, na.rm = TRUE),
-              bounds_max = max(pcod_larvae$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(pcodlarvae_vcgrids_t, 
                  min(pcod_larvae$doy, na.rm = TRUE),
                  max(pcod_larvae$doy, na.rm = TRUE))
 distribution_change(pcod_larvae,
                     pcodlarvae_vcgrids_t)
-plot_variable_multipanel(nrslarvae_gams_t,
+plot_variable(nrslarvae_gams_t,
               covariate = 2,
               bounds = c(-5, 2),
               "Day of Year",
               "Species Abundance Anomalies",
-              "s",
-              bounds_min = min(nrs_larvae$doy, na.rm = TRUE),
-              bounds_max = max(nrs_larvae$doy, na.rm = TRUE))
-plot_variable_multipanel(nrslarvae_gams_t,
+              "s")
+plot_variable(nrslarvae_gams_t,
               covariate = 4,
               bounds = c(-5, 2),
               expression(paste("Temperature ("^0, 'C)')),
               " ",
-              "n",
-              bounds_min = min(nrs_larvae$roms_temperature, na.rm = TRUE),
-              bounds_max = max(nrs_larvae$roms_temperature, na.rm = TRUE))
-plot_variable_multipanel(nrslarvae_gams_t,
+              "n")
+plot_variable(nrslarvae_gams_t,
               covariate = 5,
               bounds = c(-5, 2),
               "Salinity",
               " ",
-              "n",
-              bounds_min = min(nrs_larvae$roms_salinity, na.rm = TRUE),
-              bounds_max = max(nrs_larvae$roms_salinity, na.rm = TRUE))
+              "n")
 phenology_change(nrslarvae_vcgrids_t, 
                  min(nrs_larvae$doy, na.rm = TRUE),
                  max(nrs_larvae$doy, na.rm = TRUE))
