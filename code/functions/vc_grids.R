@@ -45,13 +45,13 @@ vc_grids <- function(data, gam_list){
                                 'year' = rep(2014, 100),
                                 'roms_temperature' = rep(mean(data$roms_temperature, na.rm = T), 100),
                                 'roms_salinity' = rep(mean(data$roms_salinity, na.rm = T), 100))
-  phenology_grid$pred <- predict(gam_list[[1]][[2]], newdata = phenology_grid)
-  phenology_grid$se <- predict(gam_list[[1]][[2]], newdata = phenology_grid, se = T)[[2]]
+  phenology_grid$pred <- predict(gam_list[[2]], newdata = phenology_grid)
+  phenology_grid$se <- predict(gam_list[[2]], newdata = phenology_grid, se = T)[[2]]
   phenology_grid$pred_up <- phenology_grid$pred + 1.96 * phenology_grid$se
   phenology_grid$pred_lw <- phenology_grid$pred - 1.96 * phenology_grid$se
   phenology_grid$mean_temp <- rep(mean(data$mean_temp, na.rm = T), 100) + 1
-  phenology_grid$pred2 <- predict(gam_list[[1]][[2]], newdata = phenology_grid)
-  phenology_grid$se2 <- predict(gam_list[[1]][[2]], newdata = phenology_grid, se = T)[[2]]
+  phenology_grid$pred2 <- predict(gam_list[[2]], newdata = phenology_grid)
+  phenology_grid$se2 <- predict(gam_list[[2]], newdata = phenology_grid, se = T)[[2]]
   phenology_grid$pred2_up <- phenology_grid$pred2 + 1.96 * phenology_grid$se2
   phenology_grid$pred2_lw <- phenology_grid$pred2 - 1.96 * phenology_grid$se2
   return(list(spatial_grid, phenology_grid))
