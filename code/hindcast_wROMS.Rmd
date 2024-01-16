@@ -2200,7 +2200,7 @@ plot_variable_multipanel(pkegg_gams_t,
 plot_variable_multipanel(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 9),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(pkegg_gams_t,
@@ -2221,7 +2221,7 @@ plot_variable_multipanel(pklarvae_gams_t,
 plot_variable_multipanel(pklarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 9),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(pklarvae_gams_t,
@@ -2242,7 +2242,7 @@ plot_variable_multipanel(fhsegg_gams_t,
 plot_variable_multipanel(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(fhsegg_gams_t,
@@ -2263,7 +2263,7 @@ plot_variable_multipanel(fhslarvae_gams_t,
 plot_variable_multipanel(fhslarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(fhslarvae_gams_t,
@@ -2284,7 +2284,7 @@ plot_variable_multipanel(akpegg_gams_t,
 plot_variable_multipanel(akpegg_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(akpegg_gams_t,
@@ -2305,7 +2305,7 @@ plot_variable_multipanel(akplarvae_gams_t,
 plot_variable_multipanel(akplarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 4),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(akplarvae_gams_t,
@@ -2326,7 +2326,7 @@ plot_variable_multipanel(yfslarvae_gams_t,
 plot_variable_multipanel(yfslarvae_gams_t,
               covariate = 4,
               bounds = c(-3, 3),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(yfslarvae_gams_t,
@@ -2347,7 +2347,7 @@ plot_variable_multipanel(pcodlarvae_gams_t,
 plot_variable_multipanel(pcodlarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 3.5),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(pcodlarvae_gams_t,
@@ -2373,7 +2373,7 @@ plot_variable_multipanel(nrslarvae_gams_t,
 plot_variable_multipanel(nrslarvae_gams_t,
               covariate = 4,
               bounds = c(-4, 2),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable_multipanel(nrslarvae_gams_t,
@@ -2508,6 +2508,278 @@ mtext("Larvae",
 dev.off()
 ```
 
+```{r}
+# Create figures for pollock larvae DOY & temp, AKP DOY
+# remotes::install_github("gavinsimpson/gratia")
+library(gratia)
+smooth_pklarvae_doy <- smooth_estimates(pklarvae_gams_t[[2]],
+                                        smooth = "s(doy)", 
+                                        data = pk_larvae) %>%
+  add_confint()
+smooth_pklarvae_temp <- smooth_estimates(pklarvae_gams_t[[2]],
+                                         smooth = "s(roms_temperature)", 
+                                         data = pk_larvae) %>%
+  add_confint()
+smooth_akpegg_doy <- smooth_estimates(akpegg_gams_t[[2]],
+                                      smooth = "s(doy)",
+                                      data = akp_egg) %>%
+  add_confint()
+smooth_akplarvae_doy <- smooth_estimates(akplarvae_gams_t[[2]],
+                                         smooth = "s(doy)",
+                                         data = akp_larvae) %>%
+  add_confint()
+smooth_akpegg_temp <- smooth_estimates(akpegg_gams_t[[2]],
+                                       smooth = "s(roms_temperature)",
+                                       data = akp_egg) %>%
+  add_confint()
+smooth_akplarvae_temp <- smooth_estimates(akplarvae_gams_t[[2]],
+                                          smooth = "s(roms_temperature)",
+                                          data = akp_larvae) %>%
+  add_confint()
+
+pklarvae_doy <- ggplot(smooth_pklarvae_doy,
+                       aes(x = doy, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(pk_egg$doy),
+         max(pk_egg$doy))) +
+  geom_rug(sides = "b", 
+           data = pk_larvae, 
+           aes(x = pk_larvae$doy),
+           inherit.aes = F) +
+  ylim(c(-6, 8)) +
+  theme_classic() +
+  labs(x = "Day of Year",
+       y = "Species Abundance Anomalies") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 22),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_text(vjust = 3, angle = 90),
+                 axis.title = element_text(family = "serif", size = 22),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_text(vjust = 3.5),
+                 strip.text = element_text(family = "serif", size = 22),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 plot.margin = margin(20, 30, 5, 30),
+                 legend.position = "none")
+
+pklarvae_temp <- ggplot(smooth_pklarvae_temp,
+                        aes(x = roms_temperature, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(pk_larvae$roms_temperature),
+         max(pk_egg$roms_temperature))) +
+  geom_rug(sides = "b", 
+           data = pk_larvae, 
+           aes(x = pk_larvae$roms_temperature),
+           inherit.aes = F) +
+  ylim(c(-6, 8)) +
+  theme_classic() +
+  labs(x = "Temperature \u00B0C",
+       y = "") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 26),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_blank(),
+                 axis.title = element_text(family = "serif", size = 26),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_blank(),
+                 strip.text = element_text(family = "serif", size = 26),
+                 axis.ticks.y = element_blank(),
+                 plot.margin = margin(5, 5, 5, 30),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 legend.position = "none")
+
+akpegg_doy <- ggplot(smooth_akpegg_doy,
+                     aes(x = doy, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(akp_egg$doy),
+         max(akp_larvae$doy))) +
+  geom_rug(sides = "b", 
+           data = akp_egg, 
+           aes(x = akp_egg$doy),
+           inherit.aes = F) +
+  ylim(c(-4, 4.2)) +
+  theme_classic() +
+  labs(x = "Day of Year",
+       y = "Species Abundance Anomalies") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 22),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_text(vjust = 3, angle = 90),
+                 axis.title = element_text(family = "serif", size = 22),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_text(vjust = 3.5),
+                 strip.text = element_text(family = "serif", size = 22),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 plot.margin = margin(20, 30, 5, 30),
+                 legend.position = "none")
+
+akplarvae_doy <- ggplot(smooth_akplarvae_doy,
+                     aes(x = doy, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(akp_egg$doy),
+         max(akp_larvae$doy))) +
+  geom_rug(sides = "b", 
+           data = akp_larvae, 
+           aes(x = akp_larvae$doy),
+           inherit.aes = F) +
+  ylim(c(-4, 4.2)) +
+  theme_classic() +
+  labs(x = "Day of Year",
+       y = "Species Abundance Anomalies") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 22),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_text(vjust = 3, angle = 90),
+                 axis.title = element_text(family = "serif", size = 22),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_text(vjust = 3.5),
+                 strip.text = element_text(family = "serif", size = 22),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 plot.margin = margin(20, 30, 5, 30),
+                 legend.position = "none")
+
+akpegg_temp <- ggplot(smooth_akpegg_temp,
+                     aes(x = roms_temperature, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(akp_egg$roms_temperature),
+         max(akp_larvae$roms_temperature))) +
+  geom_rug(sides = "b", 
+           data = akp_egg, 
+           aes(x = akp_egg$roms_temperature),
+           inherit.aes = F) +
+  ylim(c(-4, 4.2)) +
+  theme_classic() +
+  labs(x = "Temperature \u00B0C",
+       y = "") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 26),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_blank(),
+                 axis.title = element_text(family = "serif", size = 26),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_blank(),
+                 strip.text = element_text(family = "serif", size = 26),
+                 axis.ticks.y = element_blank(),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 plot.margin = margin(5, 5, 5, 30),
+                 legend.position = "none")
+
+akplarvae_temp <- ggplot(smooth_akplarvae_temp,
+                     aes(x = roms_temperature, y = est)) +
+  geom_ribbon(aes(ymin = lower_ci,
+                  ymax = upper_ci),
+              alpha = 1,
+              fill = "lightsalmon2") +
+  geom_line() +
+  xlim(c(min(akp_egg$roms_temperature),
+         max(akp_larvae$roms_temperature))) +
+  geom_rug(sides = "b", 
+           data = akp_larvae, 
+           aes(x = akp_larvae$roms_temperature),
+           inherit.aes = F) +
+  ylim(c(-4, 4.2)) +
+  theme_classic() +
+  labs(x = "Temperature \u00B0C",
+       y = "") +
+  ggplot2::theme(axis.text = element_text(family = "serif", size = 26),
+                 axis.text.x = element_text(vjust = .25),
+                 axis.text.y = element_blank(),
+                 axis.title = element_text(family = "serif", size = 26),
+                 axis.title.x = element_text(vjust = 0.75),
+                 axis.title.y = element_blank(),
+                 strip.text = element_text(family = "serif", size = 26),
+                 axis.ticks.y = element_blank(),
+                 panel.border = element_rect(color = "black", fill = NA, linewidth = 0.4),
+                 plot.margin = margin(5, 5, 5, 30),
+                 legend.position = "none")
+```
+
+```{r}
+pklarvae_doy
+dev.copy(jpeg,
+         here('results',
+              'pklarvae_doy.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.3,
+     res = 200)
+dev.off()
+```
+
+```{r}
+pklarvae_temp
+dev.copy(jpeg,
+         here('results',
+              'pklarvae_temp.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.8,
+     res = 200)
+dev.off()
+```
+
+```{r}
+akpegg_doy
+dev.copy(jpeg,
+         here('results',
+              'akpegg_doy.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.3,
+     res = 200)
+dev.off()
+```
+
+```{r}
+akplarvae_doy
+dev.copy(jpeg,
+         here('results',
+              'akplarvae_doy.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.3,
+     res = 200)
+dev.off()
+```
+
+```{r}
+akpegg_temp
+dev.copy(jpeg,
+         here('results',
+              'akpegg_temp.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.8,
+     res = 200)
+dev.off()
+```
+
+```{r}
+akplarvae_temp
+dev.copy(jpeg,
+         here('results',
+              'akplarvae_temp.jpg'),
+     units = "in",
+     width = 6,
+     height = 4.8,
+     res = 200)
+dev.off()
+```
 
 ```{r}
 # Final multipanel figure
@@ -2518,20 +2790,20 @@ tiff(here('results',
      height = 90,
      res = 300)
 par(mfrow = c(9, 5),
-    mar = c(11, 15, 5, 1.5) + 0.1,
-    oma = c(3, 35, 15, 1),
+    mar = c(15, 15, 5, 1.5) + 0.1,
+    oma = c(4, 35, 10, 1),
     mgp = c(10, 4, 0),
     family = "serif")
-plot_variable(pkegg_gams_t,
-              covariate = 2,
-              bounds = c(-6, 8),
-              "Day of Year",
-              "Species Abundance Anomalies",
-              "s")
+plot_variable_pk(pkegg_gams_t,
+                 covariate = 2,
+                 bounds = c(-6, 8),
+                 "Day of Year",
+                 "Species Abundance Anomalies",
+                 "s")
 plot_variable(pkegg_gams_t,
               covariate = 4,
               bounds = c(-6, 8),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(pkegg_gams_t,
@@ -2545,22 +2817,8 @@ phenology_change(pkegg_vcgrids_t,
                  max(pk_egg$doy, na.rm = TRUE))
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
-plot_variable_new(pklarvae_gams_t,
-                  covariate = 2,
-                  ybounds = c(-6, 8),
-                  xbounds = c(min(pk_egg$doy),
-                              max(pk_egg$doy)),
-                  "Day of Year",
-                  "Species Abundance Anomalies",
-                  "s")
-plot_variable_new(pklarvae_gams_t,
-                  covariate = 4,
-                  ybounds = c(-6, 8),
-                  xbounds = c(min(pk_larvae$roms_temperature),
-                              max(pk_egg$roms_temperature)),
-                  expression(paste("Temperature ("^0, 'C)')),
-                  " ",
-                  "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 plot_variable(pklarvae_gams_t,
               covariate = 5,
               bounds = c(-6, 8),
@@ -2581,7 +2839,7 @@ plot_variable(fhsegg_gams_t,
 plot_variable(fhsegg_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(fhsegg_gams_t,
@@ -2604,7 +2862,7 @@ plot_variable(fhslarvae_gams_t,
 plot_variable(fhslarvae_gams_t,
               covariate = 4,
               bounds = c(-6.5, 3),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(fhslarvae_gams_t,
@@ -2618,25 +2876,11 @@ phenology_change(fhslarvae_vcgrids_t,
                  max(fhs_egg$doy, na.rm = TRUE))
 distribution_change(fhs_larvae,
                     fhslarvae_vcgrids_t)
-plot_variable_new(akpegg_gams_t,
-                  covariate = 2,
-                  ybounds = c(-4, 4),
-                  xbounds = c(min(akp_egg$doy),
-                              max(akp_larvae$doy)),
-                  "Day of Year",
-                  "Species Abundance Anomalies",
-                  "s")
-plot_variable_new(akpegg_gams_t,
-                  covariate = 4,
-                  ybounds = c(-4, 4),
-                  xbounds = c(min(akp_larvae$roms_temperature),
-                              max(akp_egg$roms_temperature)),
-                  expression(paste("Temperature ("^0, 'C)')),
-                  " ",
-                  "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 plot_variable(akpegg_gams_t,
               covariate = 5,
-              bounds = c(-4, 4),
+              bounds = c(-4, 4.2),
               "Salinity",
               " ",
               "n")
@@ -2645,25 +2889,11 @@ phenology_change(akpegg_vcgrids_t,
                  max(akp_larvae$doy, na.rm = TRUE))
 distribution_change(akp_egg,
                     akpegg_vcgrids_t)
-plot_variable_new(akplarvae_gams_t,
-                  covariate = 2,
-                  ybounds = c(-4, 4),
-                  xbounds = c(min(akp_egg$doy),
-                              max(akp_larvae$doy)),
-                  "Day of Year",
-                  "Species Abundance Anomalies",
-                  "s")
-plot_variable_new(akplarvae_gams_t,
-                  covariate = 4,
-                  ybounds = c(-4, 4),
-                  xbounds = c(min(akp_larvae$roms_temperature),
-                              max(akp_egg$roms_temperature)),
-                  expression(paste("Temperature ("^0, 'C)')),
-                  " ",
-                  "n")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
+plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
 plot_variable(akplarvae_gams_t,
               covariate = 5,
-              bounds = c(-4, 4),
+              bounds = c(-4, 4.2),
               "Salinity",
               " ",
               "n")
@@ -2681,7 +2911,7 @@ plot_variable(yfslarvae_gams_t,
 plot_variable(yfslarvae_gams_t,
               covariate = 4,
               bounds = c(-3, 2),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(yfslarvae_gams_t,
@@ -2704,7 +2934,7 @@ plot_variable(pcodlarvae_gams_t,
 plot_variable(pcodlarvae_gams_t,
               covariate = 4,
               bounds = c(-5.5, 2.5),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(pcodlarvae_gams_t,
@@ -2727,7 +2957,7 @@ plot_variable(nrslarvae_gams_t,
 plot_variable(nrslarvae_gams_t,
               covariate = 4,
               bounds = c(-5, 2),
-              expression(paste("Temperature ("^0, 'C)')),
+              "Temperature \u00B0C",
               " ",
               "n")
 plot_variable(nrslarvae_gams_t,
