@@ -1,4 +1,4 @@
-phenology_change <- function(grids, bounds_min, bounds_max){
+phenology_change <- function(grids, bounds_min, bounds_max, ylab){
   plot(grids[[2]]$doy,
        grids[[2]]$pred,
        main = '',
@@ -12,7 +12,7 @@ phenology_change <- function(grids, bounds_min, bounds_max){
        col = '#000000',
        lwd = 2.5,
        xlab = 'Day of the year',
-       ylab = 'Egg density ln(n/10m2)',
+       ylab = ylab,
        cex.lab = 6.5,
        cex.axis = 6.5)
   polygon(c(grids[[2]]$doy, rev(grids[[2]]$doy)),
