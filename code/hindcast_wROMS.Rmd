@@ -2814,7 +2814,8 @@ plot_variable(pkegg_gams_t,
               "n")
 phenology_change(pkegg_vcgrids_t, 
                  min(pk_egg$doy, na.rm = TRUE),
-                 max(pk_egg$doy, na.rm = TRUE))
+                 max(pk_egg$doy, na.rm = TRUE),
+                 'Egg Density ln(n/10m\u00B2)')
 distribution_change(pk_egg,
                     pkegg_vcgrids_t)
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
@@ -2827,7 +2828,8 @@ plot_variable(pklarvae_gams_t,
               "n")
 phenology_change(pklarvae_vcgrids_t, 
                  min(pk_egg$doy, na.rm = TRUE),
-                 max(pk_egg$doy, na.rm = TRUE))
+                 max(pk_egg$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(pk_larvae,
                     pklarvae_vcgrids_t)
 plot_variable(fhsegg_gams_t,
@@ -2850,7 +2852,8 @@ plot_variable(fhsegg_gams_t,
               "n")
 phenology_change(fhsegg_vcgrids_t, 
                  min(fhs_egg$doy, na.rm = TRUE),
-                 max(fhs_egg$doy, na.rm = TRUE))
+                 max(fhs_egg$doy, na.rm = TRUE),
+                 'Egg Density ln(n/10m\u00B2)')
 distribution_change(fhs_egg,
                     fhsegg_vcgrids_t)
 plot_variable(fhslarvae_gams_t,
@@ -2873,7 +2876,8 @@ plot_variable(fhslarvae_gams_t,
               "n")
 phenology_change(fhslarvae_vcgrids_t, 
                  min(fhs_egg$doy, na.rm = TRUE),
-                 max(fhs_egg$doy, na.rm = TRUE))
+                 max(fhs_egg$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(fhs_larvae,
                     fhslarvae_vcgrids_t)
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
@@ -2886,7 +2890,8 @@ plot_variable(akpegg_gams_t,
               "n")
 phenology_change(akpegg_vcgrids_t, 
                  min(akp_egg$doy, na.rm = TRUE),
-                 max(akp_larvae$doy, na.rm = TRUE))
+                 max(akp_larvae$doy, na.rm = TRUE),
+                 'Egg Density ln(n/10m\u00B2)')
 distribution_change(akp_egg,
                     akpegg_vcgrids_t)
 plot(0, xaxt = "n", yaxt = "n", bty = "n", pch = "", ylab = "", xlab = "")
@@ -2899,7 +2904,8 @@ plot_variable(akplarvae_gams_t,
               "n")
 phenology_change(akplarvae_vcgrids_t, 
                  min(akp_egg$doy, na.rm = TRUE),
-                 max(akp_larvae$doy, na.rm = TRUE))
+                 max(akp_larvae$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(akp_larvae,
                     akplarvae_vcgrids_t)
 plot_variable(yfslarvae_gams_t,
@@ -2922,7 +2928,8 @@ plot_variable(yfslarvae_gams_t,
               "n")
 phenology_change(yfslarvae_vcgrids_t, 
                  min(yfs_larvae$doy, na.rm = TRUE),
-                 max(yfs_larvae$doy, na.rm = TRUE))
+                 max(yfs_larvae$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(yfs_larvae,
                     yfslarvae_vcgrids_t)
 plot_variable(pcodlarvae_gams_t,
@@ -2945,7 +2952,8 @@ plot_variable(pcodlarvae_gams_t,
               "n")
 phenology_change(pcodlarvae_vcgrids_t, 
                  min(pcod_larvae$doy, na.rm = TRUE),
-                 max(pcod_larvae$doy, na.rm = TRUE))
+                 max(pcod_larvae$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(pcod_larvae,
                     pcodlarvae_vcgrids_t)
 plot_variable(nrslarvae_gams_t,
@@ -2968,7 +2976,8 @@ plot_variable(nrslarvae_gams_t,
               "n")
 phenology_change(nrslarvae_vcgrids_t, 
                  min(nrs_larvae$doy, na.rm = TRUE),
-                 max(nrs_larvae$doy, na.rm = TRUE))
+                 max(nrs_larvae$doy, na.rm = TRUE),
+                 'Larval Density ln(n/10m\u00B2)')
 distribution_change(nrs_larvae,
                     nrslarvae_vcgrids_t)
 mtext("Walleye Pollock", 
