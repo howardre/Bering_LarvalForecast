@@ -2807,7 +2807,7 @@ plot_variable(pkegg_gams_t,
               " ",
               "n")
 plot_variable(pkegg_gams_t,
-              covariate = 4,
+              covariate = 5,
               bounds = c(-6, 8),
               "Salinity",
               " ",
