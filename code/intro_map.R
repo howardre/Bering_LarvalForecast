@@ -73,3 +73,47 @@ dev.copy(jpeg,
          res = 200,
          units = 'in')
 dev.off()
+
+# Presentation map
+pk_larvae <- readRDS(here('data', 'pk_larvae.rds'))
+
+basemap(data = BS_bathy,
+        bathymetry = TRUE,
+        rotate = TRUE,
+        legends = FALSE,
+        land.col = "wheat4",
+        grid.col = NA,
+        lon.interval = 5,
+        lat.interval = 2) +
+  geom_polygon(data = transform_coord(BS_bathy),
+               aes(x = lon, y = lat),
+               fill = NA) +
+  scale_fill_manual(values = bathy_palette) +
+  labs(x = "Longitude",
+       y = "Latitude")  +
+  ggspatial::annotation_north_arrow(location = "tr",
+                                    which_north = "true",
+                                    style = ggspatial::north_arrow_nautical(text_family = "sans"),
+                                    height = unit(3, "cm"),
+                                    width = unit(3, "cm")) +
+  ggspatial::annotation_scale(location = "bl",
+                              text_family = "sans",
+                              style = "ticks",
+                              height = unit(0.7, "cm"),
+                              text_cex = 1.6,
+                              line_width = 1.8) +
+  ggspatial::geom_spatial_point(data = pk_larvae,
+                                aes(x = lon, y = lat), 
+                                color = "firebrick4",
+                                size = 2.5) +
+  theme(axis.text = element_text(family = "sans", size = 20),
+        axis.title = element_text(family = "sans", size = 23),
+        strip.text = element_text(family = "sans", size = 21))
+dev.copy(jpeg,
+         here('results',
+              'pklarvae_map.jpg'),
+         height = 10,
+         width = 12,
+         res = 200,
+         units = 'in')
+dev.off()
