@@ -35,22 +35,22 @@ gam_cv <- function(data){
                      method = 'REML')
   
   # Get correlation coefficient
-  small_pred <- predict(gam_small,
-                        newdata = test,
-                        type = "response")
-  small_rmse <- sqrt(mean((small_pred$larvalcatchper10m2 - small_pred$pred)^2))
-  base_pred <- predict(gam_base,
-                       newdata = test,
-                       type = "response")
-  base_rmse <- sqrt(mean((base_pred$larvalcatchper10m2 - base_pred$pred)^2))
-  vc_phen_pred <- predict(gam_vc_phen,
-                          newdata = test,
-                          type = "response")
-  vc_phen_rmse <- sqrt(mean((vc_phen_pred$larvalcatchper10m2 - vc_phen_pred$pred)^2))
-  vc_geog_pred <- predict(gam_vc_geog,
-                          newdata = test,
-                          type = "response")
-  vc_geog_rmse <- sqrt(mean((vc_geog_pred$larvalcatchper10m2 - vc_geog_pred$pred)^2))
+  test$small_pred <- predict(gam_small,
+                             newdata = test,
+                             type = "response")
+  small_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$small_pred)^2))
+  test$base_pred <- predict(gam_base,
+                            newdata = test,
+                            type =  "response")
+  base_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$base_pred)^2))
+  test$vc_phen_pred <- predict(gam_vc_phen,
+                               newdata = test,
+                               type = "response")
+  vc_phen_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$vc_phen_pred)^2))
+  test$vc_geog_pred <- predict(gam_vc_geog,
+                               newdata = test,
+                               type = "response")
+  vc_geog_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$vc_geog_pred)^2))
 
 
   gam_list <- list(small_rmse, base_rmse, vc_phen_rmse, vc_geog_rmse)
