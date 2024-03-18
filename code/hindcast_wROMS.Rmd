@@ -153,6 +153,13 @@ summary(pkegg_gams_t[[1]][[2]])
 AIC(pk_egg_base_t) - AIC(pkegg_gams_t[[2]]) 
 ```
 
+10-fold cross validation
+```{r}
+pkegg_cc <- gam_cv(pk_egg)
+pkegg_cc
+```
+
+
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
