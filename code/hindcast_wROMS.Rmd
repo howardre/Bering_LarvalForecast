@@ -153,13 +153,6 @@ summary(pkegg_gams_t[[1]][[2]])
 AIC(pk_egg_base_t) - AIC(pkegg_gams_t[[2]]) 
 ```
 
-Cross validation
-```{r}
-pkegg_cc <- gam_cv(pk_egg)
-pkegg_cc
-```
-
-
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
@@ -413,12 +406,6 @@ dev.copy(jpeg, here('results/pollock_hindcast', 'pollock_larvae_roms_spacevc_res
 dev.off()
 ```
 
-Cross validation
-```{r}
-pklarvae_cc <- gam_cv(pk_larvae)
-pklarvae_cc
-```
-
 VC GAM ratios
 ```{r}
 # Use the original presence model from before
@@ -596,12 +583,6 @@ summary(fhsegg_gams_t[[2]]) # best model is spatial VC
 AIC(fhs_egg_base_t) - AIC(fhsegg_gams_t[[2]]) 
 summary(fhsegg_gams_t[[1]][[1]])
 summary(fhsegg_gams_t[[1]][[2]])
-```
-
-Cross validation
-```{r}
-fhsegg_cc <- gam_cv(fhs_egg)
-fhsegg_cc
 ```
 
 Plot best model for phenology
@@ -806,12 +787,6 @@ summary(fhslarvae_gams_t[[2]]) # best model is spatial VC, keep all smooth terms
 AIC(fhs_larvae_base_t) - AIC(fhslarvae_gams_t[[2]]) 
 summary(fhslarvae_gams_t[[1]][[1]])
 summary(fhslarvae_gams_t[[1]][[2]])
-```
-
-Cross validation
-```{r}
-fhslarvae_cc <- gam_cv(fhs_larvae)
-fhslarvae_cc
 ```
 
 Plot best model for phenology
@@ -1228,12 +1203,6 @@ dev.copy(jpeg, here('results/yellowfin_hindcast', 'yellowfin_larvae_roms_monthvc
 dev.off()
 ```
 
-Cross validation
-```{r}
-yfslarvae_cc <- gam_cv(yfs_larvae)
-yfslarvae_cc
-```
-
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
@@ -1451,12 +1420,6 @@ dev.copy(jpeg, here('results/plaice_hindcast', 'plaice_egg_roms_monthvc_resid_t.
 dev.off()
 ```
 
-Cross validation
-```{r}
-akpegg_cc <- gam_cv(akp_egg)
-akpegg_cc
-```
-
 Plot best model for geography
 ```{r}
 par(mfrow = c(2, 2))
@@ -1639,12 +1602,6 @@ summary(akplarvae_gams_t[[2]]) # best is spatial VC
 AIC(akp_larvae_base_t) - AIC(akplarvae_gams_t[[2]])
 summary(akplarvae_gams_t[[1]][[1]])
 summary(akplarvae_gams_t[[1]][[2]])
-```
-
-Cross validation
-```{r}
-akplarvae_cc <- gam_cv(akp_larvae)
-akplarvae_cc
 ```
 
 Plot best model for phenology
@@ -1856,12 +1813,6 @@ summary(pcodlarvae_gams_t[[1]][[1]])
 summary(pcodlarvae_gams_t[[1]][[3]])
 ```
 
-Cross validation
-```{r}
-pcodlarvae_cc <- gam_cv(pcod_larvae)
-pcodlarvae_cc
-```
-
 Plot best model for phenology
 ```{r}
 # Best model by AIC is model 2
@@ -2063,12 +2014,6 @@ summary(nrslarvae_gams_t[[2]]) # best is spatial VC
 AIC(nrs_larvae_base_t) - AIC(nrslarvae_gams_t[[2]]) 
 summary(nrslarvae_gams_t[[1]][[1]])
 summary(nrslarvae_gams_t[[1]][[2]])
-```
-
-Cross validation
-```{r}
-nrslarvae_cc <- gam_cv(nrs_larvae)
-nrslarvae_cc
 ```
 
 Plot best model for phenology
