@@ -38,20 +38,31 @@ gam_cv <- function(data){
   test$small_pred <- predict(gam_small,
                              newdata = test,
                              type = "response")
-  small_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$small_pred)^2))
+  small_sp <- cor.test(test$larvalcatchper10m2, 
+                       test$small_pred, 
+                       method = 'spearman',
+                       exact = FALSE)
   test$base_pred <- predict(gam_base,
                             newdata = test,
                             type =  "response")
-  base_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$base_pred)^2))
+  base_sp <- cor.test(test$larvalcatchper10m2, 
+                      test$base_pred, 
+                      method = 'spearman',
+                      exact = FALSE)
   test$vc_phen_pred <- predict(gam_vc_phen,
                                newdata = test,
                                type = "response")
-  vc_phen_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$vc_phen_pred)^2))
+  vc_phen_sp <- cor.test(test$larvalcatchper10m2,
+                         test$vc_phen_pred,
+                         method = 'spearman',
+                         exact = FALSE)
   test$vc_geog_pred <- predict(gam_vc_geog,
                                newdata = test,
                                type = "response")
-  vc_geog_rmse <- sqrt(mean((test$larvalcatchper10m2 - test$vc_geog_pred)^2))
+  vc_geog_sp <- cor.test(test$larvalcatchper10m2,
+                         test$vc_geog_pred,
+                         method = 'spearman',
+                         exact = FALSE)
 
-
-  gam_list <- list(small_rmse, base_rmse, vc_phen_rmse, vc_geog_rmse)
+  gam_list <- list(small_sp, base_sp, vc_phen_sp, vc_geog_sp)
 }
