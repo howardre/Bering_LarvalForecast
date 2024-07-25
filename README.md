@@ -1,6 +1,6 @@
 # Projecting marine species distributions during early life stages under future climate scenarios
 
-This is part of an NPRB funded project focused on forecasting Bering Sea groundfish distributions during their early life stages (egg and larvae). Portions of this work will comprise a chapter in my PhD dissertation and are in preparation to be submitted for publication.
+This is part of an NPRB funded project focused on forecasting Bering Sea groundfish distributions during their early life stages (egg and larvae). Portions of this work are found in Chapter 3 of my PhD dissertation and are published in Fish and Fisheres, found [here](https://onlinelibrary.wiley.com/doi/pdf/10.1111/faf.12835).
 
 ### Data
 - The **EcoFOCI Groundfish Surveys** are used for egg and larval data for six groundfish species. These data are collected using paired bongo nets at predetermined stations throughout the eastern Bering Sea. Data are available upon request from EcoFOCI. Data cleaning methods can be found [here](code/EcoFOCI_cleaning.R/).
